@@ -57,7 +57,7 @@ module DataMiner
       # Mine data. Defaults to all classes touched by DataMiner.
       #
       # Options
-      # * <tt>:class_names</tt>: provide a list of class names to mine
+      # * <tt>:class_names</tt>: provide an array class names to mine
       def mine(options = {})
         classes.each do |klass|
           if options[:class_names].blank? or options[:class_names].include?(klass.name)
