@@ -1,18 +1,68 @@
-= data_miner
+=data_miner
 
-Description goes here.
+Mine data from third-party files into your ActiveRecord models.
 
-== Note on Patches/Pull Requests
- 
-* Fork the project.
-* Make your feature addition or bug fix.
-* Add tests for it. This is important so I don't break it in a
-  future version unintentionally.
-* Commit, do not mess with rakefile, version, or history.
-  (if you want to have your own version, that is fine but
-   bump version in a commit by itself I can ignore when I pull)
-* Send me a pull request. Bonus points for topic branches.
+==Quick start
 
-== Copyright
+Put this in <tt>config/environment.rb</tt>:
+
+  config.gem 'seamusabshere-data_miner', :lib => 'data_miner', :source => 'http://gems.github.com'
+
+Put this in <tt>lib/tasks/data_miner_tasks.rb</tt>: (unfortunately I don't know a way to automatically include gem tasks, so you have to do this manually for now)
+
+  namespace :data_miner do
+    task :mine => :environment do
+      DataMiner.mine :class_names => ENV['CLASSES'].to_s.split(/\s*,\s*/).flatten.compact
+    end
+  end
+
+Put this in <tt>config/initializers/data_miner_config.rb</tt>:
+
+  DataMiner.enqueue do |queue|
+    queue << Country  # class whose data should be mined 1st
+    queue << Airport  # class whose data should be mined 2nd
+    # etc
+  end
+
+Put this in <tt>app/models/country.rb</tt>: (assuming Country has columns "iso_3166" and "name")
+
+  class Country < ActiveRecord::Base
+    mine_data do |step|
+      # import country names and country codes
+      step.import :url => 'http://www.cs.princeton.edu/introcs/data/iso3166.csv' do |attr|
+        attr.key :iso_3166, :name_in_source => 'country code'
+        attr.store :iso_3166, :name_in_source => 'country code'
+        attr.store :name, :name_in_source => 'country'
+      end
+    end
+  end
+
+Put this in <tt>app/models/airport.rb</tt>: (assuming Airport belongs_to :country and has the columns "iata_code, "name", etc.)
+
+  class Airport < ActiveRecord::Base
+    belongs_to :country
+  
+    mine_data do |step|
+      # import airport iata_code, name, etc.
+      step.import(:url => 'http://openflights.svn.sourceforge.net/viewvc/openflights/openflights/data/airports.dat', :headers => false) do |attr|
+        attr.key :iata_code, :field_number => 3
+        attr.store :name, :field_number => 0
+        attr.store :city, :field_number => 1
+        attr.store :country_content, :field_number => 2
+        attr.store :iata_code, :field_number => 3
+        attr.store :latitude, :field_number => 5
+        attr.store :longitude, :field_number => 6
+      end
+  
+      # associate airports to countries based on country name
+      step.associate :country, :key => :country_content, :foreign_key => :name
+    end
+  end
+
+Run this:
+
+  $ rake data_miner:mine
+
+==Copyright
 
 Copyright (c) 2009 Seamus Abshere. See LICENSE for details.

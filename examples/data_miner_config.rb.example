@@ -1,4 +1,0 @@
-DataMiner.enqueue do |queue|
-  queue << AutomobileModelYear
-  queue << AutomobileModel
-end
