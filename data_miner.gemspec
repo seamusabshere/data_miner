@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Seamus Abshere", "Andy Rossmeissl"]
   s.date = %q{2009-08-19}
-  s.description = %q{Mine government and other third-party data}
+  s.description = %q{Mine remote data into your ActiveRecord models.}
   s.email = %q{seamus@abshere.net}
   s.extra_rdoc_files = [
     "LICENSE",
@@ -44,7 +44,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8", "--line-numbers", "--inline-source"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.5}
-  s.summary = %q{Mine government and other third-party data}
+  s.summary = %q{Mine remote data into your ActiveRecord models.}
   s.test_files = [
     "test/data_miner_test.rb",
      "test/test_helper.rb"
