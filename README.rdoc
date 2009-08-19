@@ -82,6 +82,11 @@ Now you should have
   >> Airport.first.country.name
   => "Papua New Guinea"
 
+==Authors
+
+* Seamus Abshere <seamus@abshere.net>
+* Andy Rossmeissl <andy@rossmeissl.net>
+
 ==Copyright
 
 Copyright (c) 2009 Brighter Planet. See LICENSE for details.
