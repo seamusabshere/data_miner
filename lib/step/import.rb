@@ -34,7 +34,7 @@ module DataMiner
             record.save
           end
         end
-        DataMiner.logger.info "performed #{signature}"
+        $stderr.puts "performed #{signature}"
       end
       
       def wants_truncate?

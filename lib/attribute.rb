@@ -83,7 +83,7 @@ module DataMiner
       return if !wants_overwriting?(step) and !record.send(name).nil?
       value = value_from_row(step, row)
       record.send "#{name}=", value
-      DataMiner.logger.warn("ActiveRecord didn't like trying to set #{klass}.#{name} = #{value}") if !value.nil? and record.send(name).nil?
+      $stderr.puts("ActiveRecord didn't like trying to set #{klass}.#{name} = #{value}") if !value.nil? and record.send(name).nil?
     end
 
     def perform(step)

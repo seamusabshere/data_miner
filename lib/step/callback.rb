@@ -11,7 +11,7 @@ module DataMiner
       
       def perform
         foreign_step.callback
-        DataMiner.logger.info "performed #{signature}"
+        $stderr.puts "performed #{signature}"
       end
       
       def signature

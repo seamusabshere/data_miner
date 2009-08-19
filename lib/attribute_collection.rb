@@ -23,11 +23,11 @@ module DataMiner
     end
 
     def all_affected_by(step)
-      attributes.values.find_all { |attr| attr.affected_by?(step) }
+      attributes.values.select { |attr| attr.affected_by?(step) }
     end
 
     def all_keys_for(step)
-      attributes.values.find_all { |attr| attr.key_for?(step) }
+      attributes.values.select { |attr| attr.key_for?(step) }
     end
     
     def all_for(step)
