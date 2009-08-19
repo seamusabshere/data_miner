@@ -1,0 +1,49 @@
+DataMiner.order! do |queue|
+  queue << YearlyTypicalEmission            # OK; not third party
+  queue << MonthlyEmissionVariance          # OK; not third party
+  queue << YearlyAnonymousEmission          # OK; not third party
+  queue << PetroleumAdministrationForDefenseDistrict # OK; not third party
+  queue << CensusRegion                     # OK
+  queue << CensusDivision                   # OK
+  queue << State                            # OK
+  queue << EgridRegion                      # OK
+  queue << EgridSubregion                   # OK; not third party
+  queue << ClimateDivision                  # OK; not third party
+  queue << ZipCode                          # OK
+  queue << Country                          # OK
+  queue << ResidenceFuelCost                # WiP
+  queue << ResidenceAirConditionerUse       # OK; wants recs codebook parser
+  queue << ResidenceClass                   # OK; wants recs codebook parser
+  queue << ResidenceClothesDrierUse         # OK; wants recs codebook parser
+  queue << ResidenceDishwasherUse           # OK; wants recs codebook parser
+  queue << ResidenceUrbanity                # OK; wants recs codebook parser
+  queue << ResidenceFuelType                # OK; not third party
+  queue << ResidenceSurveyResponse          # OK
+  queue << ResidenceAppliance               # OK
+  queue << Airport                          # OK
+  queue << FlightAircraftClass              # OK; not third party
+  queue << FlightManufacturer               # OK
+  queue << FlightAirline                    # OK
+  queue << FlightAircraft                   # wants more iata mappings for better m1, m2, etc.
+  queue << FlightDomesticity                # unfinished
+  queue << FlightDistanceClass              # OK
+  queue << FlightPropulsion                 # OK
+  queue << FlightConfiguration              # OK
+  queue << FlightService                    # OK
+#  queue << FlightAirlineAircraftSeatClass   # needs seat expert import
+#  queue << FlightAirlineAircraft            # needs faasc
+  queue << FlightSegment                    # OK; third-party data not yet hosted on third-party site
+  queue << FlightSeatClass                  # OK; not third party
+  queue << AutomobileFuelType               # OK
+  queue << AutomobileModelYear              # OK
+  queue << AutomobileModel                  # OK
+  queue << AutomobileVariant                # OK
+  queue << AutomobileSizeClass              # OK; not third party
+  queue << AutomobileMakeFleetYear          # OK; third-party data not yet hosted on third-party site
+  queue << AutomobileMakeYear               # OK
+  queue << AutomobileMake                   # OK
+  queue << BusClass                         # OK; not third party; wants conversion to metric
+  queue << DietClass                        # OK; not third party
+  queue << FoodGroup                        # OK; not third party
+  queue << RailClass                        # OK; not third party; wants conversion to metric
+end

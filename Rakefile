@@ -5,12 +5,16 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "data_miner"
-    gem.summary = %Q{TODO: one-line summary of your gem}
-    gem.description = %Q{TODO: longer description of your gem}
+    gem.summary = %Q{Mine government and other third-party data}
+    gem.description = %Q{Mine government and other third-party data}
     gem.email = "seamus@abshere.net"
     gem.homepage = "http://github.com/seamusabshere/data_miner"
-    gem.authors = ["Seamus Abshere"]
-    gem.rubyforge_project = "data_miner"
+    gem.authors = ["Seamus Abshere", "Andy Rossmeissl"]
+    # %w{  }.each { |name| gem.add_dependency name }
+    gem.require_path = "lib"
+    gem.files.include %w(lib/data_miner) unless gem.files.empty? # seems to fail once it's in the wild
+    gem.rdoc_options << '--line-numbers' << '--inline-source'
+    # gem.rubyforge_project = "dataminer"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
 
