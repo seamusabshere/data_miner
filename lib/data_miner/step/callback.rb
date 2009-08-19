@@ -9,7 +9,7 @@ module DataMiner
         @number = "(last)"
       end
       
-      def perform
+      def perform(*args)
         foreign_step.callback
         $stderr.puts "performed #{signature}"
       end

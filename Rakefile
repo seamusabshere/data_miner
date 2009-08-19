@@ -5,8 +5,8 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "data_miner"
-    gem.summary = %Q{Mine government and other third-party data}
-    gem.description = %Q{Mine government and other third-party data}
+    gem.summary = %Q{Mine remote data into your ActiveRecord models.}
+    gem.description = %Q{Mine remote data into your ActiveRecord models.}
     gem.email = "seamus@abshere.net"
     gem.homepage = "http://github.com/seamusabshere/data_miner"
     gem.authors = ["Seamus Abshere", "Andy Rossmeissl"]

@@ -36,6 +36,7 @@ Gem::Specification.new do |s|
      "lib/data_miner/step/callback.rb",
      "lib/data_miner/step/derive.rb",
      "lib/data_miner/step/import.rb",
+     "lib/data_miner/william_james_cartesian_product.rb",
      "test/data_miner_test.rb",
      "test/test_helper.rb"
   ]

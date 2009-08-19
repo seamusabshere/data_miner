@@ -1,6 +1,6 @@
 =data_miner
 
-Mine data from third-party files into your ActiveRecord models.
+Mine remote data into your ActiveRecord models.
 
 ==Quick start
 
@@ -8,7 +8,7 @@ Put this in <tt>config/environment.rb</tt>:
 
   config.gem 'seamusabshere-data_miner', :lib => 'data_miner', :source => 'http://gems.github.com'
 
-Put this in <tt>lib/tasks/data_miner_tasks.rb</tt>: (unfortunately I don't know a way to automatically include gem tasks, so you have to do this manually for now)
+Put this in <tt>lib/tasks/data_miner_tasks.rake</tt>: (unfortunately I don't know a way to automatically include gem tasks, so you have to do this manually for now)
 
   namespace :data_miner do
     task :mine => :environment do
@@ -16,7 +16,7 @@ Put this in <tt>lib/tasks/data_miner_tasks.rb</tt>: (unfortunately I don't know 
     end
   end
 
-Put this in <tt>config/initializers/data_miner_config.rb</tt>:
+You need to specify what order to mine data. For example, in <tt>config/initializers/data_miner_config.rb</tt>:
 
   DataMiner.enqueue do |queue|
     queue << Country  # class whose data should be mined 1st
@@ -24,7 +24,7 @@ Put this in <tt>config/initializers/data_miner_config.rb</tt>:
     # etc
   end
 
-Put this in <tt>app/models/country.rb</tt>: (assuming Country has columns "iso_3166" and "name")
+You need to define <tt>mine_data</tt> blocks. For example, in <tt>app/models/country.rb</tt>:
 
   class Country < ActiveRecord::Base
     mine_data do |step|
@@ -37,7 +37,7 @@ Put this in <tt>app/models/country.rb</tt>: (assuming Country has columns "iso_3
     end
   end
 
-Put this in <tt>app/models/airport.rb</tt>: (assuming Airport belongs_to :country and has the columns "iata_code, "name", etc.)
+To complete the example, in <tt>app/models/airport.rb</tt>:
 
   class Airport < ActiveRecord::Base
     belongs_to :country
@@ -48,21 +48,40 @@ Put this in <tt>app/models/airport.rb</tt>: (assuming Airport belongs_to :countr
         attr.key :iata_code, :field_number => 3
         attr.store :name, :field_number => 0
         attr.store :city, :field_number => 1
-        attr.store :country_content, :field_number => 2
+        attr.store :country, :field_number => 2, :foreign_key => :name       # will use Country.find_by_name(X)
         attr.store :iata_code, :field_number => 3
         attr.store :latitude, :field_number => 5
         attr.store :longitude, :field_number => 6
       end
-  
-      # associate airports to countries based on country name
-      step.associate :country, :key => :country_content, :foreign_key => :name
     end
   end
 
-Run this:
+Once you have (1) set up the order of data mining and (2) defined <tt>mine_data</tt> blocks in your classes, you can:
 
   $ rake data_miner:mine
 
+==Complete example
+
+  ~ $ rails testapp
+  ~ $ cd testapp/
+  ~/testapp $ ./script/generate model Airport iata_code:string name:string city:string country_id:integer latitude:float longitude:float
+  ~/testapp $ ./script/generate model Country iso_3166:string name:string
+  ~/testapp $ rake db:migrate
+  ~/testapp $ touch lib/tasks/data_miner_tasks.rb
+  [...edit per quick start...]
+  ~/testapp $ touch config/initializers/data_miner_config.rake
+  [...edit per quick start...]
+  ~/testapp $ rake data_miner:mine
+
+Now you should have
+
+  ~/testapp $ ./script/console 
+  Loading development environment (Rails 2.3.3)
+  >> Airport.first.iata_code
+  => "GKA"
+  >> Airport.first.country.name
+  => "Papua New Guinea"
+
 ==Copyright
 
-Copyright (c) 2009 Seamus Abshere. See LICENSE for details.
+Copyright (c) 2009 Brighter Planet. See LICENSE for details.

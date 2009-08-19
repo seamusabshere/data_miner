@@ -48,10 +48,10 @@ module DataMiner
 
     # Mine data for this class.
     def mine(options = {})
-      steps.each { |step| step.perform(options) }
+      steps.each { |step| step.perform options }
     end
 
-    cattr_accessor :classes 
+    cattr_accessor :classes
     self.classes = []
     class << self
       # Mine data. Defaults to all classes touched by DataMiner.

@@ -30,8 +30,8 @@ module DataMiner
       "#{klass} step #{number}: #{variant}"
     end
     
-    def perform(force = false)
-      return if awaiting? and !force
+    def perform(options = {})
+      return if awaiting? and !options[:force]
       affected_attributes.each { |attr| attr.perform self }
       $stderr.puts "performed #{signature}"
     end

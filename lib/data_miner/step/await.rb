@@ -14,14 +14,14 @@ module DataMiner
         configuration.stop_awaiting!
       end
       
-      def perform
+      def perform(*args)
         other_class.data_mine.steps << Step::Callback.new(other_class.data_mine, self)
         $stderr.puts "added #{signature} to callbacks after #{other_class}"
       end
       
       def callback
         $stderr.puts "starting to perform deferred steps in #{signature}..."
-        all_awaiting.each { |step| step.perform true }
+        all_awaiting.each { |step| step.perform :force => true }
         $stderr.puts "...done"
       end
       

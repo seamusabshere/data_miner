@@ -13,7 +13,7 @@ module DataMiner
         "#{super} #{options[:url]}"
       end
 
-      def perform
+      def perform(*args)
         ActiveRecord::Base.connection.execute("TRUNCATE #{klass.quoted_table_name}") if wants_truncate?
         table.each_row do |row|
           if errata

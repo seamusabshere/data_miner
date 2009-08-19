@@ -15,15 +15,20 @@ require 'data_miner/step/await'
 require 'data_miner/step/callback'
 require 'data_miner/step/derive'
 require 'data_miner/step/import'
+require 'data_miner/william_james_cartesian_product' # TODO: move to gem
 
 module DataMiner
   class << self
     def mine(options = {})
-      Configuration.mine options
+      DataMiner::Configuration.mine options
     end
 
     def enqueue(&block)
-      Configuration.enqueue &block
+      DataMiner::Configuration.enqueue &block
+    end
+    
+    def classes
+      DataMiner::Configuration.classes
     end
   end
 end
