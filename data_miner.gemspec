@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
      "README.rdoc",
      "Rakefile",
      "VERSION",
-     "examples/data_miner_config.rb.example",
+     "data_miner.gemspec",
      "lib/data_miner.rb",
      "lib/data_miner/active_record_ext.rb",
      "lib/data_miner/attribute.rb",
@@ -36,7 +36,6 @@ Gem::Specification.new do |s|
      "lib/data_miner/step/callback.rb",
      "lib/data_miner/step/derive.rb",
      "lib/data_miner/step/import.rb",
-     "tasks/data_miner_tasks.rake",
      "test/data_miner_test.rb",
      "test/test_helper.rb"
   ]
