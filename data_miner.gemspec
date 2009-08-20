@@ -9,8 +9,8 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Seamus Abshere", "Andy Rossmeissl"]
-  s.date = %q{2009-08-19}
-  s.description = %q{Mine remote data into your ActiveRecord models.}
+  s.date = %q{2009-08-20}
+  s.description = %q{Mine remote data into your ActiveRecord models. You can also perform associations and convert units.}
   s.email = %q{seamus@abshere.net}
   s.extra_rdoc_files = [
     "LICENSE",
@@ -59,16 +59,19 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<activesupport>, [">= 0"])
       s.add_runtime_dependency(%q<seamusabshere-remote_table>, [">= 0"])
       s.add_runtime_dependency(%q<seamusabshere-errata>, [">= 0"])
+      s.add_runtime_dependency(%q<seamusabshere-conversions>, [">= 0"])
     else
       s.add_dependency(%q<activerecord>, [">= 0"])
       s.add_dependency(%q<activesupport>, [">= 0"])
       s.add_dependency(%q<seamusabshere-remote_table>, [">= 0"])
       s.add_dependency(%q<seamusabshere-errata>, [">= 0"])
+      s.add_dependency(%q<seamusabshere-conversions>, [">= 0"])
     end
   else
     s.add_dependency(%q<activerecord>, [">= 0"])
     s.add_dependency(%q<activesupport>, [">= 0"])
     s.add_dependency(%q<seamusabshere-remote_table>, [">= 0"])
     s.add_dependency(%q<seamusabshere-errata>, [">= 0"])
+    s.add_dependency(%q<seamusabshere-conversions>, [">= 0"])
   end
 end

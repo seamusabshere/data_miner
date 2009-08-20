@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'activesupport'
 require 'activerecord'
+require 'conversions'
 require 'remote_table'
 require 'errata'
 
