@@ -6,7 +6,7 @@ module DataMiner
 
     module ClassMethods
       def mine_data(options = {}, &block)
-        if defined?(:NO_DATA_MINER) and ::NO_DATA_MINER == true
+        if defined?(NO_DATA_MINER) and NO_DATA_MINER == true
           class_eval do
             class << self
               def data_mine
