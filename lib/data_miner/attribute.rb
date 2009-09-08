@@ -9,6 +9,19 @@ module DataMiner
       @affected_by_steps = []
       @key_for_steps = []
     end
+    
+    # polling questions
+    def report_find_or_create(step)
+      "Creates parents: #{klass}##{name} is set with #{reflection_klass(step)}.find_or_create_by_#{foreign_key(step)}" if wants_create?(step)
+    end
+    
+    def report_unnatural_order(step)
+      if  wants_inline_association? and
+          reflection_klass(step) and
+          step.configuration.classes.index(reflection_klass(step)) > step.configuration.classes.index(klass)
+        "Unnatural order: #{klass} comes before #{reflection_klass(step)}, but it might need it to already be mined"
+      end
+    end
 
     def inspect
       "Attribute(#{klass}.#{name})"

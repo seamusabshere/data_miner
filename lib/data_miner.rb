@@ -24,15 +24,8 @@ module DataMiner
       DataMiner::Configuration.mine options
     end
     
-    def dependencies(options = {})
-      DataMiner::Configuration.dependencies(options).each do |d|
-        unless d[:natural_order]
-          str = "#{"#{d[:klass]}:".ljust(30)} #{d[:attr_name]} needs #{d[:reflection_klass]}."
-          str << " it's not in natural order." 
-          str << " it will create parents." if d[:create]
-          puts str
-        end
-      end
+    def map_to_attrs(method, options = {})
+      puts DataMiner::Configuration.map_to_attrs(method, options)
     end
 
     def enqueue(&block)

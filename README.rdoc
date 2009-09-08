@@ -8,26 +8,6 @@ Put this in <tt>config/environment.rb</tt>:
 
   config.gem 'seamusabshere-data_miner', :lib => 'data_miner', :source => 'http://gems.github.com'
 
-Put this in <tt>lib/tasks/data_miner_tasks.rake</tt>: (unfortunately I don't know a way to automatically include gem tasks, so you have to do this manually for now)
-
-  namespace :data_miner do
-    task :mine => :environment do
-      DataMiner.mine :class_names => ENV['CLASSES'].to_s.split(/\s*,\s*/).flatten.compact
-    end
-    
-    task :dependencies => :environment do
-      DataMiner.dependencies :class_names => ENV['CLASSES'].to_s.split(/\s*,\s*/).flatten.compact
-    end
-  end
-
-You need to specify what order to mine data. For example, in <tt>config/initializers/data_miner_config.rb</tt>:
-
-  DataMiner.enqueue do |queue|
-    queue << Country  # class whose data should be mined 1st
-    queue << Airport  # class whose data should be mined 2nd
-    # etc
-  end
-
 You need to define <tt>mine_data</tt> blocks. For example, in <tt>app/models/country.rb</tt>:
 
   class Country < ActiveRecord::Base
@@ -58,6 +38,26 @@ To complete the example, in <tt>app/models/airport.rb</tt>:
         attr.store :longitude, :field_number => 6
       end
     end
+  end
+
+Put this in <tt>lib/tasks/data_miner_tasks.rake</tt>: (unfortunately I don't know a way to automatically include gem tasks, so you have to do this manually for now)
+
+  namespace :data_miner do
+    task :mine => :environment do
+      DataMiner.mine :class_names => ENV['CLASSES'].to_s.split(/\s*,\s*/).flatten.compact
+    end
+
+    task :map_to_attrs => :environment do
+      DataMiner.map_to_attrs ENV['METHOD'], :class_names => ENV['CLASSES'].to_s.split(/\s*,\s*/).flatten.compact
+    end
+  end
+
+You need to specify what order to mine data. For example, in <tt>config/initializers/data_miner_config.rb</tt>:
+
+  DataMiner.enqueue do |queue|
+    queue << Country  # class whose data should be mined 1st
+    queue << Airport  # class whose data should be mined 2nd
+    # etc
   end
 
 Once you have (1) set up the order of data mining and (2) defined <tt>mine_data</tt> blocks in your classes, you can:

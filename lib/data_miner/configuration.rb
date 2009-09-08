@@ -51,9 +51,9 @@ module DataMiner
       steps.each { |step| step.perform options }
     end
     
-    # Get dependencies for this class
-    def dependencies
-      steps.map { |step| step.dependencies }.compact
+    # Map <tt>method</tt> to attributes
+    def map_to_attrs(method)
+      steps.map { |step| step.map_to_attrs(method) }.compact
     end
 
     cattr_accessor :classes
@@ -71,14 +71,14 @@ module DataMiner
         end
       end
       
-      # Get dependencies for all classes. Defaults to all classes touched by DataMiner.
+      # Map a <tt>method</tt> to attrs. Defaults to all classes touched by DataMiner.
       #
       # Options
       # * <tt>:class_names</tt>: provide an array class names to mine
-      def dependencies(options = {})
+      def map_to_attrs(method, options = {})
         classes.map do |klass|
           if options[:class_names].blank? or options[:class_names].include?(klass.name)
-            klass.data_mine.dependencies
+            klass.data_mine.map_to_attrs method
           end
         end.flatten.compact
       end
