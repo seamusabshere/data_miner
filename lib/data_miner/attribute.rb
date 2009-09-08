@@ -75,7 +75,11 @@ module DataMiner
     def value_as_association(step, value)
       @_value_as_association ||= {}
       @_value_as_association[step] ||= {}
-      @_value_as_association[step][value] ||= reflection_klass(step).send("find_by_#{foreign_key(step)}", value)
+      if !@_value_as_association[step].has_key?(value)
+        dynamic_matcher = wants_create?(step) ? "find_or_create_by_#{foreign_key(step)}" : "find_by_#{foreign_key(step)}"
+        @_value_as_association[step][value] = reflection_klass(step).send(dynamic_matcher, value)
+      end
+      @_value_as_association[step][value]
     end
     
     # this will overwrite nils, even if wants_overwriting?(step) is false
@@ -193,7 +197,7 @@ module DataMiner
     {
       :static => 'options_for_step[step].has_key?(:static)',
       :prefix => :prefix,
-      :create => 'create(step) != false',
+      :create => :create,
       :keep => :keep,
       :upcase => :upcase,
       :conversion => '!from(step).nil? or !unit_in_source(step).nil?',
@@ -247,7 +251,7 @@ module DataMiner
     end
     
     def wants_inline_association?
-      !reflection.nil?
+      reflection.present?
     end
     
     def callback(step)
