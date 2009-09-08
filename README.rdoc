@@ -14,6 +14,10 @@ Put this in <tt>lib/tasks/data_miner_tasks.rake</tt>: (unfortunately I don't kno
     task :mine => :environment do
       DataMiner.mine :class_names => ENV['CLASSES'].to_s.split(/\s*,\s*/).flatten.compact
     end
+    
+    task :dependencies => :environment do
+      DataMiner.dependencies :class_names => ENV['CLASSES'].to_s.split(/\s*,\s*/).flatten.compact
+    end
   end
 
 You need to specify what order to mine data. For example, in <tt>config/initializers/data_miner_config.rb</tt>:

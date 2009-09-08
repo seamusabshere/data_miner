@@ -56,5 +56,19 @@ module DataMiner
       attributes.affect! self, attr_name, attr_options
     end
     alias_method :store, :affect 
+    
+    def dependencies
+      retval = affected_attributes.select { |attr| attr.wants_inline_association? and attr.reflection_klass(self) }.inject({}) do |memo, attr|
+        dependency = {
+          :klass => klass,
+          :attr_name => attr.name,
+          :reflection_klass => attr.reflection_klass(self),
+          :create => attr.wants_create?(self),
+          :natural_order => (configuration.classes.index(klass) > configuration.classes.index(attr.reflection_klass(self))),
+        }
+        memo.merge dependency
+      end
+      retval.empty? ? nil : retval
+    end
   end
 end

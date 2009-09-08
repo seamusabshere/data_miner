@@ -244,7 +244,7 @@ module DataMiner
     def reflection_klass(step)
       return nil unless reflection
       if reflection.options[:polymorphic]
-        polymorphic_type(step).constantize
+        polymorphic_type(step).andand.constantize
       else
         reflection.klass
       end

@@ -50,6 +50,11 @@ module DataMiner
     def mine(options = {})
       steps.each { |step| step.perform options }
     end
+    
+    # Get dependencies for this class
+    def dependencies
+      steps.map { |step| step.dependencies }.compact
+    end
 
     cattr_accessor :classes
     self.classes = []
@@ -64,6 +69,18 @@ module DataMiner
             klass.data_mine.mine options
           end
         end
+      end
+      
+      # Get dependencies for all classes. Defaults to all classes touched by DataMiner.
+      #
+      # Options
+      # * <tt>:class_names</tt>: provide an array class names to mine
+      def dependencies(options = {})
+        classes.map do |klass|
+          if options[:class_names].blank? or options[:class_names].include?(klass.name)
+            klass.data_mine.dependencies
+          end
+        end.flatten.compact
       end
 
       # Queue up all the ActiveRecord classes that DataMiner should touch.
