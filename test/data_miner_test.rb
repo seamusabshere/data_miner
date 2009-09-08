@@ -69,10 +69,10 @@ class DataMinerTest < Test::Unit::TestCase
     assert_equal 0, Airport.count
   end
   
-  # should "mine all classes" do
-  #   DataMiner.mine
-  #   uy = Country.find_by_iso_3166('UY')
-  #   assert_equal 'Uruguay', uy.name
-  #   assert_equal uy, Airport.find_by_iata_code('MVD').country
-  # end
+  should "mine all classes" do
+    DataMiner.mine
+    uy = Country.find_by_iso_3166('UY')
+    assert_equal 'Uruguay', uy.name
+    assert_equal uy, Airport.find_by_iata_code('MVD').country
+  end
 end
