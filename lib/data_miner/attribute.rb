@@ -16,10 +16,13 @@ module DataMiner
     end
     
     def report_unnatural_order(step)
-      if  wants_inline_association? and
-          reflection_klass(step) and
-          step.configuration.classes.index(reflection_klass(step)) > step.configuration.classes.index(klass)
-        "Unnatural order: #{klass} comes before #{reflection_klass(step)}, but it might need it to already be mined"
+      if (
+           (rk = klass.reflect_on_association(weighting_association(step)).andand.klass) or
+           (wants_inline_association? and rk = reflection_klass(step))
+         ) and
+         step.configuration.classes.index(rk) > step.configuration.classes.index(klass) and
+         step.options[:awaiting].andand.klass != klass
+        "Unnatural order: #{klass} comes before #{rk}"
       end
     end
 
