@@ -8,7 +8,7 @@ Put this in <tt>config/environment.rb</tt>:
 
   config.gem 'seamusabshere-data_miner', :lib => 'data_miner', :source => 'http://gems.github.com'
 
-You need to define <tt>mine_data</tt> blocks. For example, in <tt>app/models/country.rb</tt>:
+You need to define <tt>mine_data</tt> blocks in your ActiveRecord models. For example, in <tt>app/models/country.rb</tt>:
 
   class Country < ActiveRecord::Base
     mine_data do |step|
@@ -21,7 +21,7 @@ You need to define <tt>mine_data</tt> blocks. For example, in <tt>app/models/cou
     end
   end
 
-To complete the example, in <tt>app/models/airport.rb</tt>:
+...and in <tt>app/models/airport.rb</tt>:
 
   class Airport < ActiveRecord::Base
     belongs_to :country
