@@ -6,7 +6,7 @@ Mine remote data into your ActiveRecord models.
 
 Put this in <tt>config/environment.rb</tt>:
 
-  config.gem 'seamusabshere-data_miner', :lib => 'data_miner', :source => 'http://gems.github.com'
+  config.gem 'data_miner'
 
 You need to define <tt>mine_data</tt> blocks in your ActiveRecord models. For example, in <tt>app/models/country.rb</tt>:
 
