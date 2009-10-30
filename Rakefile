@@ -14,8 +14,7 @@ begin
     gem.require_path = "lib"
     gem.files.include %w(lib/data_miner) unless gem.files.empty? # seems to fail once it's in the wild
     gem.rdoc_options << '--line-numbers' << '--inline-source'
-    # gem.rubyforge_project = "dataminer"
-    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
+    gem.rubyforge_project = "dataminer"
   end
   Jeweler::GemcutterTasks.new
   Jeweler::RubyforgeTasks.new do |rubyforge|
