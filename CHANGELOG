@@ -1,0 +1,2 @@
+0.2.6
+* Upgrade to remote_table 0.1.6 to handle UTF-8 CSVs and long urls.

@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Seamus Abshere", "Andy Rossmeissl"]
-  s.date = %q{2009-11-02}
+  s.date = %q{2009-11-05}
   s.description = %q{Mine remote data into your ActiveRecord models. You can also perform associations and convert units.}
   s.email = %q{seamus@abshere.net}
   s.extra_rdoc_files = [
@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
   s.files = [
     ".document",
      ".gitignore",
+     "CHANGELOG",
      "LICENSE",
      "README.rdoc",
      "Rakefile",
@@ -59,24 +60,24 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<activerecord>, [">= 0"])
       s.add_runtime_dependency(%q<activesupport>, [">= 0"])
       s.add_runtime_dependency(%q<andand>, [">= 0"])
-      s.add_runtime_dependency(%q<remote_table>, [">= 0"])
       s.add_runtime_dependency(%q<errata>, [">= 0"])
       s.add_runtime_dependency(%q<conversions>, [">= 0"])
+      s.add_runtime_dependency(%q<remote_table>, ["= 0.1.6"])
     else
       s.add_dependency(%q<activerecord>, [">= 0"])
       s.add_dependency(%q<activesupport>, [">= 0"])
       s.add_dependency(%q<andand>, [">= 0"])
-      s.add_dependency(%q<remote_table>, [">= 0"])
       s.add_dependency(%q<errata>, [">= 0"])
       s.add_dependency(%q<conversions>, [">= 0"])
+      s.add_dependency(%q<remote_table>, ["= 0.1.6"])
     end
   else
     s.add_dependency(%q<activerecord>, [">= 0"])
     s.add_dependency(%q<activesupport>, [">= 0"])
     s.add_dependency(%q<andand>, [">= 0"])
-    s.add_dependency(%q<remote_table>, [">= 0"])
     s.add_dependency(%q<errata>, [">= 0"])
     s.add_dependency(%q<conversions>, [">= 0"])
+    s.add_dependency(%q<remote_table>, ["= 0.1.6"])
   end
 end
 

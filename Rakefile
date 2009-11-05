@@ -10,7 +10,8 @@ begin
     gem.email = "seamus@abshere.net"
     gem.homepage = "http://github.com/seamusabshere/data_miner"
     gem.authors = ["Seamus Abshere", "Andy Rossmeissl"]
-    %w{ activerecord activesupport andand remote_table errata conversions }.each { |name| gem.add_dependency name }
+    %w{ activerecord activesupport andand errata conversions }.each { |name| gem.add_dependency name }
+    gem.add_dependency 'remote_table', '0.1.6'
     gem.require_path = "lib"
     gem.files.include %w(lib/data_miner) unless gem.files.empty? # seems to fail once it's in the wild
     gem.rdoc_options << '--line-numbers' << '--inline-source'
