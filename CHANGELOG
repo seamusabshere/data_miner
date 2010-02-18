@@ -1,2 +1,7 @@
 0.2.6
 * Upgrade to remote_table 0.1.6 to handle UTF-8 CSVs and long urls.
+0.3.0
+* Removed association code... now data_miner focuses on just importing.
+* New, simpler DSL
+* Upgrade to remote_table 0.2.1 for row_hashes and better blank row handling
+* Remove all association-related code

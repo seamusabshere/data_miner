@@ -1,61 +1,55 @@
 module DataMiner
   class Configuration
-    attr_accessor :steps, :klass, :counter, :attributes, :awaiting
+    include Blockenspiel::DSL
+    
+    attr_accessor :klass, :runnables, :runnable_counter, :attributes, :unique_indices
 
     def initialize(klass)
-      @steps = []
+      @runnables = Array.new
+      @unique_indices = Set.new
       @klass = klass
-      @counter = 0
-      @attributes = AttributeCollection.new(klass)
+      @runnable_counter = 0
+      @attributes = HashWithIndifferentAccess.new
     end
 
-    %w(import associate derive await).each do |method|
-      eval <<-EOS
-        def #{method}(*args, &block)
-          self.counter += 1
-          if block_given? # FORM C
-            step_options = args[0] || {}
-            set_awaiting!(step_options)
-            self.steps << Step::#{method.camelcase}.new(self, counter, step_options, &block)
-          elsif args[0].is_a?(Hash) # FORM A
-            step_options = args[0]
-            set_awaiting!(step_options)
-            self.steps << Step::#{method.camelcase}.new(self, counter, step_options)
-          else # FORM B
-            attr_name = args[0]
-            attr_options = args[1] || {}
-            step_options = {}
-            set_awaiting!(step_options)
-            self.steps << Step::#{method.camelcase}.new(self, counter, step_options) do |attr|
-              attr.affect attr_name, attr_options
-            end
-          end
-        end
-      EOS
-    end
-
-    def set_awaiting!(step_options)
-      step_options.merge!(:awaiting => awaiting) if !awaiting.nil?
-    end
-
-    def awaiting!(step)
-      self.awaiting = step
+    def unique_index(*args)
+      args.each { |arg| unique_indices.add arg }
     end
     
-    def stop_awaiting!
-      self.awaiting = nil
+    def process(callback)
+      self.runnable_counter += 1
+      runnables << DataMiner::Process.new(self, runnable_counter, callback)
+    end
+
+    def import(options = {}, &block)
+      self.runnable_counter += 1
+      runnables << DataMiner::Import.new(self, runnable_counter, options, &block)
+    end
+    
+    def before_invoke
+      self.class.create_tables
+    end
+    
+    def after_invoke
+      if unique_indices.empty?
+        raise(MissingHashColumn, "No unique_index defined for #{klass.name}, so you need a row_hash:string column.") unless klass.column_names.include?('row_hash')
+        unique_indices.add 'row_hash'
+      end
+      runnables.select { |runnable| runnable.is_a?(Import) }.each { |runnable| unique_indices.each { |unique_index| runnable.store(unique_index) unless runnable.stores?(unique_index) } }
     end
 
     # Mine data for this class.
-    def mine(options = {})
-      steps.each { |step| step.perform options }
+    def run
+      target = DataMiner::Target.find_or_create_by_name klass.name
+      run = target.runs.create! :started_at => Time.now
+      begin
+        runnables.each(&:run)
+      ensure
+        run.update_attributes! :ended_at => Time.now
+      end
+      nil
     end
     
-    # Map <tt>method</tt> to attributes
-    def map_to_attrs(method)
-      steps.map { |step| step.map_to_attrs(method) }.compact
-    end
-
     cattr_accessor :classes
     self.classes = []
     class << self
@@ -63,31 +57,40 @@ module DataMiner
       #
       # Options
       # * <tt>:class_names</tt>: provide an array class names to mine
-      def mine(options = {})
+      def run(options = {})
         classes.each do |klass|
           if options[:class_names].blank? or options[:class_names].include?(klass.name)
-            klass.data_mine.mine options
+            klass.data_miner_config.run
           end
         end
       end
       
-      # Map a <tt>method</tt> to attrs. Defaults to all classes touched by DataMiner.
-      #
-      # Options
-      # * <tt>:class_names</tt>: provide an array class names to mine
-      def map_to_attrs(method, options = {})
-        classes.map do |klass|
-          if options[:class_names].blank? or options[:class_names].include?(klass.name)
-            klass.data_mine.map_to_attrs method
-          end
-        end.flatten.compact
-      end
-
       # Queue up all the ActiveRecord classes that DataMiner should touch.
       #
       # Generally done in <tt>config/initializers/data_miner_config.rb</tt>.
       def enqueue(&block)
         yield self.classes
+      end
+      
+      def create_tables
+        c = ActiveRecord::Base.connection
+        unless c.table_exists?('data_miner_targets')
+          c.create_table 'data_miner_targets', :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
+            t.string 'name'
+            t.datetime 'created_at'
+            t.datetime 'updated_at'
+          end
+          c.execute 'ALTER TABLE data_miner_targets ADD PRIMARY KEY (name);'
+        end
+        unless c.table_exists?('data_miner_runs')
+          c.create_table 'data_miner_runs', :options => 'ENGINE=InnoDB default charset=utf8' do |t|
+            t.string 'data_miner_target_id'
+            t.datetime 'started_at'
+            t.datetime 'ended_at'
+            t.datetime 'created_at'
+            t.datetime 'updated_at'
+          end
+        end
       end
     end
   end

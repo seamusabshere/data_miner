@@ -1,43 +1,66 @@
-require 'rubygems'
-require 'activesupport'
-require 'activerecord'
+require 'active_support'
+require 'active_record'
+require 'blockenspiel'
 require 'conversions'
 require 'remote_table'
 require 'errata'
+require 'andand'
+require 'log4r'
 
-require 'data_miner/active_record_ext'
 require 'data_miner/attribute'
-require 'data_miner/attribute_collection'
 require 'data_miner/configuration'
 require 'data_miner/dictionary'
-require 'data_miner/step'
-require 'data_miner/step/associate'
-require 'data_miner/step/await'
-require 'data_miner/step/callback'
-require 'data_miner/step/derive'
-require 'data_miner/step/import'
-require 'data_miner/william_james_cartesian_product' # TODO: move to gem
+require 'data_miner/import'
+require 'data_miner/process'
+require 'data_miner/target'
+require 'data_miner/run'
+
+# TODO: move to gem
+require 'data_miner/william_james_cartesian_product'
 
 module DataMiner
-  class << self
-    def mine(options = {})
-      DataMiner::Configuration.mine options
-    end
-    
-    def map_to_attrs(method, options = {})
-      puts DataMiner::Configuration.map_to_attrs(method, options)
-    end
+  class MissingHashColumn < RuntimeError; end
+  
+  include Log4r
 
-    def enqueue(&block)
-      DataMiner::Configuration.enqueue &block
+  mattr_accessor :logger
+  
+  def self.start_logging
+    if defined?(Rails)
+      self.logger = Rails.logger
+    else
+      self.logger = Logger.new 'data_miner'
+      logger.outputters = FileOutputter.new 'f1', :filename => 'data_miner.log'
     end
-    
-    def classes
-      DataMiner::Configuration.classes
-    end
+  end
+  
+  def self.run(options = {})
+    DataMiner::Configuration.run options
+  end
+  
+  def self.enqueue(&block)
+    DataMiner::Configuration.enqueue &block
+  end
+  
+  def self.classes
+    DataMiner::Configuration.classes
+  end
+  
+  def self.create_tables
+    DataMiner::Configuration.create_tables
   end
 end
 
 ActiveRecord::Base.class_eval do
-  include DataMiner::ActiveRecordExt
+  def self.data_miner(&block)
+    # this is class_eval'ed here so that each ActiveRecord descendant has its own copy, or none at all
+    class_eval { cattr_accessor :data_miner_config }
+    self.data_miner_config = DataMiner::Configuration.new self
+
+    data_miner_config.before_invoke
+    Blockenspiel.invoke block, data_miner_config
+    data_miner_config.after_invoke
+  end
 end
+
+DataMiner.start_logging
