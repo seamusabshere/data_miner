@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{data_miner}
-  s.version = "0.2.6"
+  s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Seamus Abshere", "Andy Rossmeissl"]
-  s.date = %q{2009-11-05}
+  s.date = %q{2010-02-25}
   s.description = %q{Mine remote data into your ActiveRecord models. You can also perform associations and convert units.}
   s.email = %q{seamus@abshere.net}
   s.extra_rdoc_files = [
@@ -26,17 +26,13 @@ Gem::Specification.new do |s|
      "VERSION",
      "data_miner.gemspec",
      "lib/data_miner.rb",
-     "lib/data_miner/active_record_ext.rb",
      "lib/data_miner/attribute.rb",
-     "lib/data_miner/attribute_collection.rb",
      "lib/data_miner/configuration.rb",
      "lib/data_miner/dictionary.rb",
-     "lib/data_miner/step.rb",
-     "lib/data_miner/step/associate.rb",
-     "lib/data_miner/step/await.rb",
-     "lib/data_miner/step/callback.rb",
-     "lib/data_miner/step/derive.rb",
-     "lib/data_miner/step/import.rb",
+     "lib/data_miner/import.rb",
+     "lib/data_miner/process.rb",
+     "lib/data_miner/run.rb",
+     "lib/data_miner/target.rb",
      "lib/data_miner/william_james_cartesian_product.rb",
      "test/data_miner_test.rb",
      "test/test_helper.rb"
@@ -57,27 +53,30 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<activerecord>, [">= 0"])
-      s.add_runtime_dependency(%q<activesupport>, [">= 0"])
-      s.add_runtime_dependency(%q<andand>, [">= 0"])
-      s.add_runtime_dependency(%q<errata>, [">= 0"])
-      s.add_runtime_dependency(%q<conversions>, [">= 0"])
-      s.add_runtime_dependency(%q<remote_table>, ["= 0.1.6"])
+      s.add_runtime_dependency(%q<remote_table>, ["~> 0.2.1"])
+      s.add_runtime_dependency(%q<activerecord>, ["~> 2.3.4"])
+      s.add_runtime_dependency(%q<activesupport>, ["~> 2.3.4"])
+      s.add_runtime_dependency(%q<andand>, ["~> 1.3.1"])
+      s.add_runtime_dependency(%q<errata>, ["~> 0.1.4"])
+      s.add_runtime_dependency(%q<conversions>, ["~> 1.4.3"])
+      s.add_runtime_dependency(%q<blockenspiel>, ["~> 0.3.2"])
     else
-      s.add_dependency(%q<activerecord>, [">= 0"])
-      s.add_dependency(%q<activesupport>, [">= 0"])
-      s.add_dependency(%q<andand>, [">= 0"])
-      s.add_dependency(%q<errata>, [">= 0"])
-      s.add_dependency(%q<conversions>, [">= 0"])
-      s.add_dependency(%q<remote_table>, ["= 0.1.6"])
+      s.add_dependency(%q<remote_table>, ["~> 0.2.1"])
+      s.add_dependency(%q<activerecord>, ["~> 2.3.4"])
+      s.add_dependency(%q<activesupport>, ["~> 2.3.4"])
+      s.add_dependency(%q<andand>, ["~> 1.3.1"])
+      s.add_dependency(%q<errata>, ["~> 0.1.4"])
+      s.add_dependency(%q<conversions>, ["~> 1.4.3"])
+      s.add_dependency(%q<blockenspiel>, ["~> 0.3.2"])
     end
   else
-    s.add_dependency(%q<activerecord>, [">= 0"])
-    s.add_dependency(%q<activesupport>, [">= 0"])
-    s.add_dependency(%q<andand>, [">= 0"])
-    s.add_dependency(%q<errata>, [">= 0"])
-    s.add_dependency(%q<conversions>, [">= 0"])
-    s.add_dependency(%q<remote_table>, ["= 0.1.6"])
+    s.add_dependency(%q<remote_table>, ["~> 0.2.1"])
+    s.add_dependency(%q<activerecord>, ["~> 2.3.4"])
+    s.add_dependency(%q<activesupport>, ["~> 2.3.4"])
+    s.add_dependency(%q<andand>, ["~> 1.3.1"])
+    s.add_dependency(%q<errata>, ["~> 0.1.4"])
+    s.add_dependency(%q<conversions>, ["~> 1.4.3"])
+    s.add_dependency(%q<blockenspiel>, ["~> 0.3.2"])
   end
 end
 
