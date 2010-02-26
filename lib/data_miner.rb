@@ -38,10 +38,6 @@ module DataMiner
     DataMiner::Configuration.run options
   end
   
-  def self.enqueue(&block)
-    DataMiner::Configuration.enqueue &block
-  end
-  
   def self.classes
     DataMiner::Configuration.classes
   end
@@ -53,11 +49,14 @@ end
 
 ActiveRecord::Base.class_eval do
   def self.data_miner(&block)
+    DataMiner.classes.add self
+    DataMiner.create_tables
+    DataMiner::Target.find_or_create_by_name name
+    
     # this is class_eval'ed here so that each ActiveRecord descendant has its own copy, or none at all
     class_eval { cattr_accessor :data_miner_config }
     self.data_miner_config = DataMiner::Configuration.new self
 
-    data_miner_config.before_invoke
     Blockenspiel.invoke block, data_miner_config
     data_miner_config.after_invoke
   end

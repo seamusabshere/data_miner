@@ -25,11 +25,7 @@ module DataMiner
       self.runnable_counter += 1
       runnables << DataMiner::Import.new(self, runnable_counter, options, &block)
     end
-    
-    def before_invoke
-      self.class.create_tables
-    end
-    
+        
     def after_invoke
       if unique_indices.empty?
         raise(MissingHashColumn, "No unique_index defined for #{klass.name}, so you need a row_hash:string column.") unless klass.column_names.include?('row_hash')
@@ -40,18 +36,20 @@ module DataMiner
 
     # Mine data for this class.
     def run
-      target = DataMiner::Target.find_or_create_by_name klass.name
+      target = DataMiner::Target.find(klass.name)
       run = target.runs.create! :started_at => Time.now
+      finished = false
       begin
         runnables.each(&:run)
+        finished = true
       ensure
-        run.update_attributes! :ended_at => Time.now
+        run.update_attributes! :ended_at => Time.now, :finished => finished
       end
       nil
     end
     
     cattr_accessor :classes
-    self.classes = []
+    self.classes = Set.new
     class << self
       # Mine data. Defaults to all classes touched by DataMiner.
       #
@@ -64,14 +62,7 @@ module DataMiner
           end
         end
       end
-      
-      # Queue up all the ActiveRecord classes that DataMiner should touch.
-      #
-      # Generally done in <tt>config/initializers/data_miner_config.rb</tt>.
-      def enqueue(&block)
-        yield self.classes
-      end
-      
+            
       def create_tables
         c = ActiveRecord::Base.connection
         unless c.table_exists?('data_miner_targets')
@@ -85,6 +76,7 @@ module DataMiner
         unless c.table_exists?('data_miner_runs')
           c.create_table 'data_miner_runs', :options => 'ENGINE=InnoDB default charset=utf8' do |t|
             t.string 'data_miner_target_id'
+            t.boolean 'finished'
             t.datetime 'started_at'
             t.datetime 'ended_at'
             t.datetime 'created_at'

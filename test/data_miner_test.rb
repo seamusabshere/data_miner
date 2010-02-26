@@ -590,19 +590,6 @@ class CensusRegion < ActiveRecord::Base
   end
 end
 
-DataMiner.enqueue do |queue|
-  queue << Country
-  queue << Airport
-  queue << CensusRegion
-  queue << AutomobileFuelType               # OK
-  queue << AutomobileModel                  # OK
-  queue << AutomobileMake                   # OK
-  queue << AutomobileModelYear              # OK
-  queue << AutomobileVariant                # OK
-  queue << AutomobileMakeFleetYear          # OK; third-party data not yet hosted on third-party site
-  queue << AutomobileMakeYear               # OK
-end
-
 class DataMinerTest < Test::Unit::TestCase  
   should "be idempotent" do
     Country.data_miner_config.run
@@ -648,7 +635,7 @@ class DataMinerTest < Test::Unit::TestCase
   end
   
   # should "mine multiple classes in the correct order" do
-  #   DataMiner.run :class_names => DataMiner.classes.map(&:class_name)
+  #   DataMiner.run
   #   uy = Country.find_by_iso_3166('UY')
   #   assert_equal 'Uruguay', uy.name
   # end
