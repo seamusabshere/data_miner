@@ -10,11 +10,11 @@ begin
     gem.email = "seamus@abshere.net"
     gem.homepage = "http://github.com/seamusabshere/data_miner"
     gem.authors = ["Seamus Abshere", "Andy Rossmeissl"]
-    gem.add_dependency 'remote_table', '~>0.2.1'
+    gem.add_dependency 'remote_table', '~>0.2.2'
     gem.add_dependency 'activerecord', '~>2.3.4'
     gem.add_dependency 'activesupport', '~>2.3.4'
     gem.add_dependency 'andand', '~>1.3.1'
-    gem.add_dependency 'errata', '~>0.1.4'
+    gem.add_dependency 'errata', '~>0.1.6'
     gem.add_dependency 'conversions', '~>1.4.3'
     gem.add_dependency 'blockenspiel', '~>0.3.2'
     gem.require_path = "lib"
