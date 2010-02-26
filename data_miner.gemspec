@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{data_miner}
-  s.version = "0.3.1"
+  s.version = "0.3.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Seamus Abshere", "Andy Rossmeissl"]
@@ -53,28 +53,28 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<remote_table>, ["~> 0.2.1"])
+      s.add_runtime_dependency(%q<remote_table>, ["~> 0.2.2"])
       s.add_runtime_dependency(%q<activerecord>, ["~> 2.3.4"])
       s.add_runtime_dependency(%q<activesupport>, ["~> 2.3.4"])
       s.add_runtime_dependency(%q<andand>, ["~> 1.3.1"])
-      s.add_runtime_dependency(%q<errata>, ["~> 0.1.4"])
+      s.add_runtime_dependency(%q<errata>, ["~> 0.1.6"])
       s.add_runtime_dependency(%q<conversions>, ["~> 1.4.3"])
       s.add_runtime_dependency(%q<blockenspiel>, ["~> 0.3.2"])
     else
-      s.add_dependency(%q<remote_table>, ["~> 0.2.1"])
+      s.add_dependency(%q<remote_table>, ["~> 0.2.2"])
       s.add_dependency(%q<activerecord>, ["~> 2.3.4"])
       s.add_dependency(%q<activesupport>, ["~> 2.3.4"])
       s.add_dependency(%q<andand>, ["~> 1.3.1"])
-      s.add_dependency(%q<errata>, ["~> 0.1.4"])
+      s.add_dependency(%q<errata>, ["~> 0.1.6"])
       s.add_dependency(%q<conversions>, ["~> 1.4.3"])
       s.add_dependency(%q<blockenspiel>, ["~> 0.3.2"])
     end
   else
-    s.add_dependency(%q<remote_table>, ["~> 0.2.1"])
+    s.add_dependency(%q<remote_table>, ["~> 0.2.2"])
     s.add_dependency(%q<activerecord>, ["~> 2.3.4"])
     s.add_dependency(%q<activesupport>, ["~> 2.3.4"])
     s.add_dependency(%q<andand>, ["~> 1.3.1"])
-    s.add_dependency(%q<errata>, ["~> 0.1.4"])
+    s.add_dependency(%q<errata>, ["~> 0.1.6"])
     s.add_dependency(%q<conversions>, ["~> 1.4.3"])
     s.add_dependency(%q<blockenspiel>, ["~> 0.3.2"])
   end
