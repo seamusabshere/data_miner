@@ -48,6 +48,8 @@ module DataMiner
 
         Array.wrap(record_set).each do |record|
           attributes.values.each { |attr| attr.set_record_from_row(self, record, row) }
+          record.data_miner_touch_count ||= 0
+          record.data_miner_touch_count += 1
           record.save!
         end
       end
