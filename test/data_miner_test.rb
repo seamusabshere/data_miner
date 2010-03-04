@@ -655,7 +655,12 @@ class DataMinerTest < Test::Unit::TestCase
     assert (target.runs.last.ended_at - approx_ended_at).abs < 5 # seconds
   end
   
-  should "remove rows that have disappeared from the external data source" do
-    flunk "not implemented yet"
+  should "request a re-import from scratch" do
+    c = Country.new
+    c.iso_3166 = 'JUNK'
+    c.save!
+    assert Country.exists?(:iso_3166 => 'JUNK')
+    DataMiner.run :class_names => %w{ Country }, :from_scratch => true
+    assert !Country.exists?(:iso_3166 => 'JUNK')
   end
 end

@@ -58,6 +58,7 @@ module DataMiner
       def run(options = {})
         classes.each do |klass|
           if options[:class_names].blank? or options[:class_names].include?(klass.name)
+            klass.delete_all if options[:from_scratch]
             klass.data_miner_config.run
           end
         end
