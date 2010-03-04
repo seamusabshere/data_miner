@@ -666,8 +666,8 @@ class DataMinerTest < Test::Unit::TestCase
   
   should "track how many times a row was touched" do
     DataMiner.run :class_names => %w{ Country }, :from_scratch => true
-    assert 1, Country.first.data_miner_touch_count
+    assert_equal 1, Country.first.data_miner_touch_count
     DataMiner.run :class_names => %w{ Country }
-    assert 2, Country.first.data_miner_touch_count
+    assert_equal 2, Country.first.data_miner_touch_count
   end
 end
