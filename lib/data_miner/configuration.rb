@@ -40,7 +40,7 @@ module DataMiner
       run = target.runs.create! :started_at => Time.now
       finished = false
       begin
-        runnables.each(&:run)
+        runnables.each { |runnable| runnable.run(run) }
         finished = true
       ensure
         run.update_attributes! :ended_at => Time.now, :finished => finished

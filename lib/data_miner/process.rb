@@ -13,7 +13,7 @@ module DataMiner
       "Process(#{klass}) position #{position_in_run}"
     end
     
-    def run
+    def run(run)
       klass.send callback
       DataMiner.logger.info "ran #{inspect}"
     end

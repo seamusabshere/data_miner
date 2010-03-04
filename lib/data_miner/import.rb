@@ -30,7 +30,7 @@ module DataMiner
       configuration.attributes[attr_name].options_for_import[self] = attr_options
     end
 
-    def run
+    def run(run)
       table.each_row do |row|
         if errata
           next if errata.rejects?(row)
@@ -50,6 +50,7 @@ module DataMiner
           attributes.values.each { |attr| attr.set_record_from_row(self, record, row) }
           record.data_miner_touch_count ||= 0
           record.data_miner_touch_count += 1
+          record.data_miner_last_run = run
           record.save!
         end
       end

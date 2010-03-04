@@ -30,6 +30,7 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer 'data_miner_touch_count'
+    t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE airports ADD PRIMARY KEY (iata_code);"
   
@@ -39,6 +40,7 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer 'data_miner_touch_count'
+    t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE countries ADD PRIMARY KEY (iso_3166);"
   
@@ -48,6 +50,7 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.datetime "created_at"
     t.integer  "number"
     t.integer 'data_miner_touch_count'
+    t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE census_regions ADD PRIMARY KEY (number);"
   
@@ -82,6 +85,7 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.string   "speeds"
     t.string   "row_hash"
     t.integer 'data_miner_touch_count'
+    t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE automobile_variants ADD PRIMARY KEY (row_hash);"
   
@@ -93,6 +97,7 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.float    "annual_distance"
     t.string   "code"
     t.integer 'data_miner_touch_count'
+    t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE automobile_fuel_types ADD PRIMARY KEY (code);"
 
@@ -111,6 +116,7 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
 
     t.string   "row_hash"
     t.integer 'data_miner_touch_count'
+    t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE automobile_make_fleet_years ADD PRIMARY KEY (row_hash);"
 
@@ -123,6 +129,7 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.integer  "volume"
     t.string   "row_hash"
     t.integer 'data_miner_touch_count'
+    t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE automobile_make_years ADD PRIMARY KEY (row_hash);"
 
@@ -133,6 +140,7 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.float    "fuel_efficiency"
     t.boolean  "major"
     t.integer 'data_miner_touch_count'
+    t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE automobile_makes ADD PRIMARY KEY (name);"
 
@@ -142,6 +150,7 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.datetime "created_at"
     t.float    "fuel_efficiency"
     t.integer 'data_miner_touch_count'
+    t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE automobile_model_years ADD PRIMARY KEY (year);"
 
@@ -152,6 +161,7 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.datetime "created_at"
     t.string   "row_hash"
     t.integer 'data_miner_touch_count'
+    t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE automobile_models ADD PRIMARY KEY (row_hash);"
 end

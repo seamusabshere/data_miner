@@ -178,6 +178,7 @@ end
 
 class AutomobileMakeYear < ActiveRecord::Base
   set_primary_key :row_hash
+  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   
   belongs_to :make, :class_name => 'AutomobileMake', :foreign_key => 'automobile_make_id'
   belongs_to :model_year, :class_name => 'AutomobileModelYear', :foreign_key => 'automobile_model_year_id'
@@ -240,6 +241,7 @@ end
 
 class AutomobileMakeFleetYear < ActiveRecord::Base
   set_primary_key :row_hash
+  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   belongs_to :make, :class_name => 'AutomobileMake', :foreign_key => 'automobile_make_id'
   belongs_to :model_year, :class_name => 'AutomobileModelYear', :foreign_key => 'automobile_model_year_id'
   belongs_to :make_year, :class_name => 'AutomobileMakeYear', :foreign_key => 'automobile_make_year_id'
@@ -260,6 +262,7 @@ end
 
 class AutomobileModelYear < ActiveRecord::Base
   set_primary_key :year
+  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   
   has_many :make_years, :class_name => 'AutomobileMakeYear'
   has_many :variants, :class_name => 'AutomobileVariant'
@@ -275,6 +278,7 @@ end
 
 class AutomobileFuelType < ActiveRecord::Base
   set_primary_key :code
+  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   
   data_miner do
     unique_index 'code'
@@ -315,6 +319,7 @@ end
 
 class AutomobileModel < ActiveRecord::Base
   set_primary_key :row_hash
+  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   
   has_many :variants, :class_name => 'AutomobileVariant'
   belongs_to :make, :class_name => 'AutomobileMake', :foreign_key => 'automobile_make_id'
@@ -326,6 +331,7 @@ end
 
 class AutomobileMake < ActiveRecord::Base
   set_primary_key :name
+  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
 
   has_many :make_years, :class_name => 'AutomobileMakeYear'
   has_many :models, :class_name => 'AutomobileModel'
@@ -346,6 +352,7 @@ end
 
 class AutomobileVariant < ActiveRecord::Base
   set_primary_key :row_hash
+  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   
   belongs_to :make, :class_name => 'AutomobileMake', :foreign_key => 'automobile_make_id'
   belongs_to :model, :class_name => 'AutomobileModel', :foreign_key => 'automobile_model_id'
@@ -534,6 +541,7 @@ end
 
 class Country < ActiveRecord::Base
   set_primary_key :iso_3166
+  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   
   data_miner do
     unique_index 'iso_3166'
@@ -554,6 +562,7 @@ end
 
 class Airport < ActiveRecord::Base
   set_primary_key :iata_code
+  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   belongs_to :country
   
   data_miner do
@@ -573,6 +582,7 @@ end
 
 class CensusRegion < ActiveRecord::Base
   set_primary_key :number
+  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   
   data_miner do
     unique_index 'number'
@@ -609,6 +619,7 @@ class DataMinerTest < Test::Unit::TestCase
     assert_raises DataMiner::MissingHashColumn do
       class IncompleteCountry < ActiveRecord::Base
         set_table_name 'countries'
+        belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
         
         data_miner do
           # no unique index
@@ -630,7 +641,7 @@ class DataMinerTest < Test::Unit::TestCase
   end
   
   should "hash things if no unique index is listed" do
-    AutomobileVariant.data_miner_config.runnables[0].run
+    AutomobileVariant.data_miner_config.runnables[0].run(nil)
     assert AutomobileVariant.first.row_hash.present?
   end
   
@@ -669,5 +680,15 @@ class DataMinerTest < Test::Unit::TestCase
     assert_equal 1, Country.first.data_miner_touch_count
     DataMiner.run :class_names => %w{ Country }
     assert_equal 2, Country.first.data_miner_touch_count
+  end
+  
+  should "keep track of what the last import run that touched a row was" do
+    DataMiner.run :class_names => %w{ Country }, :from_scratch => true
+    a = DataMiner::Run.last
+    assert_equal a, Country.first.data_miner_last_run
+    DataMiner.run :class_names => %w{ Country }
+    b = DataMiner::Run.last
+    assert a != b
+    assert_equal b, Country.first.data_miner_last_run
   end
 end
