@@ -35,10 +35,11 @@ module DataMiner
     end
 
     # Mine data for this class.
-    def run
+    def run(options = {})
       target = DataMiner::Target.find(klass.name)
-      run = target.runs.create! :started_at => Time.now
       finished = false
+      run = target.runs.create! :started_at => Time.now
+      klass.delete_all if options[:from_scratch]
       begin
         runnables.each { |runnable| runnable.run(run) }
         finished = true
@@ -58,8 +59,7 @@ module DataMiner
       def run(options = {})
         classes.each do |klass|
           if options[:class_names].blank? or options[:class_names].include?(klass.name)
-            klass.delete_all if options[:from_scratch]
-            klass.data_miner_config.run
+            klass.data_miner_config.run options
           end
         end
       end

@@ -8,8 +8,8 @@ module DataMiner
       name.constantize
     end
     
-    def run
-      klass.data_miner_config.run
+    def run(options = {})
+      klass.data_miner_config.run options
     end
 
     def included_in_list_of_targets
