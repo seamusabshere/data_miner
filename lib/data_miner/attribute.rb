@@ -92,7 +92,7 @@ module DataMiner
     
     def dictionary(import)
       raise "shouldn't ask for this" unless wants_dictionary?(import) # don't try to initialize if there are no dictionary options
-      Dictionary.new dictionary_options(import)
+      @_dictionary ||= Dictionary.new dictionary_options(import)
     end
     
     # {

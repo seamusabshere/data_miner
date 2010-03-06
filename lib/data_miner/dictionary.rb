@@ -3,8 +3,8 @@ module DataMiner
     attr_accessor :key_name, :value_name, :sprintf, :table
 
     def initialize(options = {})
-      @key_name = options[:key]
-      @value_name = options[:returns]
+      @key_name = options[:input]
+      @value_name = options[:output]
       @sprintf = options[:sprintf] || '%s'
       @table = RemoteTable.new(:url => options[:url])
     end

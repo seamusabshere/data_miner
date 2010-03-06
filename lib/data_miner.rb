@@ -52,6 +52,8 @@ ActiveRecord::Base.class_eval do
     DataMiner.classes.add self
     DataMiner.create_tables
     DataMiner::Target.find_or_create_by_name name
+
+    belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
     
     # this is class_eval'ed here so that each ActiveRecord descendant has its own copy, or none at all
     class_eval { cattr_accessor :data_miner_config }

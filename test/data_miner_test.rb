@@ -178,7 +178,6 @@ end
 
 class AutomobileMakeYear < ActiveRecord::Base
   set_primary_key :row_hash
-  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   
   belongs_to :make, :class_name => 'AutomobileMake', :foreign_key => 'automobile_make_id'
   belongs_to :model_year, :class_name => 'AutomobileModelYear', :foreign_key => 'automobile_model_year_id'
@@ -241,7 +240,6 @@ end
 
 class AutomobileMakeFleetYear < ActiveRecord::Base
   set_primary_key :row_hash
-  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   belongs_to :make, :class_name => 'AutomobileMake', :foreign_key => 'automobile_make_id'
   belongs_to :model_year, :class_name => 'AutomobileModelYear', :foreign_key => 'automobile_model_year_id'
   belongs_to :make_year, :class_name => 'AutomobileMakeYear', :foreign_key => 'automobile_make_year_id'
@@ -262,7 +260,6 @@ end
 
 class AutomobileModelYear < ActiveRecord::Base
   set_primary_key :year
-  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   
   has_many :make_years, :class_name => 'AutomobileMakeYear'
   has_many :variants, :class_name => 'AutomobileVariant'
@@ -278,7 +275,6 @@ end
 
 class AutomobileFuelType < ActiveRecord::Base
   set_primary_key :code
-  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   
   data_miner do
     unique_index 'code'
@@ -319,7 +315,6 @@ end
 
 class AutomobileModel < ActiveRecord::Base
   set_primary_key :row_hash
-  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   
   has_many :variants, :class_name => 'AutomobileVariant'
   belongs_to :make, :class_name => 'AutomobileMake', :foreign_key => 'automobile_make_id'
@@ -331,7 +326,6 @@ end
 
 class AutomobileMake < ActiveRecord::Base
   set_primary_key :name
-  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
 
   has_many :make_years, :class_name => 'AutomobileMakeYear'
   has_many :models, :class_name => 'AutomobileModel'
@@ -352,7 +346,6 @@ end
 
 class AutomobileVariant < ActiveRecord::Base
   set_primary_key :row_hash
-  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   
   belongs_to :make, :class_name => 'AutomobileMake', :foreign_key => 'automobile_make_id'
   belongs_to :model, :class_name => 'AutomobileModel', :foreign_key => 'automobile_model_id'
@@ -541,7 +534,6 @@ end
 
 class Country < ActiveRecord::Base
   set_primary_key :iso_3166
-  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   
   data_miner do
     unique_index 'iso_3166'
@@ -562,7 +554,6 @@ end
 
 class Airport < ActiveRecord::Base
   set_primary_key :iata_code
-  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   belongs_to :country
   
   data_miner do
@@ -582,7 +573,6 @@ end
 
 class CensusRegion < ActiveRecord::Base
   set_primary_key :number
-  belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
   
   data_miner do
     unique_index 'number'
@@ -600,95 +590,336 @@ class CensusRegion < ActiveRecord::Base
   end
 end
 
-class DataMinerTest < Test::Unit::TestCase  
-  should "be idempotent" do
-    Country.data_miner_config.run
-    a = Country.count
-    Country.data_miner_config.run
-    b = Country.count
-    assert_equal a, b
+class ResidentialEnergyConsumptionSurveyResponse < ActiveRecord::Base
+  set_primary_key :department_of_energy_identifier
+  
+  data_miner do
+    # conversions are NOT performed here, since we first have to zero out legitimate skips
+    # otherwise you will get values like "999 pounds = 453.138778 kilograms" (where 999 is really a legit skip)
+    import :url => 'http://www.eia.doe.gov/emeu/recs/recspubuse05/datafiles/RECS05alldata.csv', :headers => :upcase do |attr|
+      unique_index 'department_of_energy_identifier'
+      
+      attr.store 'department_of_energy_identifier', :field_name => 'DOEID'
+      
+      attr.store 'residence_class', :field_name => 'TYPEHUQ', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/data_helpers/raw/master/typehuq/typehuq.csv' }
+      attr.store 'construction_year', :field_name => 'YEARMADE', :dictionary => { :input => 'Code', :sprintf => '%02d', :output => 'Date in the middle (synthetic)', :url => 'http://github.com/brighterplanet/data_helpers/raw/master/yearmade/yearmade.csv' }
+      attr.store 'construction_period', :field_name => 'YEARMADE', :dictionary => { :input => 'Code', :sprintf => '%02d', :output => 'Description', :url => 'http://github.com/brighterplanet/data_helpers/raw/master/yearmade/yearmade.csv' }
+      attr.store 'urbanity', :field_name => 'URBRUR', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/data_helpers/raw/master/urbrur/urbrur.csv' }
+      attr.store 'dishwasher_use', :field_name => 'DWASHUSE', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/data_helpers/raw/master/dwashuse/dwashuse.csv' }
+      attr.store 'central_ac_use', :field_name => 'USECENAC', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/data_helpers/raw/master/usecenac/usecenac.csv' }
+      attr.store 'window_ac_use', :field_name => 'USEWWAC', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/data_helpers/raw/master/usewwac/usewwac.csv' }
+      attr.store 'clothes_washer_use', :field_name => 'WASHLOAD', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/data_helpers/raw/master/washload/washload.csv' }
+      attr.store 'clothes_dryer_use', :field_name => 'DRYRUSE', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/data_helpers/raw/master/dryruse/dryruse.csv' }
+      
+      attr.store 'census_division_number', :field_name => 'DIVISION'
+      attr.store 'floorspace', :field_name => 'TOTSQFT'
+      attr.store 'residents', :field_name => 'NHSLDMEM'
+      attr.store 'ownership', :field_name => 'KOWNRENT'
+      attr.store 'thermostat_programmability', :field_name => 'PROTHERM'
+      attr.store 'refrigerator_count', :field_name => 'NUMFRIG'
+      attr.store 'freezer_count', :field_name => 'NUMFREEZ'
+      attr.store 'heating_degree_days', :field_name => 'HD65'
+      attr.store 'cooling_degree_days', :field_name => 'CD65'
+      attr.store 'annual_energy_from_fuel_oil_for_heating_space', :field_name => 'BTUFOSPH'
+      attr.store 'annual_energy_from_fuel_oil_for_heating_water', :field_name => 'BTUFOWTH'
+      attr.store 'annual_energy_from_fuel_oil_for_appliances', :field_name => 'BTUFOAPL'
+      attr.store 'annual_energy_from_natural_gas_for_heating_space', :field_name => 'BTUNGSPH'
+      attr.store 'annual_energy_from_natural_gas_for_heating_water', :field_name => 'BTUNGWTH'
+      attr.store 'annual_energy_from_natural_gas_for_appliances', :field_name => 'BTUNGAPL'
+      attr.store 'annual_energy_from_propane_for_heating_space', :field_name => 'BTULPSPH'
+      attr.store 'annual_energy_from_propane_for_heating_water', :field_name => 'BTULPWTH'
+      attr.store 'annual_energy_from_propane_for_appliances', :field_name => 'BTULPAPL'
+      attr.store 'annual_energy_from_wood', :field_name => 'BTUWOOD'
+      attr.store 'annual_energy_from_kerosene', :field_name => 'BTUKER'
+      attr.store 'annual_energy_from_electricity_for_clothes_driers', :field_name => 'BTUELCDR'
+      attr.store 'annual_energy_from_electricity_for_dishwashers', :field_name => 'BTUELDWH'
+      attr.store 'annual_energy_from_electricity_for_freezers', :field_name => 'BTUELFZZ'
+      attr.store 'annual_energy_from_electricity_for_refrigerators', :field_name => 'BTUELRFG'
+      attr.store 'annual_energy_from_electricity_for_air_conditioners', :field_name => 'BTUELCOL'
+      attr.store 'annual_energy_from_electricity_for_heating_space', :field_name => 'BTUELSPH'
+      attr.store 'annual_energy_from_electricity_for_heating_water', :field_name => 'BTUELWTH'
+      attr.store 'annual_energy_from_electricity_for_other_appliances', :field_name => 'BTUELAPL'
+      attr.store 'weighting', :field_name => 'NWEIGHT'
+      attr.store 'total_rooms', :field_name => 'TOTROOMS'
+      attr.store 'bathrooms', :field_name => 'NCOMBATH'
+      attr.store 'halfbaths', :field_name => 'NHAFBATH'
+      attr.store 'heated_garage', :field_name => 'GARGHEAT'
+      attr.store 'attached_1car_garage', :field_name => 'GARAGE1C'
+      attr.store 'detached_1car_garage', :field_name => 'DGARG1C'
+      attr.store 'attached_2car_garage', :field_name => 'GARAGE2C'
+      attr.store 'detached_2car_garage', :field_name => 'DGARG2C'
+      attr.store 'attached_3car_garage', :field_name => 'GARAGE3C'
+      attr.store 'detached_3car_garage', :field_name => 'DGARG3C'
+      attr.store 'lights_on_1_to_4_hours', :field_name => 'LGT1'
+      attr.store 'efficient_lights_on_1_to_4_hours', :field_name => 'LGT1EE'
+      attr.store 'lights_on_4_to_12_hours', :field_name => 'LGT4'
+      attr.store 'efficient_lights_on_4_to_12_hours', :field_name => 'LGT4EE'
+      attr.store 'lights_on_over_12_hours', :field_name => 'LGT12'
+      attr.store 'efficient_lights_on_over_12_hours', :field_name => 'LGT12EE'
+      attr.store 'outdoor_all_night_lights', :field_name => 'NOUTLGTNT'
+      attr.store 'outdoor_all_night_gas_lights', :field_name => 'NGASLIGHT'
+    end
+
+    # process :zero_out_legitimate_skips
+
+    # process :convert_units_after_zeroing_legitimate_skips
     
-    CensusRegion.data_miner_config.run
-    a = CensusRegion.count
-    CensusRegion.data_miner_config.run
-    b = CensusRegion.count
-    assert_equal a, b
+    # process :derive_rooms
+    
+    # process :derive_lighting_use 
+    
+    # process :derive_lighting_efficiency
+
+    # CensusDivision needs its own dataminer
+    # attr.store 'census_division', :field_name => 'DIVISION', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/data_helpers/raw/master/division/division.csv' }
+
+    # this is basically process :derive_census_region
+    # step.derive :census_region_id, :set => '(SELECT census_regions.id FROM census_regions INNER JOIN census_divisions ON census_regions.id = census_divisions.census_region_id WHERE census_divisions.id = residence_survey_responses.census_division_id)'
+
+    # process :derive_residence_air_conditioner_use_id
+    
+    # process :derive_residence_clothes_drier_use_id
   end
+  
+  class << self
+    # # continuous variables for which legitimate skip is effectively zero
+    # attr.affect :annual_energy_from_electricity_for_air_conditioners
+    # attr.affect :annual_energy_from_electricity_for_clothes_driers
+    # attr.affect :annual_energy_from_electricity_for_dishwashers
+    # attr.affect :annual_energy_from_electricity_for_freezers
+    # attr.affect :annual_energy_from_electricity_for_heating_space
+    # attr.affect :annual_energy_from_electricity_for_heating_water
+    # attr.affect :annual_energy_from_electricity_for_other_appliances
+    # attr.affect :annual_energy_from_electricity_for_refrigerators
+    # attr.affect :annual_energy_from_fuel_oil_for_appliances
+    # attr.affect :annual_energy_from_fuel_oil_for_heating_space
+    # attr.affect :annual_energy_from_fuel_oil_for_heating_water
+    # attr.affect :annual_energy_from_kerosene
+    # attr.affect :annual_energy_from_propane_for_appliances
+    # attr.affect :annual_energy_from_propane_for_heating_space
+    # attr.affect :annual_energy_from_propane_for_heating_water
+    # attr.affect :annual_energy_from_natural_gas_for_appliances
+    # attr.affect :annual_energy_from_natural_gas_for_heating_space
+    # attr.affect :annual_energy_from_natural_gas_for_heating_water
+    # attr.affect :annual_energy_from_wood
+    # attr.affect :lights_on_1_to_4_hours
+    # attr.affect :lights_on_over_12_hours
+    # attr.affect :efficient_lights_on_over_12_hours
+    # attr.affect :efficient_lights_on_1_to_4_hours
+    # attr.affect :lights_on_4_to_12_hours
+    # attr.affect :efficient_lights_on_4_to_12_hours
+    # attr.affect :outdoor_all_night_gas_lights
+    # attr.affect :outdoor_all_night_lights
+    # # booleans for which legitimate skip is effectively zero
+    # attr.affect :thermostat_programmability
+    # attr.affect :detached_1car_garage
+    # attr.affect :detached_2car_garage
+    # attr.affect :detached_3car_garage
+    # attr.affect :attached_1car_garage
+    # attr.affect :attached_2car_garage
+    # attr.affect :attached_3car_garage
+    # attr.affect :heated_garage
+    def zero_out_legitimate_skips
+      max = maximum(attr_name, :select => "CONVERT(#{attr_name}, UNSIGNED INTEGER)")
+      if /^9+$/.match(max.to_i.to_s) # the max is all 999's... it must be a LEGITIMATE SKIP
+        logger.info "Zeroing #{attr_name} if it's #{max}"
+        update_all("#{attr_name} = 0", "#{attr_name} = #{max}")
+      end
+    end
     
-  should "assume that no unique indices means it wants a big hash" do
-    assert_raises DataMiner::MissingHashColumn do
-      class IncompleteCountry < ActiveRecord::Base
-        set_table_name 'countries'
-        belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
-        
-        data_miner do
-          # no unique index
-  
-          # get a complete list
-          import :url => 'http://www.iso.org/iso/list-en1-semic-3.txt', :skip => 2, :headers => false, :delimiter => ';' do |attr|
-            attr.store 'iso_3166', :field_number => 1
-            attr.store 'name', :field_number => 0
+    # attr.affect :annual_energy_from_fuel_oil_for_heating_space, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_fuel_oil_for_heating_water, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_fuel_oil_for_appliances, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_natural_gas_for_heating_space, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_natural_gas_for_heating_water, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_natural_gas_for_appliances, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_propane_for_heating_space, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_propane_for_heating_water, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_propane_for_appliances, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_wood, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_kerosene, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_electricity_for_clothes_driers, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_electricity_for_dishwashers, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_electricity_for_freezers, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_electricity_for_refrigerators, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_electricity_for_air_conditioners, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_electricity_for_heating_space, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_electricity_for_heating_water, :from => :kbtus, :to => :joules
+    # attr.affect :annual_energy_from_electricity_for_other_appliances, :from => :kbtus, :to => :joules
+    # attr.affect :floorspace, :from => :square_feet, :to => :square_metres
+    def convert_units_after_zeroing_legitimate_skips
+      update_all("#{attr_name} = #{attr_name} * #{Conversions::Unit.exchange_rate(attr_options[:from], attr_options[:to])}")
+    end
+    
+    def derive_rooms
+      'total_rooms + bathrooms/2 + halfbaths/4 + heated_garage*(attached_1car_garage + detached_1car_garage + 2*(attached_2car_garage + detached_2car_garage) + 3*(attached_3car_garage + detached_3car_garage))'
+      
+    end
+    
+    def derive_lighting_use
+      '2*(lights_on_1_to_4_hours + efficient_lights_on_1_to_4_hours) + 8*(lights_on_4_to_12_hours + efficient_lights_on_4_to_12_hours) + 16*(lights_on_over_12_hours + efficient_lights_on_over_12_hours) + 12*(outdoor_all_night_lights + outdoor_all_night_gas_lights)'
+    end
+    
+    # will be null if lighting_use is zero
+    def derive_lighting_efficiency
+      '(2*efficient_lights_on_1_to_4_hours + 8*efficient_lights_on_4_to_12_hours + 16*efficient_lights_on_over_12_hours) / lighting_use'
+    end
+    
+    def derive_residence_air_conditioner_use_id
+      find_in_batches do |batch|
+        batch.each do |record|
+          ce = record.usecenac.to_i
+          ww = record.usewwac.to_i
+          if ce == 3 or ww == 3
+            selector = 3
+          elsif ce == 2 or ww == 2
+            selector = 2
+          elsif ce == 1 or ww == 1
+            selector = 1
+          elsif ce == 0 or ww == 0
+            selector = 0
+          elsif ce == 9 or ww == 9
+            selector = 9
+          else
+            raise "something's wrong. usecenac => #{ce}, usewwac => #{ww}"
           end
-  
-          # get nicer names
-          import :url => 'http://www.cs.princeton.edu/introcs/data/iso3166.csv' do |attr|
-            attr.store 'iso_3166', :field_name => 'country code'
-            attr.store 'name', :field_name => 'country'
+          record.air_conditioner_use = ResidenceAirConditionerUse.find_by_code(selector)
+          record.save if record.changed?
+        end
+      end
+    end
+
+    def derive_residence_clothes_drier_use_id
+      find_in_batches do |batch|
+        batch.each do |record|
+          dr = record.dryruse.to_i
+          wa = record.washload.to_i
+          selector = case dr
+          when 9
+            9
+          when 1
+            wa
+          when 2
+            if wa == 9
+              9
+            elsif [ 2, 3, 4, 5 ].include?(wa)
+              wa - 1
+            else
+              1
+            end
+          when 3
+            if wa == 9
+              9
+            elsif [ 3, 4, 5 ].include?(wa)
+              wa - 2
+            else
+              1
+            end
+          else
+            raise "A something's wrong. dryruse => #{dr}, washload => #{wa}"
           end
+          record.clothes_drier_use = ResidenceClothesDrierUse.find_by_code(selector)
+          raise "B something's wrong. dryruse => #{dr}, washload => #{wa}" if record.clothes_drier_use.nil?
+          record.save if record.changed?
         end
       end
     end
   end
-  
-  should "hash things if no unique index is listed" do
-    AutomobileVariant.data_miner_config.runnables[0].run(nil)
-    assert AutomobileVariant.first.row_hash.present?
-  end
-  
-  # should "mine multiple classes in the correct order" do
-  #   DataMiner.run
-  #   uy = Country.find_by_iso_3166('UY')
-  #   assert_equal 'Uruguay', uy.name
+end
+
+class DataMinerTest < Test::Unit::TestCase  
+  # should "be idempotent" do
+  #   Country.data_miner_config.run
+  #   a = Country.count
+  #   Country.data_miner_config.run
+  #   b = Country.count
+  #   assert_equal a, b
+  #   
+  #   CensusRegion.data_miner_config.run
+  #   a = CensusRegion.count
+  #   CensusRegion.data_miner_config.run
+  #   b = CensusRegion.count
+  #   assert_equal a, b
+  # end
+  #   
+  # should "assume that no unique indices means it wants a big hash" do
+  #   assert_raises DataMiner::MissingHashColumn do
+  #     class IncompleteCountry < ActiveRecord::Base
+  #       set_table_name 'countries'
+  #       
+  #       data_miner do
+  #         # no unique index
+  # 
+  #         # get a complete list
+  #         import :url => 'http://www.iso.org/iso/list-en1-semic-3.txt', :skip => 2, :headers => false, :delimiter => ';' do |attr|
+  #           attr.store 'iso_3166', :field_number => 1
+  #           attr.store 'name', :field_number => 0
+  #         end
+  # 
+  #         # get nicer names
+  #         import :url => 'http://www.cs.princeton.edu/introcs/data/iso3166.csv' do |attr|
+  #           attr.store 'iso_3166', :field_name => 'country code'
+  #           attr.store 'name', :field_name => 'country'
+  #         end
+  #       end
+  #     end
+  #   end
+  # end
+  # 
+  # should "hash things if no unique index is listed" do
+  #   AutomobileVariant.data_miner_config.runnables[0].run(nil)
+  #   assert AutomobileVariant.first.row_hash.present?
+  # end
+  # 
+  # # should "mine multiple classes in the correct order" do
+  # #   DataMiner.run
+  # #   uy = Country.find_by_iso_3166('UY')
+  # #   assert_equal 'Uruguay', uy.name
+  # # end
+  # 
+  # should "have a target record for every class that is mined" do
+  #   DataMiner.run :class_names => %w{ Country }
+  #   assert DataMiner::Target.exists?(:name => 'Country')
+  #   assert_equal 1, DataMiner::Target.count(:conditions => {:name => 'country'})
+  # end
+  # 
+  # should "keep a log when it does a run" do
+  #   approx_started_at = Time.now
+  #   DataMiner.run :class_names => %w{ Country }
+  #   approx_ended_at = Time.now
+  #   target = DataMiner::Target.find_by_name('Country')
+  #   assert (target.runs.last.started_at - approx_started_at).abs < 5 # seconds
+  #   assert (target.runs.last.ended_at - approx_ended_at).abs < 5 # seconds
+  # end
+  # 
+  # should "request a re-import from scratch" do
+  #   c = Country.new
+  #   c.iso_3166 = 'JUNK'
+  #   c.save!
+  #   assert Country.exists?(:iso_3166 => 'JUNK')
+  #   DataMiner.run :class_names => %w{ Country }, :from_scratch => true
+  #   assert !Country.exists?(:iso_3166 => 'JUNK')
+  # end
+  # 
+  # should "track how many times a row was touched" do
+  #   DataMiner.run :class_names => %w{ Country }, :from_scratch => true
+  #   assert_equal 1, Country.first.data_miner_touch_count
+  #   DataMiner.run :class_names => %w{ Country }
+  #   assert_equal 2, Country.first.data_miner_touch_count
+  # end
+  # 
+  # should "keep track of what the last import run that touched a row was" do
+  #   DataMiner.run :class_names => %w{ Country }, :from_scratch => true
+  #   a = DataMiner::Run.last
+  #   assert_equal a, Country.first.data_miner_last_run
+  #   DataMiner.run :class_names => %w{ Country }
+  #   b = DataMiner::Run.last
+  #   assert a != b
+  #   assert_equal b, Country.first.data_miner_last_run
   # end
   
-  should "have a target record for every class that is mined" do
-    DataMiner.run :class_names => %w{ Country }
-    assert DataMiner::Target.exists?(:name => 'Country')
-    assert_equal 1, DataMiner::Target.count(:conditions => {:name => 'country'})
-  end
-  
-  should "keep a log when it does a run" do
-    approx_started_at = Time.now
-    DataMiner.run :class_names => %w{ Country }
-    approx_ended_at = Time.now
-    target = DataMiner::Target.find_by_name('Country')
-    assert (target.runs.last.started_at - approx_started_at).abs < 5 # seconds
-    assert (target.runs.last.ended_at - approx_ended_at).abs < 5 # seconds
-  end
-  
-  should "request a re-import from scratch" do
-    c = Country.new
-    c.iso_3166 = 'JUNK'
-    c.save!
-    assert Country.exists?(:iso_3166 => 'JUNK')
-    DataMiner.run :class_names => %w{ Country }, :from_scratch => true
-    assert !Country.exists?(:iso_3166 => 'JUNK')
-  end
-  
-  should "track how many times a row was touched" do
-    DataMiner.run :class_names => %w{ Country }, :from_scratch => true
-    assert_equal 1, Country.first.data_miner_touch_count
-    DataMiner.run :class_names => %w{ Country }
-    assert_equal 2, Country.first.data_miner_touch_count
-  end
-  
-  should "keep track of what the last import run that touched a row was" do
-    DataMiner.run :class_names => %w{ Country }, :from_scratch => true
-    a = DataMiner::Run.last
-    assert_equal a, Country.first.data_miner_last_run
-    DataMiner.run :class_names => %w{ Country }
-    b = DataMiner::Run.last
-    assert a != b
-    assert_equal b, Country.first.data_miner_last_run
+  should "import using a dictionary" do
+    DataMiner.run :class_names => %w{ ResidentialEnergyConsumptionSurveyResponse }
+    assert ResidentialEnergyConsumptionSurveyResponse.find(6).residence_class.starts_with?('Single-family detached house')
   end
 end
