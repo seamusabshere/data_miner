@@ -49,6 +49,11 @@ end
 
 ActiveRecord::Base.class_eval do
   def self.data_miner(&block)
+    unless table_exists?
+      logger.error "[DataMiner gem] Database table `#{table_name}` doesn't exist. DataMiner probably won't work properly until you run a migration or otherwise fix the schema."
+      return
+    end
+      
     DataMiner.classes.add self
     DataMiner.create_tables
     DataMiner::Target.find_or_create_by_name name
