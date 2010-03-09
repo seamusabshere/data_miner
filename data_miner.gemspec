@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{data_miner}
-  s.version = "0.3.7"
+  s.version = "0.3.8"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Seamus Abshere", "Andy Rossmeissl"]
@@ -32,7 +32,6 @@ Gem::Specification.new do |s|
      "lib/data_miner/import.rb",
      "lib/data_miner/process.rb",
      "lib/data_miner/run.rb",
-     "lib/data_miner/target.rb",
      "lib/data_miner/william_james_cartesian_product.rb",
      "test/data_miner_test.rb",
      "test/test_helper.rb"
