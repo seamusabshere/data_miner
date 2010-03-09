@@ -12,7 +12,6 @@ require 'data_miner/configuration'
 require 'data_miner/dictionary'
 require 'data_miner/import'
 require 'data_miner/process'
-require 'data_miner/target'
 require 'data_miner/run'
 
 # TODO: move to gem
@@ -56,7 +55,6 @@ ActiveRecord::Base.class_eval do
       
     DataMiner.classes.add self
     DataMiner.create_tables
-    DataMiner::Target.find_or_create_by_name name
 
     belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
     

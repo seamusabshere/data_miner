@@ -876,25 +876,13 @@ class DataMinerTest < Test::Unit::TestCase
     assert AutomobileVariant.first.fuel_efficiency_city.present?
   end
   
-  # should "mine multiple classes in the correct order" do
-  #   DataMiner.run
-  #   uy = Country.find_by_iso_3166('UY')
-  #   assert_equal 'Uruguay', uy.name
-  # end
-  
-  should "have a target record for every class that is mined" do
-    DataMiner.run :class_names => %w{ Country }
-    assert DataMiner::Target.exists?(:name => 'Country')
-    assert_equal 1, DataMiner::Target.count(:conditions => {:name => 'country'})
-  end
-  
   should "keep a log when it does a run" do
     approx_started_at = Time.now
     DataMiner.run :class_names => %w{ Country }
     approx_ended_at = Time.now
-    target = DataMiner::Target.find_by_name('Country')
-    assert (target.runs.last.started_at - approx_started_at).abs < 5 # seconds
-    assert (target.runs.last.ended_at - approx_ended_at).abs < 5 # seconds
+    last_run = DataMiner::Run.first(:conditions => { :resource_name => 'Country' }, :order => 'id DESC')
+    assert (last_run.started_at - approx_started_at).abs < 5 # seconds
+    assert (last_run.ended_at - approx_ended_at).abs < 5 # seconds
   end
   
   should "request a re-import from scratch" do
@@ -927,6 +915,12 @@ class DataMinerTest < Test::Unit::TestCase
     should "import using a dictionary" do
       DataMiner.run :class_names => %w{ ResidentialEnergyConsumptionSurveyResponse }
       assert ResidentialEnergyConsumptionSurveyResponse.find(6).residence_class.starts_with?('Single-family detached house')
+    end
+    
+    should "mine multiple classes in the correct order" do
+      DataMiner.run
+      uy = Country.find_by_iso_3166('UY')
+      assert_equal 'Uruguay', uy.name
     end
   end
 end

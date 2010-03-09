@@ -43,9 +43,8 @@ module DataMiner
 
     # Mine data for this class.
     def run(options = {})
-      target = DataMiner::Target.find(klass.name)
       finished = false
-      run = target.runs.create! :started_at => Time.now
+      run = DataMiner::Run.create! :started_at => Time.now, :resource_name => klass.name
       klass.delete_all if options[:from_scratch]
       begin
         runnables.each { |runnable| runnable.run(run) }
@@ -73,17 +72,9 @@ module DataMiner
             
       def create_tables
         c = ActiveRecord::Base.connection
-        unless c.table_exists?('data_miner_targets')
-          c.create_table 'data_miner_targets', :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
-            t.string 'name'
-            t.datetime 'created_at'
-            t.datetime 'updated_at'
-          end
-          c.execute 'ALTER TABLE data_miner_targets ADD PRIMARY KEY (name);'
-        end
         unless c.table_exists?('data_miner_runs')
           c.create_table 'data_miner_runs', :options => 'ENGINE=InnoDB default charset=utf8' do |t|
-            t.string 'data_miner_target_id'
+            t.string 'resource_name'
             t.boolean 'finished'
             t.datetime 'started_at'
             t.datetime 'ended_at'
