@@ -1,12 +1,14 @@
 module DataMiner
   class Import
     attr_accessor :configuration, :position_in_run, :options, :table, :errata
+    attr_accessor :description
     delegate :klass, :to => :configuration
     delegate :unique_indices, :to => :configuration
     
-    def initialize(configuration, position_in_run, options = {}, &block)
+    def initialize(configuration, position_in_run, description, options = {}, &block)
       @configuration = configuration
       @position_in_run = position_in_run
+      @description = description
       @options = options
       yield self if block_given? # pull in attributes
       @errata = Errata.new(:url => options[:errata], :klass => klass) if options[:errata]
@@ -14,7 +16,7 @@ module DataMiner
     end
 
     def inspect
-      "Import(#{klass}) position #{position_in_run}"
+      "Import(#{klass}) position #{position_in_run} (#{description})"
     end
 
     def attributes

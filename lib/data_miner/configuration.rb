@@ -21,9 +21,16 @@ module DataMiner
       runnables << DataMiner::Process.new(self, runnable_counter, method_name_or_block_description, &block)
     end
 
-    def import(options = {}, &block)
+    def import(*args, &block)
+      if args.length == 1
+        description = '(no description)'
+      else
+        description = args.first
+      end
+      options = args.last
+        
       self.runnable_counter += 1
-      runnables << DataMiner::Import.new(self, runnable_counter, options, &block)
+      runnables << DataMiner::Import.new(self, runnable_counter, description, options, &block)
     end
         
     def after_invoke
