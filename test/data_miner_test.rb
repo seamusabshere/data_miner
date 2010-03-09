@@ -446,7 +446,11 @@ class AutomobileVariant < ActiveRecord::Base
     # derive :automobile_model_id # creates models by name
     # associate :model_year, :key => :original_automobile_model_year_year, :foreign_key => :year
     # associate :fuel_type, :key => :original_automobile_fuel_type_code, :foreign_key => :code
-    process :set_adjusted_fuel_economy
+    
+    process 'Set adjusted fuel economy' do
+      update_all 'fuel_efficiency_city = 1 / ((0.003259 / 0.425143707) + (1.1805 / raw_fuel_efficiency_city))'
+      update_all 'fuel_efficiency_highway = 1 / ((0.001376 / 0.425143707) + (1.3466 / raw_fuel_efficiency_highway))'
+    end
   end
   
   def name
@@ -466,11 +470,6 @@ class AutomobileVariant < ActiveRecord::Base
   end
   
   class << self
-    def set_adjusted_fuel_economy
-      update_all 'fuel_efficiency_city = 1 / ((0.003259 / 0.425143707) + (1.1805 / raw_fuel_efficiency_city))'
-      update_all 'fuel_efficiency_highway = 1 / ((0.001376 / 0.425143707) + (1.3466 / raw_fuel_efficiency_highway))'
-    end
-    
     # the following matching methods are needed by the errata
     # per https://brighterplanet.sifterapp.com/projects/30/issues/750/comments
 
@@ -871,6 +870,14 @@ class DataMinerTest < Test::Unit::TestCase
     assert AutomobileVariant.first.row_hash.present?
   end
   
+  should "process a callback block instead of a method" do
+    AutomobileVariant.delete_all
+    AutomobileVariant.data_miner_config.runnables[0].run(nil)
+    assert !AutomobileVariant.first.fuel_efficiency_city.present?
+    AutomobileVariant.data_miner_config.runnables.last.run(nil)
+    assert AutomobileVariant.first.fuel_efficiency_city.present?
+  end
+  
   # should "mine multiple classes in the correct order" do
   #   DataMiner.run
   #   uy = Country.find_by_iso_3166('UY')
@@ -917,7 +924,7 @@ class DataMinerTest < Test::Unit::TestCase
     assert a != b
     assert_equal b, Country.first.data_miner_last_run
   end
-
+  
   unless ENV['FAST'] == 'true'
     should "import using a dictionary" do
       DataMiner.run :class_names => %w{ ResidentialEnergyConsumptionSurveyResponse }

@@ -16,9 +16,9 @@ module DataMiner
       args.each { |arg| unique_indices.add arg }
     end
     
-    def process(callback)
+    def process(method_name_or_block_description, &block)
       self.runnable_counter += 1
-      runnables << DataMiner::Process.new(self, runnable_counter, callback)
+      runnables << DataMiner::Process.new(self, runnable_counter, method_name_or_block_description, &block)
     end
 
     def import(options = {}, &block)

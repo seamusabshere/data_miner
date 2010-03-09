@@ -1,20 +1,36 @@
 module DataMiner
   class Process
-    attr_accessor :configuration, :position_in_run, :callback
+    attr_accessor :configuration, :position_in_run
+    attr_accessor :method_name
+    attr_accessor :block_description, :block
     delegate :klass, :to => :configuration
 
-    def initialize(configuration, position_in_run, callback)
+    def initialize(configuration, position_in_run, method_name_or_block_description, &block)
       @configuration = configuration
       @position_in_run = position_in_run
-      @callback = callback
+      if block_given?
+        @block_description = method_name_or_block_description
+        @block = block
+      else
+        @method_name = method_name
+      end
     end
     
     def inspect
-      "Process(#{klass}) position #{position_in_run}"
+      str = "Process(#{klass}) position #{position_in_run}"
+      if block
+        str << " called :#{method_name}"
+      else
+        str << " ran block (#{block_description})"
+      end
     end
     
     def run(run)
-      klass.send callback
+      if block
+        block.call
+      else
+        klass.send method_name
+      end
       DataMiner.logger.info "ran #{inspect}"
     end
   end
