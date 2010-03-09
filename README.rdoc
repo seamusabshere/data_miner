@@ -44,7 +44,7 @@ Put this in <tt>lib/tasks/data_miner_tasks.rake</tt>: (unfortunately I don't kno
 
   namespace :data_miner do
     task :run => :environment do
-      DataMiner.run :class_names => ENV['CLASSES'].to_s.split(/\s*,\s*/).flatten.compact
+      DataMiner.run :resource_names => ENV['RESOURCES'].to_s.split(/\s*,\s*/).flatten.compact
     end
   end
 

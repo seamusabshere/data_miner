@@ -878,7 +878,7 @@ class DataMinerTest < Test::Unit::TestCase
   
   should "keep a log when it does a run" do
     approx_started_at = Time.now
-    DataMiner.run :class_names => %w{ Country }
+    DataMiner.run :resource_names => %w{ Country }
     approx_ended_at = Time.now
     last_run = DataMiner::Run.first(:conditions => { :resource_name => 'Country' }, :order => 'id DESC')
     assert (last_run.started_at - approx_started_at).abs < 5 # seconds
@@ -890,30 +890,30 @@ class DataMinerTest < Test::Unit::TestCase
     c.iso_3166 = 'JUNK'
     c.save!
     assert Country.exists?(:iso_3166 => 'JUNK')
-    DataMiner.run :class_names => %w{ Country }, :from_scratch => true
+    DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
     assert !Country.exists?(:iso_3166 => 'JUNK')
   end
   
   should "track how many times a row was touched" do
-    DataMiner.run :class_names => %w{ Country }, :from_scratch => true
+    DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
     assert_equal 1, Country.first.data_miner_touch_count
-    DataMiner.run :class_names => %w{ Country }
-    assert_equal 2, Country.first.data_miner_touch_count
+    DataMiner.run :resource_names => %w{ Country }
+    assert_equal 1, Country.first.data_miner_touch_count
   end
   
   should "keep track of what the last import run that touched a row was" do
-    DataMiner.run :class_names => %w{ Country }, :from_scratch => true
+    DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
     a = DataMiner::Run.last
     assert_equal a, Country.first.data_miner_last_run
-    DataMiner.run :class_names => %w{ Country }
+    DataMiner.run :resource_names => %w{ Country }
     b = DataMiner::Run.last
     assert a != b
-    assert_equal b, Country.first.data_miner_last_run
+    assert_equal a, Country.first.data_miner_last_run
   end
   
   unless ENV['FAST'] == 'true'
     should "import using a dictionary" do
-      DataMiner.run :class_names => %w{ ResidentialEnergyConsumptionSurveyResponse }
+      DataMiner.run :resource_names => %w{ ResidentialEnergyConsumptionSurveyResponse }
       assert ResidentialEnergyConsumptionSurveyResponse.find(6).residence_class.starts_with?('Single-family detached house')
     end
     

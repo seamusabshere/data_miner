@@ -37,8 +37,8 @@ module DataMiner
     DataMiner::Configuration.run options
   end
   
-  def self.classes
-    DataMiner::Configuration.classes
+  def self.resource_names
+    DataMiner::Configuration.resource_names
   end
   
   def self.create_tables
@@ -52,8 +52,8 @@ ActiveRecord::Base.class_eval do
       logger.error "[DataMiner gem] Database table `#{table_name}` doesn't exist. DataMiner probably won't work properly until you run a migration or otherwise fix the schema."
       return
     end
-      
-    DataMiner.classes.add self
+    
+    DataMiner.resource_names.add self.name
     DataMiner.create_tables
 
     belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'

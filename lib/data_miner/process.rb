@@ -3,7 +3,7 @@ module DataMiner
     attr_accessor :configuration, :position_in_run
     attr_accessor :method_name
     attr_accessor :block_description, :block
-    delegate :klass, :to => :configuration
+    delegate :resource, :to => :configuration
 
     def initialize(configuration, position_in_run, method_name_or_block_description, &block)
       @configuration = configuration
@@ -12,16 +12,16 @@ module DataMiner
         @block_description = method_name_or_block_description
         @block = block
       else
-        @method_name = method_name
+        @method_name = method_name_or_block_description
       end
     end
     
     def inspect
-      str = "Process(#{klass}) position #{position_in_run}"
+      str = "Process(#{resource}) position #{position_in_run}"
       if block
-        str << " called :#{method_name}"
-      else
         str << " ran block (#{block_description})"
+      else
+        str << " called :#{method_name}"
       end
     end
     
@@ -29,7 +29,7 @@ module DataMiner
       if block
         block.call
       else
-        klass.send method_name
+        resource.send method_name
       end
       DataMiner.logger.info "ran #{inspect}"
     end

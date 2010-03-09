@@ -2,12 +2,12 @@ module DataMiner
   class Configuration
     include Blockenspiel::DSL
     
-    attr_accessor :klass, :runnables, :runnable_counter, :attributes, :unique_indices
+    attr_accessor :resource, :runnables, :runnable_counter, :attributes, :unique_indices
 
-    def initialize(klass)
+    def initialize(resource)
       @runnables = Array.new
       @unique_indices = Set.new
-      @klass = klass
+      @resource = resource
       @runnable_counter = 0
       @attributes = HashWithIndifferentAccess.new
     end
@@ -35,7 +35,7 @@ module DataMiner
         
     def after_invoke
       if unique_indices.empty?
-        raise(MissingHashColumn, "No unique_index defined for #{klass.name}, so you need a row_hash:string column.") unless klass.column_names.include?('row_hash')
+        raise(MissingHashColumn, "No unique_index defined for #{resource.name}, so you need a row_hash:string column.") unless resource.column_names.include?('row_hash')
         unique_indices.add 'row_hash'
       end
       runnables.select { |runnable| runnable.is_a?(Import) }.each { |runnable| unique_indices.each { |unique_index| runnable.store(unique_index) unless runnable.stores?(unique_index) } }
@@ -44,8 +44,8 @@ module DataMiner
     # Mine data for this class.
     def run(options = {})
       finished = false
-      run = DataMiner::Run.create! :started_at => Time.now, :resource_name => klass.name
-      klass.delete_all if options[:from_scratch]
+      run = DataMiner::Run.create! :started_at => Time.now, :resource_name => resource.name
+      resource.delete_all if options[:from_scratch]
       begin
         runnables.each { |runnable| runnable.run(run) }
         finished = true
@@ -55,17 +55,17 @@ module DataMiner
       nil
     end
     
-    cattr_accessor :classes
-    self.classes = Set.new
+    cattr_accessor :resource_names
+    self.resource_names = Set.new
     class << self
-      # Mine data. Defaults to all classes touched by DataMiner.
+      # Mine data. Defaults to all resource_names touched by DataMiner.
       #
       # Options
-      # * <tt>:class_names</tt>: provide an array class names to mine
+      # * <tt>:resource_names</tt>: array of resource (class) names to mine
       def run(options = {})
-        classes.each do |klass|
-          if options[:class_names].blank? or options[:class_names].include?(klass.name)
-            klass.data_miner_config.run options
+        resource_names.each do |resource_name|
+          if options[:resource_names].blank? or options[:resource_names].include?(resource_name)
+            resource_name.constantize.data_miner_config.run options
           end
         end
       end

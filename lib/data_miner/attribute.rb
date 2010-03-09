@@ -1,15 +1,15 @@
 module DataMiner
   class Attribute
-    attr_accessor :klass, :name, :options_for_import
+    attr_accessor :resource, :name, :options_for_import
 
-    def initialize(klass, name)
-      @klass = klass
+    def initialize(resource, name)
+      @resource = resource
       @name = name
       @options_for_import = {}
     end
         
     def inspect
-      "Attribute(#{klass}##{name})"
+      "Attribute(#{resource}##{name})"
     end
 
     def stored_by?(import)
@@ -56,11 +56,21 @@ module DataMiner
     end
         
     # this will overwrite nils, even if wants_overwriting?(import) is false
+    # returns true if an attr was changed, otherwise false
     def set_record_from_row(import, record, row)
-      return if !wants_overwriting?(import) and !record.send(name).nil?
-      value = value_from_row(import, row)
-      record.send "#{name}=", value
-      DataMiner.logger.info("ActiveRecord didn't like trying to set #{klass}.#{name} = #{value}") if !value.nil? and record.send(name).nil?
+      return false if !wants_overwriting?(import) and !record.send(name).nil?
+      what_it_was = record.send name
+      what_it_should_be = value_from_row import, row
+      record.send "#{name}=", what_it_should_be
+      what_it_is = record.send name
+      if what_it_is.nil? and !what_it_should_be.nil?
+        DataMiner.logger.info "ActiveRecord didn't like trying to set #{resource}.#{name} = #{what_it_should_be} (it came out as nil)"
+        nil
+      elsif what_it_is == what_it_was
+        false
+      else
+        true
+      end
     end
 
     def unit_from_source(import, row)
@@ -87,7 +97,7 @@ module DataMiner
     end
   
     def column_type
-      klass.columns_hash[name.to_s].type
+      resource.columns_hash[name.to_s].type
     end
     
     def dictionary(import)
