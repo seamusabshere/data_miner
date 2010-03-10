@@ -64,6 +64,9 @@ ActiveRecord::Base.class_eval do
       def self.data_miner_runs
         DataMiner::Run.scoped :conditions => { :resource_name => name }
       end
+      def self.run_data_miner!(options = {})
+        data_miner_config.run options
+      end
     end
     self.data_miner_config = DataMiner::Configuration.new self
 

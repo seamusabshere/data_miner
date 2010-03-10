@@ -827,6 +827,10 @@ end
 # todo: have somebody properly organize these
 class DataMinerTest < Test::Unit::TestCase
   if ENV['FAST'] == 'true'
+    should "have a way to queue up runs that works with delated_job's send_later" do
+      assert AutomobileVariant.respond_to?(:run_data_miner!)
+    end
+    
     should "be idempotent" do
       Country.data_miner_config.run
       a = Country.count
