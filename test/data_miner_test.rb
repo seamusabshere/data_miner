@@ -824,105 +824,108 @@ class ResidentialEnergyConsumptionSurveyResponse < ActiveRecord::Base
   end
 end
 
-class DataMinerTest < Test::Unit::TestCase  
-  should "be idempotent" do
-    Country.data_miner_config.run
-    a = Country.count
-    Country.data_miner_config.run
-    b = Country.count
-    assert_equal a, b
+# todo: have somebody properly organize these
+class DataMinerTest < Test::Unit::TestCase
+  if ENV['FAST'] == 'true'
+    should "be idempotent" do
+      Country.data_miner_config.run
+      a = Country.count
+      Country.data_miner_config.run
+      b = Country.count
+      assert_equal a, b
     
-    CensusRegion.data_miner_config.run
-    a = CensusRegion.count
-    CensusRegion.data_miner_config.run
-    b = CensusRegion.count
-    assert_equal a, b
-  end
+      CensusRegion.data_miner_config.run
+      a = CensusRegion.count
+      CensusRegion.data_miner_config.run
+      b = CensusRegion.count
+      assert_equal a, b
+    end
     
-  should "assume that no unique indices means it wants a big hash" do
-    assert_raises DataMiner::MissingHashColumn do
-      class IncompleteCountry < ActiveRecord::Base
-        set_table_name 'countries'
+    should "assume that no unique indices means it wants a big hash" do
+      assert_raises DataMiner::MissingHashColumn do
+        class IncompleteCountry < ActiveRecord::Base
+          set_table_name 'countries'
         
-        data_miner do
-          # no unique index
+          data_miner do
+            # no unique index
   
-          # get a complete list
-          import :url => 'http://www.iso.org/iso/list-en1-semic-3.txt', :skip => 2, :headers => false, :delimiter => ';' do |attr|
-            attr.store 'iso_3166', :field_number => 1
-            attr.store 'name', :field_number => 0
-          end
+            # get a complete list
+            import :url => 'http://www.iso.org/iso/list-en1-semic-3.txt', :skip => 2, :headers => false, :delimiter => ';' do |attr|
+              attr.store 'iso_3166', :field_number => 1
+              attr.store 'name', :field_number => 0
+            end
   
-          # get nicer names
-          import :url => 'http://www.cs.princeton.edu/introcs/data/iso3166.csv' do |attr|
-            attr.store 'iso_3166', :field_name => 'country code'
-            attr.store 'name', :field_name => 'country'
+            # get nicer names
+            import :url => 'http://www.cs.princeton.edu/introcs/data/iso3166.csv' do |attr|
+              attr.store 'iso_3166', :field_name => 'country code'
+              attr.store 'name', :field_name => 'country'
+            end
           end
         end
       end
     end
+  
+    should "hash things if no unique index is listed" do
+      AutomobileVariant.data_miner_config.runnables[0].run(nil)
+      assert AutomobileVariant.first.row_hash.present?
+    end
+  
+    should "process a callback block instead of a method" do
+      AutomobileVariant.delete_all
+      AutomobileVariant.data_miner_config.runnables[0].run(nil)
+      assert !AutomobileVariant.first.fuel_efficiency_city.present?
+      AutomobileVariant.data_miner_config.runnables.last.run(nil)
+      assert AutomobileVariant.first.fuel_efficiency_city.present?
+    end
+  
+    should "keep a log when it does a run" do
+      approx_started_at = Time.now
+      DataMiner.run :resource_names => %w{ Country }
+      approx_ended_at = Time.now
+      last_run = DataMiner::Run.first(:conditions => { :resource_name => 'Country' }, :order => 'id DESC')
+      assert (last_run.started_at - approx_started_at).abs < 5 # seconds
+      assert (last_run.ended_at - approx_ended_at).abs < 5 # seconds
+    end
+  
+    should "request a re-import from scratch" do
+      c = Country.new
+      c.iso_3166 = 'JUNK'
+      c.save!
+      assert Country.exists?(:iso_3166 => 'JUNK')
+      DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
+      assert !Country.exists?(:iso_3166 => 'JUNK')
+    end
+  
+    should "track how many times a row was touched" do
+      DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
+      assert_equal 1, Country.first.data_miner_touch_count
+      DataMiner.run :resource_names => %w{ Country }
+      assert_equal 1, Country.first.data_miner_touch_count
+    end
+  
+    should "keep track of what the last import run that touched a row was" do
+      DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
+      a = DataMiner::Run.last
+      assert_equal a, Country.first.data_miner_last_run
+      DataMiner.run :resource_names => %w{ Country }
+      b = DataMiner::Run.last
+      assert a != b
+      assert_equal a, Country.first.data_miner_last_run
+    end
+  
+    should "be able to get how many rows affected by a run" do
+      DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
+      assert_equal Country.first.data_miner_last_run.resource_records_last_touched_by_me.count, Country.count
+    end
+  
+    should "know what runs were on a resource" do
+      DataMiner.run :resource_names => %w{ Country }
+      DataMiner.run :resource_names => %w{ Country }
+      assert Country.data_miner_runs.count > 0
+    end
   end
   
-  should "hash things if no unique index is listed" do
-    AutomobileVariant.data_miner_config.runnables[0].run(nil)
-    assert AutomobileVariant.first.row_hash.present?
-  end
-  
-  should "process a callback block instead of a method" do
-    AutomobileVariant.delete_all
-    AutomobileVariant.data_miner_config.runnables[0].run(nil)
-    assert !AutomobileVariant.first.fuel_efficiency_city.present?
-    AutomobileVariant.data_miner_config.runnables.last.run(nil)
-    assert AutomobileVariant.first.fuel_efficiency_city.present?
-  end
-  
-  should "keep a log when it does a run" do
-    approx_started_at = Time.now
-    DataMiner.run :resource_names => %w{ Country }
-    approx_ended_at = Time.now
-    last_run = DataMiner::Run.first(:conditions => { :resource_name => 'Country' }, :order => 'id DESC')
-    assert (last_run.started_at - approx_started_at).abs < 5 # seconds
-    assert (last_run.ended_at - approx_ended_at).abs < 5 # seconds
-  end
-  
-  should "request a re-import from scratch" do
-    c = Country.new
-    c.iso_3166 = 'JUNK'
-    c.save!
-    assert Country.exists?(:iso_3166 => 'JUNK')
-    DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
-    assert !Country.exists?(:iso_3166 => 'JUNK')
-  end
-  
-  should "track how many times a row was touched" do
-    DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
-    assert_equal 1, Country.first.data_miner_touch_count
-    DataMiner.run :resource_names => %w{ Country }
-    assert_equal 1, Country.first.data_miner_touch_count
-  end
-  
-  should "keep track of what the last import run that touched a row was" do
-    DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
-    a = DataMiner::Run.last
-    assert_equal a, Country.first.data_miner_last_run
-    DataMiner.run :resource_names => %w{ Country }
-    b = DataMiner::Run.last
-    assert a != b
-    assert_equal a, Country.first.data_miner_last_run
-  end
-  
-  should "be able to get how many rows affected by a run" do
-    DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
-    assert_equal Country.first.data_miner_last_run.resource_records_last_touched_by_me.count, Country.count
-  end
-  
-  should "know what runs were on a resource" do
-    DataMiner.run :resource_names => %w{ Country }
-    DataMiner.run :resource_names => %w{ Country }
-    assert Country.data_miner_runs.count > 0
-  end
-  
-  unless ENV['FAST'] == 'true'
+  if ENV['SLOW'] == 'true'
     should "import using a dictionary" do
       DataMiner.run :resource_names => %w{ ResidentialEnergyConsumptionSurveyResponse }
       assert ResidentialEnergyConsumptionSurveyResponse.find(6).residence_class.starts_with?('Single-family detached house')
