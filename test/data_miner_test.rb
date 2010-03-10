@@ -911,6 +911,11 @@ class DataMinerTest < Test::Unit::TestCase
     assert_equal a, Country.first.data_miner_last_run
   end
   
+  should "be able to get how many rows affected by a run" do
+    DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
+    assert_equal Country.first.data_miner_last_run.resource_records_last_touched_by_me.count, Country.count
+  end
+  
   unless ENV['FAST'] == 'true'
     should "import using a dictionary" do
       DataMiner.run :resource_names => %w{ ResidentialEnergyConsumptionSurveyResponse }
