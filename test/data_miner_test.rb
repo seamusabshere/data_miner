@@ -615,11 +615,8 @@ class ResidentialEnergyConsumptionSurveyResponse < ActiveRecord::Base
     unique_index 'department_of_energy_identifier'
     
     process 'Define some unit conversions' do
-      Conversions.register :joules, :litres_of_kerosene, 1.0 / (135_000.0 * 3.78541178 * 1_055.05585)
-      Conversions.register :joules, :litres_of_propane, 1.0 / (91_333.0 * 3.78541178 * 1_055.05585)
-      Conversions.register :therms, :joules, 105_505_585.0
-      Conversions.register :joules, :litres_of_fuel_oil, 1.0 / (138_690.0 * 3.78541178 * 1_055.05585)
-      Conversions.register :joules, :kilograms_of_coal, 1.0 / (22_342_000.0 * 0.00110231131 * 1_055.05585)
+      Conversions.register :kbtus, :joules, 1_000.0 * 1_055.05585
+      Conversions.register :square_feet, :square_metres, 0.09290304
     end
     
     # conversions are NOT performed here, since we first have to zero out legitimate skips

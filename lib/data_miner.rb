@@ -76,26 +76,3 @@ ActiveRecord::Base.class_eval do
 end
 
 DataMiner.start_logging
-
-# todo: move to conversions gem (maybe)
-Conversions.register :miles, :nautical_miles, 0.868976242
-Conversions.register :kilometres, :nautical_miles, 0.539956803
-Conversions.register :pounds_per_gallon, :kilograms_per_litre, 0.119826427
-Conversions.register :inches, :meters, 0.0254
-Conversions.register :kilowatt_hours, :watt_hours, 1_000.0
-Conversions.register :watt_hours, :joules, 3_600.0
-Conversions.register :kilowatt_hours, :joules, 3_600_000.0
-Conversions.register :kbtus, :btus, 1_000.0
-Conversions.register :square_feet, :square_metres, 0.09290304
-Conversions.register :pounds_per_square_foot, :kilograms_per_square_metre, 4.88242764
-Conversions.register :kilograms_per_kilowatt_hour, :kilograms_per_megawatt_hour, 1_000.0
-Conversions.register :btus, :joules, 1_055.05585
-Conversions.register :kbtus, :joules, 1_000.0 * 1_055.05585
-Conversions.register :cords, :joules, 2.11011171e10
-Conversions.register :gallons_per_mile, :litres_per_kilometre, 2.35214583
-Conversions.register :pounds_per_mile, :kilograms_per_kilometre, 0.281849232
-Conversions.register :dollars, :cents, 100
-Conversions.register :cubic_feet, :cubic_metres, 0.0283168466
-Conversions.register :kilocalories_per_pound, :joules_per_kilogram, 9_224.14105
-Conversions.register :grams_per_kilocalorie, :kilograms_per_joule, 2.39005736e-7
-Conversions.register :joules, :kilocalories, 0.000239005736
