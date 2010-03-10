@@ -49,9 +49,9 @@ module DataMiner
         end.flatten
 
         Array.wrap(record_set).each do |record|
-          hits = attributes.values.map { |attr| attr.set_record_from_row self, record, row }
+          changes = attributes.values.map { |attr| attr.set_record_from_row self, record, row }
           record.data_miner_touch_count ||= 0
-          if hits.any?
+          if changes.any?
             record.data_miner_touch_count += 1
             record.data_miner_last_run = run
           end
