@@ -551,13 +551,12 @@ end
 
 class Airport < ActiveRecord::Base
   set_primary_key :iata_code
-  belongs_to :country
+  # belongs_to :country
   
   data_miner do
     unique_index 'iata_code'
     
-    # import airport iata_code, name, etc.
-    import(:url => 'http://openflights.svn.sourceforge.net/viewvc/openflights/openflights/data/airports.dat', :headers => false, :select => lambda { |row| row[4].present? }) do |attr|
+    import :url => 'http://openflights.svn.sourceforge.net/viewvc/openflights/openflights/data/airports.dat', :headers => false, :select => lambda { |row| row[4].present? } do |attr|
       attr.store 'name', :field_number => 1
       attr.store 'city', :field_number => 2
       attr.store 'country_name', :field_number => 3
@@ -783,6 +782,11 @@ end
 # todo: have somebody properly organize these
 class DataMinerTest < Test::Unit::TestCase
   if ENV['FAST'] == 'true'
+    should "import airports" do
+      Airport.run_data_miner!
+      assert Airport.count > 0
+    end
+    
     should "pull in census divisions using a data.brighterplanet.com dictionary" do
       CensusDivision.run_data_miner!
       assert CensusDivision.count > 0

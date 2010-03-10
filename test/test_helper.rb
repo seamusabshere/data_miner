@@ -18,21 +18,19 @@ class Test::Unit::TestCase
 end
 
 ActiveRecord::Schema.define(:version => 20090819143429) do
-  create_table "airports", :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
-    t.string  "country_id"
-    
-    t.string   "iata_code"
-    t.string   "name"
-    t.string   "city"
-    t.string   "country_name"
-    t.float    "latitude"
-    t.float    "longitude"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+  create_table 'airports', :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
+    t.string   'iata_code'
+    t.string   'name'
+    t.string   'city'
+    t.string   'country_name'
+    t.float    'latitude'
+    t.float    'longitude'
+    t.datetime 'created_at'
+    t.datetime 'updated_at'
     t.integer 'data_miner_touch_count'
     t.integer 'data_miner_last_run_id'
   end
-  execute "ALTER TABLE airports ADD PRIMARY KEY (iata_code);"
+  execute 'ALTER TABLE airports ADD PRIMARY KEY (iata_code);'
   
   create_table "countries", :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
     t.string   "iso_3166"
