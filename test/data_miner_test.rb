@@ -580,9 +580,31 @@ class CensusRegion < ActiveRecord::Base
     end
     
     # pretend this is a different data source
+    # fake! just for testing purposes
     import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Region'].to_i > 0 and row['Division'].to_s.strip == 'X'} do |attr|
       attr.store 'name', :field_name => 'Name'
       attr.store 'number', :field_name => 'Region'
+    end
+  end
+end
+
+# smaller than a region
+class CensusDivision < ActiveRecord::Base
+  set_primary_key :number
+  # belongs_to :census_region
+  # has_many :states
+  # has_many :zip_codes, :through => :states
+  # has_many :climate_divisions, :through => :states
+  # has_many :residence_survey_responses
+  
+  data_miner do
+    unique_index 'number'
+    
+    import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Division'].to_s.strip != 'X' and row['FIPS CODE STATE'].to_s.strip == 'X'} do |attr|
+      attr.store 'name', :field_name => 'Name'
+      attr.store 'number', :field_name => 'Division'
+      attr.store 'census_region_number', :field_name => 'Region'
+      attr.store 'census_region_name', :field_name => 'Region', :dictionary => { :input => 'number', :output => 'name', :url => 'http://data.brighterplanet.com/census_regions.csv' }
     end
   end
 end
@@ -591,11 +613,19 @@ class ResidentialEnergyConsumptionSurveyResponse < ActiveRecord::Base
   set_primary_key :department_of_energy_identifier
   
   data_miner do
+    unique_index 'department_of_energy_identifier'
+    
+    process 'Define some unit conversions' do
+      Conversions.register :joules, :litres_of_kerosene, 1.0 / (135_000.0 * 3.78541178 * 1_055.05585)
+      Conversions.register :joules, :litres_of_propane, 1.0 / (91_333.0 * 3.78541178 * 1_055.05585)
+      Conversions.register :therms, :joules, 105_505_585.0
+      Conversions.register :joules, :litres_of_fuel_oil, 1.0 / (138_690.0 * 3.78541178 * 1_055.05585)
+      Conversions.register :joules, :kilograms_of_coal, 1.0 / (22_342_000.0 * 0.00110231131 * 1_055.05585)
+    end
+    
     # conversions are NOT performed here, since we first have to zero out legitimate skips
     # otherwise you will get values like "999 pounds = 453.138778 kilograms" (where 999 is really a legit skip)
-    import :url => 'http://www.eia.doe.gov/emeu/recs/recspubuse05/datafiles/RECS05alldata.csv', :headers => :upcase do |attr|
-      unique_index 'department_of_energy_identifier'
-      
+    import 'RECs 2005 (but not converting units to metric just yet)', :url => 'http://www.eia.doe.gov/emeu/recs/recspubuse05/datafiles/RECS05alldata.csv', :headers => :upcase do |attr|
       attr.store 'department_of_energy_identifier', :field_name => 'DOEID'
       
       attr.store 'residence_class', :field_name => 'TYPEHUQ', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/data_helpers/raw/master/typehuq/typehuq.csv' }
@@ -609,6 +639,10 @@ class ResidentialEnergyConsumptionSurveyResponse < ActiveRecord::Base
       attr.store 'clothes_dryer_use', :field_name => 'DRYRUSE', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/data_helpers/raw/master/dryruse/dryruse.csv' }
       
       attr.store 'census_division_number', :field_name => 'DIVISION'
+      attr.store 'census_division_name', :field_name => 'DIVISION', :dictionary => { :input => 'number', :output => 'name', :url => 'http://data.brighterplanet.com/census_divisions.csv' }
+      attr.store 'census_region_number', :field_name => 'DIVISION', :dictionary => { :input => 'number', :output => 'census_region_number', :url => 'http://data.brighterplanet.com/census_divisions.csv' }
+      attr.store 'census_region_name', :field_name => 'DIVISION', :dictionary => { :input => 'number', :output => 'census_region_name', :url => 'http://data.brighterplanet.com/census_divisions.csv' }
+      
       attr.store 'floorspace', :field_name => 'TOTSQFT'
       attr.store 'residents', :field_name => 'NHSLDMEM'
       attr.store 'ownership', :field_name => 'KOWNRENT'
@@ -657,169 +691,91 @@ class ResidentialEnergyConsumptionSurveyResponse < ActiveRecord::Base
       attr.store 'outdoor_all_night_gas_lights', :field_name => 'NGASLIGHT'
     end
 
-    # process :zero_out_legitimate_skips
-
-    # process :convert_units_after_zeroing_legitimate_skips
-    
-    # process :derive_rooms
-    
-    # process :derive_lighting_use 
-    
-    # process :derive_lighting_efficiency
-
-    # CensusDivision needs its own dataminer
-    # attr.store 'census_division', :field_name => 'DIVISION', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/data_helpers/raw/master/division/division.csv' }
-
-    # this is basically process :derive_census_region
-    # step.derive :census_region_id, :set => '(SELECT census_regions.id FROM census_regions INNER JOIN census_divisions ON census_regions.id = census_divisions.census_region_id WHERE census_divisions.id = residence_survey_responses.census_division_id)'
-
-    # process :derive_residence_air_conditioner_use_id
-    
-    # process :derive_residence_clothes_drier_use_id
-  end
-  
-  class << self
-    # # continuous variables for which legitimate skip is effectively zero
-    # attr.affect :annual_energy_from_electricity_for_air_conditioners
-    # attr.affect :annual_energy_from_electricity_for_clothes_driers
-    # attr.affect :annual_energy_from_electricity_for_dishwashers
-    # attr.affect :annual_energy_from_electricity_for_freezers
-    # attr.affect :annual_energy_from_electricity_for_heating_space
-    # attr.affect :annual_energy_from_electricity_for_heating_water
-    # attr.affect :annual_energy_from_electricity_for_other_appliances
-    # attr.affect :annual_energy_from_electricity_for_refrigerators
-    # attr.affect :annual_energy_from_fuel_oil_for_appliances
-    # attr.affect :annual_energy_from_fuel_oil_for_heating_space
-    # attr.affect :annual_energy_from_fuel_oil_for_heating_water
-    # attr.affect :annual_energy_from_kerosene
-    # attr.affect :annual_energy_from_propane_for_appliances
-    # attr.affect :annual_energy_from_propane_for_heating_space
-    # attr.affect :annual_energy_from_propane_for_heating_water
-    # attr.affect :annual_energy_from_natural_gas_for_appliances
-    # attr.affect :annual_energy_from_natural_gas_for_heating_space
-    # attr.affect :annual_energy_from_natural_gas_for_heating_water
-    # attr.affect :annual_energy_from_wood
-    # attr.affect :lights_on_1_to_4_hours
-    # attr.affect :lights_on_over_12_hours
-    # attr.affect :efficient_lights_on_over_12_hours
-    # attr.affect :efficient_lights_on_1_to_4_hours
-    # attr.affect :lights_on_4_to_12_hours
-    # attr.affect :efficient_lights_on_4_to_12_hours
-    # attr.affect :outdoor_all_night_gas_lights
-    # attr.affect :outdoor_all_night_lights
-    # # booleans for which legitimate skip is effectively zero
-    # attr.affect :thermostat_programmability
-    # attr.affect :detached_1car_garage
-    # attr.affect :detached_2car_garage
-    # attr.affect :detached_3car_garage
-    # attr.affect :attached_1car_garage
-    # attr.affect :attached_2car_garage
-    # attr.affect :attached_3car_garage
-    # attr.affect :heated_garage
-    def zero_out_legitimate_skips
-      max = maximum(attr_name, :select => "CONVERT(#{attr_name}, UNSIGNED INTEGER)")
-      if /^9+$/.match(max.to_i.to_s) # the max is all 999's... it must be a LEGITIMATE SKIP
-        logger.info "Zeroing #{attr_name} if it's #{max}"
-        update_all("#{attr_name} = 0", "#{attr_name} = #{max}")
+    # Rather than nullify the continuous variables that EIA identifies as LEGITIMATE SKIPS, we convert them to zero
+    # This makes it easier to derive useful information like "how many rooms does the house have?"
+    process 'Zero out what the EIA calls "LEGITIMATE SKIPS"' do
+      %w{
+        annual_energy_from_electricity_for_air_conditioners
+        annual_energy_from_electricity_for_clothes_driers
+        annual_energy_from_electricity_for_dishwashers
+        annual_energy_from_electricity_for_freezers
+        annual_energy_from_electricity_for_heating_space
+        annual_energy_from_electricity_for_heating_water
+        annual_energy_from_electricity_for_other_appliances
+        annual_energy_from_electricity_for_refrigerators
+        annual_energy_from_fuel_oil_for_appliances
+        annual_energy_from_fuel_oil_for_heating_space
+        annual_energy_from_fuel_oil_for_heating_water
+        annual_energy_from_kerosene
+        annual_energy_from_propane_for_appliances
+        annual_energy_from_propane_for_heating_space
+        annual_energy_from_propane_for_heating_water
+        annual_energy_from_natural_gas_for_appliances
+        annual_energy_from_natural_gas_for_heating_space
+        annual_energy_from_natural_gas_for_heating_water
+        annual_energy_from_wood
+        lights_on_1_to_4_hours
+        lights_on_over_12_hours
+        efficient_lights_on_over_12_hours
+        efficient_lights_on_1_to_4_hours
+        lights_on_4_to_12_hours
+        efficient_lights_on_4_to_12_hours
+        outdoor_all_night_gas_lights
+        outdoor_all_night_lights
+        thermostat_programmability
+        detached_1car_garage
+        detached_2car_garage
+        detached_3car_garage
+        attached_1car_garage
+        attached_2car_garage
+        attached_3car_garage
+        heated_garage
+      }.each do |attr_name|
+        max = maximum attr_name, :select => "CONVERT(#{attr_name}, UNSIGNED INTEGER)"
+        # if the maximum value of a row is all 999's, then it's a LEGITIMATE SKIP and we should set it to zero
+        if /^9+$/.match(max.to_i.to_s)
+          update_all "#{attr_name} = 0", "#{attr_name} = #{max}"
+        end
       end
     end
-    
-    # attr.affect :annual_energy_from_fuel_oil_for_heating_space, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_fuel_oil_for_heating_water, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_fuel_oil_for_appliances, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_natural_gas_for_heating_space, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_natural_gas_for_heating_water, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_natural_gas_for_appliances, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_propane_for_heating_space, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_propane_for_heating_water, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_propane_for_appliances, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_wood, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_kerosene, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_electricity_for_clothes_driers, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_electricity_for_dishwashers, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_electricity_for_freezers, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_electricity_for_refrigerators, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_electricity_for_air_conditioners, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_electricity_for_heating_space, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_electricity_for_heating_water, :from => :kbtus, :to => :joules
-    # attr.affect :annual_energy_from_electricity_for_other_appliances, :from => :kbtus, :to => :joules
-    # attr.affect :floorspace, :from => :square_feet, :to => :square_metres
-    def convert_units_after_zeroing_legitimate_skips
-      update_all("#{attr_name} = #{attr_name} * #{Conversions::Unit.exchange_rate(attr_options[:from], attr_options[:to])}")
+
+    process 'Convert units to metric after zeroing out LEGITIMATE SKIPS' do
+      [
+        [ 'floorspace', :square_feet, :square_metres ],
+        [ 'annual_energy_from_fuel_oil_for_heating_space', :kbtus, :joules ],
+        [ 'annual_energy_from_fuel_oil_for_heating_water', :kbtus, :joules ],
+        [ 'annual_energy_from_fuel_oil_for_appliances', :kbtus, :joules ],
+        [ 'annual_energy_from_natural_gas_for_heating_space', :kbtus, :joules ],
+        [ 'annual_energy_from_natural_gas_for_heating_water', :kbtus, :joules ],
+        [ 'annual_energy_from_natural_gas_for_appliances', :kbtus, :joules ],
+        [ 'annual_energy_from_propane_for_heating_space', :kbtus, :joules ],
+        [ 'annual_energy_from_propane_for_heating_water', :kbtus, :joules ],
+        [ 'annual_energy_from_propane_for_appliances', :kbtus, :joules ],
+        [ 'annual_energy_from_wood', :kbtus, :joules ],
+        [ 'annual_energy_from_kerosene', :kbtus, :joules ],
+        [ 'annual_energy_from_electricity_for_clothes_driers', :kbtus, :joules ],
+        [ 'annual_energy_from_electricity_for_dishwashers', :kbtus, :joules ],
+        [ 'annual_energy_from_electricity_for_freezers', :kbtus, :joules ],
+        [ 'annual_energy_from_electricity_for_refrigerators', :kbtus, :joules ],
+        [ 'annual_energy_from_electricity_for_air_conditioners', :kbtus, :joules ],
+        [ 'annual_energy_from_electricity_for_heating_space', :kbtus, :joules ],
+        [ 'annual_energy_from_electricity_for_heating_water', :kbtus, :joules ],
+        [ 'annual_energy_from_electricity_for_other_appliances', :kbtus, :joules ],
+      ].each do |attr_name, from_units, to_units|
+        update_all "#{attr_name} = #{attr_name} * #{Conversions::Unit.exchange_rate from_units, to_units}"
+      end
     end
-    
-    def derive_rooms
-      'total_rooms + bathrooms/2 + halfbaths/4 + heated_garage*(attached_1car_garage + detached_1car_garage + 2*(attached_2car_garage + detached_2car_garage) + 3*(attached_3car_garage + detached_3car_garage))'
       
+    process 'Add a new field "rooms" that estimates how many rooms are in the house' do
+      update_all 'rooms = total_rooms + bathrooms/2 + halfbaths/4 + heated_garage*(attached_1car_garage + detached_1car_garage + 2*(attached_2car_garage + detached_2car_garage) + 3*(attached_3car_garage + detached_3car_garage))'
     end
     
-    def derive_lighting_use
-      '2*(lights_on_1_to_4_hours + efficient_lights_on_1_to_4_hours) + 8*(lights_on_4_to_12_hours + efficient_lights_on_4_to_12_hours) + 16*(lights_on_over_12_hours + efficient_lights_on_over_12_hours) + 12*(outdoor_all_night_lights + outdoor_all_night_gas_lights)'
+    process 'Add a new field "lighting_use" that estimates how many hours light bulbs are turned on in the house' do
+      update_all 'lighting_use = 2*(lights_on_1_to_4_hours + efficient_lights_on_1_to_4_hours) + 8*(lights_on_4_to_12_hours + efficient_lights_on_4_to_12_hours) + 16*(lights_on_over_12_hours + efficient_lights_on_over_12_hours) + 12*(outdoor_all_night_lights + outdoor_all_night_gas_lights)'
     end
     
-    # will be null if lighting_use is zero
-    def derive_lighting_efficiency
-      '(2*efficient_lights_on_1_to_4_hours + 8*efficient_lights_on_4_to_12_hours + 16*efficient_lights_on_over_12_hours) / lighting_use'
-    end
-    
-    def derive_residence_air_conditioner_use_id
-      find_in_batches do |batch|
-        batch.each do |record|
-          ce = record.usecenac.to_i
-          ww = record.usewwac.to_i
-          if ce == 3 or ww == 3
-            selector = 3
-          elsif ce == 2 or ww == 2
-            selector = 2
-          elsif ce == 1 or ww == 1
-            selector = 1
-          elsif ce == 0 or ww == 0
-            selector = 0
-          elsif ce == 9 or ww == 9
-            selector = 9
-          else
-            raise "something's wrong. usecenac => #{ce}, usewwac => #{ww}"
-          end
-          record.air_conditioner_use = ResidenceAirConditionerUse.find_by_code(selector)
-          record.save if record.changed?
-        end
-      end
-    end
-
-    def derive_residence_clothes_drier_use_id
-      find_in_batches do |batch|
-        batch.each do |record|
-          dr = record.dryruse.to_i
-          wa = record.washload.to_i
-          selector = case dr
-          when 9
-            9
-          when 1
-            wa
-          when 2
-            if wa == 9
-              9
-            elsif [ 2, 3, 4, 5 ].include?(wa)
-              wa - 1
-            else
-              1
-            end
-          when 3
-            if wa == 9
-              9
-            elsif [ 3, 4, 5 ].include?(wa)
-              wa - 2
-            else
-              1
-            end
-          else
-            raise "A something's wrong. dryruse => #{dr}, washload => #{wa}"
-          end
-          record.clothes_drier_use = ResidenceClothesDrierUse.find_by_code(selector)
-          raise "B something's wrong. dryruse => #{dr}, washload => #{wa}" if record.clothes_drier_use.nil?
-          record.save if record.changed?
-        end
-      end
+    process 'Add a new field "lighting_efficiency" that estimates what percentage of light bulbs in a house are energy-efficient' do
+      update_all 'lighting_efficiency = (2*efficient_lights_on_1_to_4_hours + 8*efficient_lights_on_4_to_12_hours + 16*efficient_lights_on_over_12_hours) / lighting_use'
     end
   end
 end
@@ -827,6 +783,11 @@ end
 # todo: have somebody properly organize these
 class DataMinerTest < Test::Unit::TestCase
   if ENV['FAST'] == 'true'
+    should "pull in census divisions using a data.brighterplanet.com dictionary" do
+      CensusDivision.run_data_miner!
+      assert CensusDivision.count > 0
+    end
+    
     should "have a way to queue up runs that works with delated_job's send_later" do
       assert AutomobileVariant.respond_to?(:run_data_miner!)
     end

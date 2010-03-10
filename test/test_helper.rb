@@ -45,14 +45,27 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
   execute "ALTER TABLE countries ADD PRIMARY KEY (iso_3166);"
   
   create_table "census_regions", :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
+    t.integer  "number"
     t.string   "name"
     t.datetime "updated_at"
     t.datetime "created_at"
-    t.integer  "number"
     t.integer 'data_miner_touch_count'
     t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE census_regions ADD PRIMARY KEY (number);"
+  
+  create_table 'census_divisions', :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
+    t.integer  'number'
+    t.string   'name'
+    t.datetime 'updated_at'
+    t.datetime 'created_at'
+    t.string   'census_region_name'
+    t.integer  'census_region_number'
+    
+    t.integer 'data_miner_touch_count'
+    t.integer 'data_miner_last_run_id'
+  end
+  execute 'ALTER TABLE census_divisions ADD PRIMARY KEY (number);'
   
   create_table "automobile_variants", :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
     t.string   "automobile_make_id"
@@ -178,17 +191,11 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.string   "clothes_washer_use"
     t.string   "clothes_dryer_use"
 
-    # not done
     t.integer "census_division_number"
-    t.string "census_division"
-    t.string "census_region"
-    # ------
+    t.string "census_division_name"
+    t.integer "census_region_number"
+    t.string "census_region_name"
     
-    # not done
-    t.integer  "residence_air_conditioner_use_id"
-    t.integer  "residence_clothes_drier_use_id"
-    # ---
-
     t.float    "rooms"
     t.float    "floorspace"
     t.integer  "residents"
