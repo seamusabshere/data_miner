@@ -916,6 +916,12 @@ class DataMinerTest < Test::Unit::TestCase
     assert_equal Country.first.data_miner_last_run.resource_records_last_touched_by_me.count, Country.count
   end
   
+  should "know what runs were on a resource" do
+    DataMiner.run :resource_names => %w{ Country }
+    DataMiner.run :resource_names => %w{ Country }
+    assert Country.data_miner_runs.count > 0
+  end
+  
   unless ENV['FAST'] == 'true'
     should "import using a dictionary" do
       DataMiner.run :resource_names => %w{ ResidentialEnergyConsumptionSurveyResponse }

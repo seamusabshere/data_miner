@@ -59,7 +59,12 @@ ActiveRecord::Base.class_eval do
     belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
     
     # this is class_eval'ed here so that each ActiveRecord descendant has its own copy, or none at all
-    class_eval { cattr_accessor :data_miner_config }
+    class_eval do
+      cattr_accessor :data_miner_config
+      def self.data_miner_runs
+        DataMiner::Run.scoped :conditions => { :resource_name => name }
+      end
+    end
     self.data_miner_config = DataMiner::Configuration.new self
 
     Blockenspiel.invoke block, data_miner_config
