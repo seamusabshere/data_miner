@@ -17,6 +17,7 @@ begin
     gem.add_dependency 'errata', '~>0.1.6'
     gem.add_dependency 'conversions', '~>1.4.3'
     gem.add_dependency 'blockenspiel', '~>0.3.2'
+    gem.add_dependency 'log4r', '~>1.1.7'
     gem.require_path = "lib"
     gem.files.include %w(lib/data_miner) unless gem.files.empty? # seems to fail once it's in the wild
     gem.rdoc_options << '--line-numbers' << '--inline-source'
