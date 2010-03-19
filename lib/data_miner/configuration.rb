@@ -2,18 +2,13 @@ module DataMiner
   class Configuration
     include Blockenspiel::DSL
     
-    attr_accessor :resource, :runnables, :runnable_counter, :attributes, :unique_indices
+    attr_accessor :resource, :runnables, :runnable_counter, :attributes
 
     def initialize(resource)
       @runnables = Array.new
-      @unique_indices = Set.new
       @resource = resource
       @runnable_counter = 0
       @attributes = HashWithIndifferentAccess.new
-    end
-
-    def unique_index(*args)
-      args.each { |arg| unique_indices.add arg }
     end
     
     def process(method_name_or_block_description, &block)

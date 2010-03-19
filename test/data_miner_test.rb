@@ -668,7 +668,7 @@ class DataMinerTest < Test::Unit::TestCase
       assert_equal a, b
     end
       
-    should "hash things if no unique index is listed" do
+    should "hash things" do
       AutomobileVariant.data_miner_config.runnables[0].run(nil)
       assert AutomobileVariant.first.row_hash.present?
     end
