@@ -4,8 +4,6 @@ class AutomobileFuelType < ActiveRecord::Base
   set_primary_key :code
   
   data_miner do
-    unique_index 'code'
-    
     import(:url => 'http://www.fueleconomy.gov/FEG/epadata/00data.zip',
                 :filename => 'Gd6-dsc.txt',
                 :format => :fixed_width,
@@ -14,21 +12,24 @@ class AutomobileFuelType < ActiveRecord::Base
                 :select => lambda { |row| /\A[A-Z]/.match row[:code] },
                 :schema => [[ 'code',   2, { :type => :string }  ],
                             [ 'spacer', 2 ],
-                            [ 'name',   52, { :type => :string } ]]) do |attr|
-      attr.store 'name'
+                            [ 'name',   52, { :type => :string } ]]) do
+      key 'code'
+      store 'name'
     end
 
-    import :url => 'http://static.brighterplanet.com/science/data/transport/automobiles/models_export/automobile_fuel_type.csv' do |attr|
-      attr.store 'name'
-      attr.store 'annual_distance'
-      attr.store 'emission_factor'
+    import :url => 'http://static.brighterplanet.com/science/data/transport/automobiles/models_export/automobile_fuel_type.csv' do
+      key 'code'
+      store 'name'
+      store 'annual_distance'
+      store 'emission_factor'
     end
 
     # pull electricity emission factor from residential electricity
     import(:url => 'http://spreadsheets.google.com/pub?key=rukxnmuhhsOsrztTrUaFCXQ',
-                :select => lambda { |row| row['code'] == 'El' }) do |attr|
-      attr.store 'name'
-      attr.store 'emission_factor'
+                :select => lambda { |row| row['code'] == 'El' }) do
+      key 'code'
+      store 'name'
+      store 'emission_factor'
     end
     
     # still need distance estimate for electric cars
@@ -224,27 +225,28 @@ class AutomobileVariant < ActiveRecord::Base
     (85..97).each do |yy|
       filename = (yy == 96) ? "#{yy}MFGUI.ASC" : "#{yy}MFGUI.DAT"
       import(:url => "http://www.fueleconomy.gov/FEG/epadata/#{yy}mfgui.zip",
-                  :filename => filename,
-                  :transform => { :class => FuelEconomyGuide::ParserB, :year => "19#{yy}".to_i },
-                  :errata => 'http://static.brighterplanet.com/science/data/transport/automobiles/fuel_economy_guide/errata.csv') do |attr|
-        attr.store 'make_name', :field_name => 'make'
-        attr.store 'model_name', :field_name => 'model'
-        attr.store 'year'
-        attr.store 'fuel_type_code', :field_name => 'fuel_type'
-        attr.store 'raw_fuel_efficiency_highway', :field_name => 'unadj_hwy_mpg', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
-        attr.store 'raw_fuel_efficiency_city', :field_name => 'unadj_city_mpg', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
-        attr.store 'cylinders', :field_name => 'no_cyc'
-        attr.store 'drive', :field_name => 'drive_system'
-        attr.store 'carline_mfr_code'
-        attr.store 'vi_mfr_code'
-        attr.store 'carline_code'
-        attr.store 'carline_class_code', :field_name => 'carline_clss'
-        attr.store 'transmission'
-        attr.store 'speeds'
-        attr.store 'turbo'
-        attr.store 'supercharger'
-        attr.store 'injection'
-        attr.store 'displacement'
+             :filename => filename,
+             :transform => { :class => FuelEconomyGuide::ParserB, :year => "19#{yy}".to_i },
+             :errata => 'http://static.brighterplanet.com/science/data/transport/automobiles/fuel_economy_guide/errata.csv') do
+        key 'row_hash'
+        store 'make_name', :field_name => 'make'
+        store 'model_name', :field_name => 'model'
+        store 'year'
+        store 'fuel_type_code', :field_name => 'fuel_type'
+        store 'raw_fuel_efficiency_highway', :field_name => 'unadj_hwy_mpg', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
+        store 'raw_fuel_efficiency_city', :field_name => 'unadj_city_mpg', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
+        store 'cylinders', :field_name => 'no_cyc'
+        store 'drive', :field_name => 'drive_system'
+        store 'carline_mfr_code'
+        store 'vi_mfr_code'
+        store 'carline_code'
+        store 'carline_class_code', :field_name => 'carline_clss'
+        store 'transmission'
+        store 'speeds'
+        store 'turbo'
+        store 'supercharger'
+        store 'injection'
+        store 'displacement'
       end
     end
     
@@ -260,23 +262,24 @@ class AutomobileVariant < ActiveRecord::Base
       2005 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/05data.zip', :filename => 'guide2005-2004oct15.csv' }
     }.sort { |a, b| a.first <=> b.first }.each do |year, options|
       import options.merge(:transform => { :class => FuelEconomyGuide::ParserC, :year => year },
-                                :errata => 'http://static.brighterplanet.com/science/data/transport/automobiles/fuel_economy_guide/errata.csv') do |attr|
-        attr.store 'make_name', :field_name => 'make'
-        attr.store 'model_name', :field_name => 'model'
-        attr.store 'fuel_type_code', :field_name => 'fl'
-        attr.store 'raw_fuel_efficiency_highway', :field_name => 'uhwy', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
-        attr.store 'raw_fuel_efficiency_city', :field_name => 'ucty', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
-        attr.store 'cylinders', :field_name => 'cyl'
-        attr.store 'displacement', :field_name => 'displ'
-        attr.store 'carline_class_code', :field_name => 'cls' if year >= 2000
-        attr.store 'carline_class_name', :field_name => 'Class'
-        attr.store 'year'
-        attr.store 'transmission'
-        attr.store 'speeds'
-        attr.store 'turbo'
-        attr.store 'supercharger'
-        attr.store 'injection'
-        attr.store 'drive'
+                           :errata => 'http://static.brighterplanet.com/science/data/transport/automobiles/fuel_economy_guide/errata.csv') do
+        key 'row_hash'
+        store 'make_name', :field_name => 'make'
+        store 'model_name', :field_name => 'model'
+        store 'fuel_type_code', :field_name => 'fl'
+        store 'raw_fuel_efficiency_highway', :field_name => 'uhwy', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
+        store 'raw_fuel_efficiency_city', :field_name => 'ucty', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
+        store 'cylinders', :field_name => 'cyl'
+        store 'displacement', :field_name => 'displ'
+        store 'carline_class_code', :field_name => 'cls' if year >= 2000
+        store 'carline_class_name', :field_name => 'Class'
+        store 'year'
+        store 'transmission'
+        store 'speeds'
+        store 'turbo'
+        store 'supercharger'
+        store 'injection'
+        store 'drive'
       end
     end
     
@@ -289,23 +292,24 @@ class AutomobileVariant < ActiveRecord::Base
       # 2010 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/10data.zip', :filename => '2010FEguide-for DOE-rel dates before 10-16-09-no-sales10-8-09public.xls' }
     }.sort { |a, b| a.first <=> b.first }.each do |year, options|
       import options.merge(:transform => { :class => FuelEconomyGuide::ParserD, :year => year },
-                                :errata => 'http://static.brighterplanet.com/science/data/transport/automobiles/fuel_economy_guide/errata.csv') do |attr|
-        attr.store 'make_name', :field_name => 'make'
-        attr.store 'model_name', :field_name => 'model'
-        attr.store 'fuel_type_code', :field_name => 'FUEL TYPE'
-        attr.store 'raw_fuel_efficiency_highway', :field_name => 'UNRND HWY (EPA)', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
-        attr.store 'raw_fuel_efficiency_city', :field_name => 'UNRND CITY (EPA)', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
-        attr.store 'cylinders', :field_name => 'NUMB CYL'
-        attr.store 'displacement', :field_name => 'DISPLACEMENT'
-        attr.store 'carline_class_code', :field_name => 'CLS'
-        attr.store 'carline_class_name', :field_name => 'CLASS'
-        attr.store 'year'
-        attr.store 'transmission'
-        attr.store 'speeds'
-        attr.store 'turbo'
-        attr.store 'supercharger'
-        attr.store 'injection'
-        attr.store 'drive'
+                           :errata => 'http://static.brighterplanet.com/science/data/transport/automobiles/fuel_economy_guide/errata.csv') do
+        key 'row_hash'
+        store 'make_name', :field_name => 'make'
+        store 'model_name', :field_name => 'model'
+        store 'fuel_type_code', :field_name => 'FUEL TYPE'
+        store 'raw_fuel_efficiency_highway', :field_name => 'UNRND HWY (EPA)', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
+        store 'raw_fuel_efficiency_city', :field_name => 'UNRND CITY (EPA)', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
+        store 'cylinders', :field_name => 'NUMB CYL'
+        store 'displacement', :field_name => 'DISPLACEMENT'
+        store 'carline_class_code', :field_name => 'CLS'
+        store 'carline_class_name', :field_name => 'CLASS'
+        store 'year'
+        store 'transmission'
+        store 'speeds'
+        store 'turbo'
+        store 'supercharger'
+        store 'injection'
+        store 'drive'
       end
     end
     
@@ -401,34 +405,32 @@ class Country < ActiveRecord::Base
   set_primary_key :iso_3166
   
   data_miner do
-    unique_index 'iso_3166'
-    
-    import 'The official ISO country list', :url => 'http://www.iso.org/iso/list-en1-semic-3.txt', :skip => 2, :headers => false, :delimiter => ';' do |attr|
-      attr.store 'iso_3166', :field_number => 1
-      attr.store 'name', :field_number => 0
+    import 'The official ISO country list', :url => 'http://www.iso.org/iso/list-en1-semic-3.txt', :skip => 2, :headers => false, :delimiter => ';' do
+      key 'iso_3166'
+      store 'iso_3166', :field_number => 1
+      store 'name', :field_number => 0
     end
     
-    import 'A Princeton dataset with better capitalization', :url => 'http://www.cs.princeton.edu/introcs/data/iso3166.csv' do |attr|
-      attr.store 'iso_3166', :field_name => 'country code'
-      attr.store 'name', :field_name => 'country'
+    import 'A Princeton dataset with better capitalization', :url => 'http://www.cs.princeton.edu/introcs/data/iso3166.csv' do
+      key 'iso_3166'
+      store 'iso_3166', :field_name => 'country code'
+      store 'name', :field_name => 'country'
     end
   end
 end
 
 class Airport < ActiveRecord::Base
   set_primary_key :iata_code
-  # belongs_to :country
   
   data_miner do
-    unique_index 'iata_code'
-    
-    import :url => 'http://openflights.svn.sourceforge.net/viewvc/openflights/openflights/data/airports.dat', :headers => false, :select => lambda { |row| row[4].present? } do |attr|
-      attr.store 'name', :field_number => 1
-      attr.store 'city', :field_number => 2
-      attr.store 'country_name', :field_number => 3
-      attr.store 'iata_code', :field_number => 4
-      attr.store 'latitude', :field_number => 6
-      attr.store 'longitude', :field_number => 7
+    import :url => 'http://openflights.svn.sourceforge.net/viewvc/openflights/openflights/data/airports.dat', :headers => false, :select => lambda { |row| row[4].present? } do
+      key 'iata_code'
+      store 'name', :field_number => 1
+      store 'city', :field_number => 2
+      store 'country_name', :field_number => 3
+      store 'iata_code', :field_number => 4
+      store 'latitude', :field_number => 6
+      store 'longitude', :field_number => 7
     end
   end
 end
@@ -437,18 +439,18 @@ class CensusRegion < ActiveRecord::Base
   set_primary_key :number
   
   data_miner do
-    unique_index 'number'
-    
-    import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Region'].to_i > 0 and row['Division'].to_s.strip == 'X'} do |attr|
-      attr.store 'name', :field_name => 'Name'
-      attr.store 'number', :field_name => 'Region'
+    import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Region'].to_i > 0 and row['Division'].to_s.strip == 'X'} do
+      key 'number'
+      store 'name', :field_name => 'Name'
+      store 'number', :field_name => 'Region'
     end
     
     # pretend this is a different data source
     # fake! just for testing purposes
-    import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Region'].to_i > 0 and row['Division'].to_s.strip == 'X'} do |attr|
-      attr.store 'name', :field_name => 'Name'
-      attr.store 'number', :field_name => 'Region'
+    import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Region'].to_i > 0 and row['Division'].to_s.strip == 'X'} do
+      key 'number'
+      store 'name', :field_name => 'Name'
+      store 'number', :field_name => 'Region'
     end
   end
 end
@@ -456,20 +458,14 @@ end
 # smaller than a region
 class CensusDivision < ActiveRecord::Base
   set_primary_key :number
-  # belongs_to :census_region
-  # has_many :states
-  # has_many :zip_codes, :through => :states
-  # has_many :climate_divisions, :through => :states
-  # has_many :residence_survey_responses
   
   data_miner do
-    unique_index 'number'
-    
-    import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Division'].to_s.strip != 'X' and row['FIPS CODE STATE'].to_s.strip == 'X'} do |attr|
-      attr.store 'name', :field_name => 'Name'
-      attr.store 'number', :field_name => 'Division'
-      attr.store 'census_region_number', :field_name => 'Region'
-      attr.store 'census_region_name', :field_name => 'Region', :dictionary => { :input => 'number', :output => 'name', :url => 'http://data.brighterplanet.com/census_regions.csv' }
+    import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Division'].to_s.strip != 'X' and row['FIPS CODE STATE'].to_s.strip == 'X'} do
+      key 'number'
+      store 'name', :field_name => 'Name'
+      store 'number', :field_name => 'Division'
+      store 'census_region_number', :field_name => 'Region'
+      store 'census_region_name', :field_name => 'Region', :dictionary => { :input => 'number', :output => 'name', :url => 'http://data.brighterplanet.com/census_regions.csv' }
     end
   end
 end
@@ -478,8 +474,6 @@ class ResidentialEnergyConsumptionSurveyResponse < ActiveRecord::Base
   set_primary_key :department_of_energy_identifier
   
   data_miner do
-    unique_index 'department_of_energy_identifier'
-    
     process 'Define some unit conversions' do
       Conversions.register :kbtus, :joules, 1_000.0 * 1_055.05585
       Conversions.register :square_feet, :square_metres, 0.09290304
@@ -487,70 +481,71 @@ class ResidentialEnergyConsumptionSurveyResponse < ActiveRecord::Base
     
     # conversions are NOT performed here, since we first have to zero out legitimate skips
     # otherwise you will get values like "999 pounds = 453.138778 kilograms" (where 999 is really a legit skip)
-    import 'RECs 2005 (but not converting units to metric just yet)', :url => 'http://www.eia.doe.gov/emeu/recs/recspubuse05/datafiles/RECS05alldata.csv', :headers => :upcase do |attr|
-      attr.store 'department_of_energy_identifier', :field_name => 'DOEID'
+    import 'RECs 2005 (but not converting units to metric just yet)', :url => 'http://www.eia.doe.gov/emeu/recs/recspubuse05/datafiles/RECS05alldata.csv', :headers => :upcase do
+      key 'department_of_energy_identifier'
+      store 'department_of_energy_identifier', :field_name => 'DOEID'
       
-      attr.store 'residence_class', :field_name => 'TYPEHUQ', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/typehuq/typehuq.csv' }
-      attr.store 'construction_year', :field_name => 'YEARMADE', :dictionary => { :input => 'Code', :sprintf => '%02d', :output => 'Date in the middle (synthetic)', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/yearmade/yearmade.csv' }
-      attr.store 'construction_period', :field_name => 'YEARMADE', :dictionary => { :input => 'Code', :sprintf => '%02d', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/yearmade/yearmade.csv' }
-      attr.store 'urbanity', :field_name => 'URBRUR', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/urbrur/urbrur.csv' }
-      attr.store 'dishwasher_use', :field_name => 'DWASHUSE', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/dwashuse/dwashuse.csv' }
-      attr.store 'central_ac_use', :field_name => 'USECENAC', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/usecenac/usecenac.csv' }
-      attr.store 'window_ac_use', :field_name => 'USEWWAC', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/usewwac/usewwac.csv' }
-      attr.store 'clothes_washer_use', :field_name => 'WASHLOAD', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/washload/washload.csv' }
-      attr.store 'clothes_dryer_use', :field_name => 'DRYRUSE', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/dryruse/dryruse.csv' }
+      store 'residence_class', :field_name => 'TYPEHUQ', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/typehuq/typehuq.csv' }
+      store 'construction_year', :field_name => 'YEARMADE', :dictionary => { :input => 'Code', :sprintf => '%02d', :output => 'Date in the middle (synthetic)', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/yearmade/yearmade.csv' }
+      store 'construction_period', :field_name => 'YEARMADE', :dictionary => { :input => 'Code', :sprintf => '%02d', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/yearmade/yearmade.csv' }
+      store 'urbanity', :field_name => 'URBRUR', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/urbrur/urbrur.csv' }
+      store 'dishwasher_use', :field_name => 'DWASHUSE', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/dwashuse/dwashuse.csv' }
+      store 'central_ac_use', :field_name => 'USECENAC', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/usecenac/usecenac.csv' }
+      store 'window_ac_use', :field_name => 'USEWWAC', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/usewwac/usewwac.csv' }
+      store 'clothes_washer_use', :field_name => 'WASHLOAD', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/washload/washload.csv' }
+      store 'clothes_dryer_use', :field_name => 'DRYRUSE', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/dryruse/dryruse.csv' }
       
-      attr.store 'census_division_number', :field_name => 'DIVISION'
-      attr.store 'census_division_name', :field_name => 'DIVISION', :dictionary => { :input => 'number', :output => 'name', :url => 'http://data.brighterplanet.com/census_divisions.csv' }
-      attr.store 'census_region_number', :field_name => 'DIVISION', :dictionary => { :input => 'number', :output => 'census_region_number', :url => 'http://data.brighterplanet.com/census_divisions.csv' }
-      attr.store 'census_region_name', :field_name => 'DIVISION', :dictionary => { :input => 'number', :output => 'census_region_name', :url => 'http://data.brighterplanet.com/census_divisions.csv' }
+      store 'census_division_number', :field_name => 'DIVISION'
+      store 'census_division_name', :field_name => 'DIVISION', :dictionary => { :input => 'number', :output => 'name', :url => 'http://data.brighterplanet.com/census_divisions.csv' }
+      store 'census_region_number', :field_name => 'DIVISION', :dictionary => { :input => 'number', :output => 'census_region_number', :url => 'http://data.brighterplanet.com/census_divisions.csv' }
+      store 'census_region_name', :field_name => 'DIVISION', :dictionary => { :input => 'number', :output => 'census_region_name', :url => 'http://data.brighterplanet.com/census_divisions.csv' }
       
-      attr.store 'floorspace', :field_name => 'TOTSQFT'
-      attr.store 'residents', :field_name => 'NHSLDMEM'
-      attr.store 'ownership', :field_name => 'KOWNRENT'
-      attr.store 'thermostat_programmability', :field_name => 'PROTHERM'
-      attr.store 'refrigerator_count', :field_name => 'NUMFRIG'
-      attr.store 'freezer_count', :field_name => 'NUMFREEZ'
-      attr.store 'heating_degree_days', :field_name => 'HD65'
-      attr.store 'cooling_degree_days', :field_name => 'CD65'
-      attr.store 'annual_energy_from_fuel_oil_for_heating_space', :field_name => 'BTUFOSPH'
-      attr.store 'annual_energy_from_fuel_oil_for_heating_water', :field_name => 'BTUFOWTH'
-      attr.store 'annual_energy_from_fuel_oil_for_appliances', :field_name => 'BTUFOAPL'
-      attr.store 'annual_energy_from_natural_gas_for_heating_space', :field_name => 'BTUNGSPH'
-      attr.store 'annual_energy_from_natural_gas_for_heating_water', :field_name => 'BTUNGWTH'
-      attr.store 'annual_energy_from_natural_gas_for_appliances', :field_name => 'BTUNGAPL'
-      attr.store 'annual_energy_from_propane_for_heating_space', :field_name => 'BTULPSPH'
-      attr.store 'annual_energy_from_propane_for_heating_water', :field_name => 'BTULPWTH'
-      attr.store 'annual_energy_from_propane_for_appliances', :field_name => 'BTULPAPL'
-      attr.store 'annual_energy_from_wood', :field_name => 'BTUWOOD'
-      attr.store 'annual_energy_from_kerosene', :field_name => 'BTUKER'
-      attr.store 'annual_energy_from_electricity_for_clothes_driers', :field_name => 'BTUELCDR'
-      attr.store 'annual_energy_from_electricity_for_dishwashers', :field_name => 'BTUELDWH'
-      attr.store 'annual_energy_from_electricity_for_freezers', :field_name => 'BTUELFZZ'
-      attr.store 'annual_energy_from_electricity_for_refrigerators', :field_name => 'BTUELRFG'
-      attr.store 'annual_energy_from_electricity_for_air_conditioners', :field_name => 'BTUELCOL'
-      attr.store 'annual_energy_from_electricity_for_heating_space', :field_name => 'BTUELSPH'
-      attr.store 'annual_energy_from_electricity_for_heating_water', :field_name => 'BTUELWTH'
-      attr.store 'annual_energy_from_electricity_for_other_appliances', :field_name => 'BTUELAPL'
-      attr.store 'weighting', :field_name => 'NWEIGHT'
-      attr.store 'total_rooms', :field_name => 'TOTROOMS'
-      attr.store 'bathrooms', :field_name => 'NCOMBATH'
-      attr.store 'halfbaths', :field_name => 'NHAFBATH'
-      attr.store 'heated_garage', :field_name => 'GARGHEAT'
-      attr.store 'attached_1car_garage', :field_name => 'GARAGE1C'
-      attr.store 'detached_1car_garage', :field_name => 'DGARG1C'
-      attr.store 'attached_2car_garage', :field_name => 'GARAGE2C'
-      attr.store 'detached_2car_garage', :field_name => 'DGARG2C'
-      attr.store 'attached_3car_garage', :field_name => 'GARAGE3C'
-      attr.store 'detached_3car_garage', :field_name => 'DGARG3C'
-      attr.store 'lights_on_1_to_4_hours', :field_name => 'LGT1'
-      attr.store 'efficient_lights_on_1_to_4_hours', :field_name => 'LGT1EE'
-      attr.store 'lights_on_4_to_12_hours', :field_name => 'LGT4'
-      attr.store 'efficient_lights_on_4_to_12_hours', :field_name => 'LGT4EE'
-      attr.store 'lights_on_over_12_hours', :field_name => 'LGT12'
-      attr.store 'efficient_lights_on_over_12_hours', :field_name => 'LGT12EE'
-      attr.store 'outdoor_all_night_lights', :field_name => 'NOUTLGTNT'
-      attr.store 'outdoor_all_night_gas_lights', :field_name => 'NGASLIGHT'
+      store 'floorspace', :field_name => 'TOTSQFT'
+      store 'residents', :field_name => 'NHSLDMEM'
+      store 'ownership', :field_name => 'KOWNRENT'
+      store 'thermostat_programmability', :field_name => 'PROTHERM'
+      store 'refrigerator_count', :field_name => 'NUMFRIG'
+      store 'freezer_count', :field_name => 'NUMFREEZ'
+      store 'heating_degree_days', :field_name => 'HD65'
+      store 'cooling_degree_days', :field_name => 'CD65'
+      store 'annual_energy_from_fuel_oil_for_heating_space', :field_name => 'BTUFOSPH'
+      store 'annual_energy_from_fuel_oil_for_heating_water', :field_name => 'BTUFOWTH'
+      store 'annual_energy_from_fuel_oil_for_appliances', :field_name => 'BTUFOAPL'
+      store 'annual_energy_from_natural_gas_for_heating_space', :field_name => 'BTUNGSPH'
+      store 'annual_energy_from_natural_gas_for_heating_water', :field_name => 'BTUNGWTH'
+      store 'annual_energy_from_natural_gas_for_appliances', :field_name => 'BTUNGAPL'
+      store 'annual_energy_from_propane_for_heating_space', :field_name => 'BTULPSPH'
+      store 'annual_energy_from_propane_for_heating_water', :field_name => 'BTULPWTH'
+      store 'annual_energy_from_propane_for_appliances', :field_name => 'BTULPAPL'
+      store 'annual_energy_from_wood', :field_name => 'BTUWOOD'
+      store 'annual_energy_from_kerosene', :field_name => 'BTUKER'
+      store 'annual_energy_from_electricity_for_clothes_driers', :field_name => 'BTUELCDR'
+      store 'annual_energy_from_electricity_for_dishwashers', :field_name => 'BTUELDWH'
+      store 'annual_energy_from_electricity_for_freezers', :field_name => 'BTUELFZZ'
+      store 'annual_energy_from_electricity_for_refrigerators', :field_name => 'BTUELRFG'
+      store 'annual_energy_from_electricity_for_air_conditioners', :field_name => 'BTUELCOL'
+      store 'annual_energy_from_electricity_for_heating_space', :field_name => 'BTUELSPH'
+      store 'annual_energy_from_electricity_for_heating_water', :field_name => 'BTUELWTH'
+      store 'annual_energy_from_electricity_for_other_appliances', :field_name => 'BTUELAPL'
+      store 'weighting', :field_name => 'NWEIGHT'
+      store 'total_rooms', :field_name => 'TOTROOMS'
+      store 'bathrooms', :field_name => 'NCOMBATH'
+      store 'halfbaths', :field_name => 'NHAFBATH'
+      store 'heated_garage', :field_name => 'GARGHEAT'
+      store 'attached_1car_garage', :field_name => 'GARAGE1C'
+      store 'detached_1car_garage', :field_name => 'DGARG1C'
+      store 'attached_2car_garage', :field_name => 'GARAGE2C'
+      store 'detached_2car_garage', :field_name => 'DGARG2C'
+      store 'attached_3car_garage', :field_name => 'GARAGE3C'
+      store 'detached_3car_garage', :field_name => 'DGARG3C'
+      store 'lights_on_1_to_4_hours', :field_name => 'LGT1'
+      store 'efficient_lights_on_1_to_4_hours', :field_name => 'LGT1EE'
+      store 'lights_on_4_to_12_hours', :field_name => 'LGT4'
+      store 'efficient_lights_on_4_to_12_hours', :field_name => 'LGT4EE'
+      store 'lights_on_over_12_hours', :field_name => 'LGT12'
+      store 'efficient_lights_on_over_12_hours', :field_name => 'LGT12EE'
+      store 'outdoor_all_night_lights', :field_name => 'NOUTLGTNT'
+      store 'outdoor_all_night_gas_lights', :field_name => 'NGASLIGHT'
     end
 
     # Rather than nullify the continuous variables that EIA identifies as LEGITIMATE SKIPS, we convert them to zero
@@ -672,31 +667,7 @@ class DataMinerTest < Test::Unit::TestCase
       b = CensusRegion.count
       assert_equal a, b
     end
-    
-    should "assume that no unique indices means it wants a big hash" do
-      assert_raises DataMiner::MissingHashColumn do
-        class IncompleteCountry < ActiveRecord::Base
-          set_table_name 'countries'
-        
-          data_miner do
-            # no unique index
-  
-            # get a complete list
-            import :url => 'http://www.iso.org/iso/list-en1-semic-3.txt', :skip => 2, :headers => false, :delimiter => ';' do |attr|
-              attr.store 'iso_3166', :field_number => 1
-              attr.store 'name', :field_number => 0
-            end
-  
-            # get nicer names
-            import :url => 'http://www.cs.princeton.edu/introcs/data/iso3166.csv' do |attr|
-              attr.store 'iso_3166', :field_name => 'country code'
-              attr.store 'name', :field_name => 'country'
-            end
-          end
-        end
-      end
-    end
-  
+      
     should "hash things if no unique index is listed" do
       AutomobileVariant.data_miner_config.runnables[0].run(nil)
       assert AutomobileVariant.first.row_hash.present?
@@ -758,15 +729,14 @@ class DataMinerTest < Test::Unit::TestCase
   end
   
   if ENV['SLOW'] == 'true'
-    should "import using a dictionary" do
-      DataMiner.run :resource_names => %w{ ResidentialEnergyConsumptionSurveyResponse }
-      assert ResidentialEnergyConsumptionSurveyResponse.find(6).residence_class.starts_with?('Single-family detached house')
+    should "mine automobile variants" do
+      AutomobileVariant.run_data_miner!
+      assert AutomobileVariant.count('make_name LIKE "%tesla"') > 0
     end
     
-    should "mine multiple classes in the correct order" do
-      DataMiner.run
-      uy = Country.find_by_iso_3166('UY')
-      assert_equal 'Uruguay', uy.name
+    should "mine residence survey day" do
+      ResidentialEnergyConsumptionSurveyResponse.run_data_miner!
+      assert ResidentialEnergyConsumptionSurveyResponse.find(6).residence_class.starts_with?('Single-family detached house')
     end
   end
 end

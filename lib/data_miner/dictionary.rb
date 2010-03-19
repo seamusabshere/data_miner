@@ -15,7 +15,7 @@ module DataMiner
     
     def find(key_name, key, value_name, options = {})
       if match = table.rows.detect { |row| normalize_for_comparison(key, options) == normalize_for_comparison(row[key_name], options) }
-        match[value_name].to_s.split(/\s*;\s/)
+        match[value_name].to_s
       end
     end
 

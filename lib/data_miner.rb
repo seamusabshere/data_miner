@@ -14,9 +14,6 @@ require 'data_miner/import'
 require 'data_miner/process'
 require 'data_miner/run'
 
-# TODO: move to gem
-require 'data_miner/william_james_cartesian_product'
-
 module DataMiner
   class MissingHashColumn < RuntimeError; end
   
@@ -71,7 +68,6 @@ ActiveRecord::Base.class_eval do
     self.data_miner_config = DataMiner::Configuration.new self
 
     Blockenspiel.invoke block, data_miner_config
-    data_miner_config.after_invoke
   end
 end
 

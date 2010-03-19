@@ -1,66 +1,68 @@
 module DataMiner
   class Attribute
-    attr_accessor :resource, :name, :options_for_import
+    attr_accessor :runnable
+    attr_accessor :name
+    attr_accessor :options
 
-    def initialize(resource, name)
-      @resource = resource
+    delegate :resource, :to => :runnable
+
+    def initialize(runnable, name, options = {})
+      options.symbolize_keys!
+      @options = options
+
+      @runnable = runnable
       @name = name
-      @options_for_import = {}
     end
         
     def inspect
       "Attribute(#{resource}##{name})"
     end
 
-    def stored_by?(import)
-      options_for_import.has_key?(import)
+    def value_in_dictionary(str)
+      dictionary.lookup str
     end
     
-    def value_in_dictionary(import, key)
-      return *dictionary(import).lookup(key) # strip the array wrapper if there's only one element
-    end
-    
-    def value_in_source(import, row)
-      if wants_static?(import)
-        value = static(import)
-      elsif field_number(import)
-        if field_number(import).is_a?(Range)
-          value = field_number(import).map { |n| row[n] }.join(delimiter(import))
+    def value_in_source(row)
+      if wants_static?
+        value = static
+      elsif field_number
+        if field_number.is_a?(Range)
+          value = field_number.map { |n| row[n] }.join(delimiter)
         else
-          value = row[field_number(import)]
+          value = row[field_number]
         end
       else
-        value = row[field_name(import)]
+        value = row[field_name]
       end
       return nil if value.nil?
       return value if value.is_a?(ActiveRecord::Base) # escape valve for parsers that look up associations directly
       value = value.to_s
-      value = value[chars(import)] if wants_chars?(import)
-      value = do_split(import, value) if wants_split?(import)
+      value = value[chars] if wants_chars?
+      value = do_split(value) if wants_split?
       # taken from old errata... maybe we want to do this here
-      value.gsub!(/[ ]+/, ' ')
+      value.gsub! /[ ]+/, ' '
       # text.gsub!('- ', '-')
-      value.gsub!(/([^\\])~/, '\1 ')
+      value.gsub! /([^\\])~/, '\1 '
       value.strip!
-      value.upcase! if wants_upcase?(import)
-      value = do_convert(import, row, value) if wants_conversion?(import)
-      value = do_sprintf(import, value) if wants_sprintf?(import)
+      value.upcase! if wants_upcase?
+      value = do_convert row, value if wants_conversion?
+      value = do_sprintf value if wants_sprintf?
       value
     end
     
-    def value_from_row(import, row)
-      value = value_in_source(import, row)
-      return value if value.is_a?(ActiveRecord::Base) # carry through trapdoor
-      value = value_in_dictionary(import, value) if wants_dictionary?(import)
+    def value_from_row(row)
+      value = value_in_source row
+      return value if value.is_a? ActiveRecord::Base # carry through trapdoor
+      value = value_in_dictionary value if wants_dictionary?
       value
     end
         
-    # this will overwrite nils, even if wants_overwriting?(import) is false
+    # this will overwrite nils, even if wants_overwriting? is false
     # returns true if an attr was changed, otherwise false
-    def set_record_from_row(import, record, row)
-      return false if !wants_overwriting?(import) and !record.send(name).nil?
+    def set_record_from_row(record, row)
+      return false if !wants_overwriting? and !record.send(name).nil?
       what_it_was = record.send name
-      what_it_should_be = value_from_row import, row
+      what_it_should_be = value_from_row row
       record.send "#{name}=", what_it_should_be
       what_it_is = record.send name
       if what_it_is.nil? and !what_it_should_be.nil?
@@ -73,26 +75,26 @@ module DataMiner
       end
     end
 
-    def unit_from_source(import, row)
-      row[units_field_name(import)].to_s.strip.underscore.to_sym
+    def unit_from_source(row)
+      row[units_field_name].to_s.strip.underscore.to_sym
     end
     
-    def do_convert(import, row, value)
-      value.to_f.convert((from_units(import) || unit_from_source(import, row)), to_units(import))
+    def do_convert(row, value)
+      value.to_f.convert((from_units || unit_from_source(row)), to_units)
     end
     
-    def do_sprintf(import, value)
-      if /\%[0-9\.]*f/.match(sprintf(import))
+    def do_sprintf(value)
+      if /\%[0-9\.]*f/.match sprintf
         value = value.to_f
-      elsif /\%[0-9\.]*d/.match(sprintf(import))
+      elsif /\%[0-9\.]*d/.match sprintf
         value = value.to_i
       end
-      sprintf(import) % value
+      sprintf % value
     end
     
-    def do_split(import, value)
-      pattern = split_options(import)[:pattern] || /\s+/ # default is split on whitespace
-      keep = split_options(import)[:keep] || 0           # default is keep first element
+    def do_split(value)
+      pattern = split_options[:pattern] || /\s+/ # default is split on whitespace
+      keep = split_options[:keep] || 0           # default is keep first element
       value.to_s.split(pattern)[keep].to_s
     end
   
@@ -100,127 +102,91 @@ module DataMiner
       resource.columns_hash[name.to_s].type
     end
     
-    def dictionary(import)
-      raise "shouldn't ask for this" unless wants_dictionary?(import) # don't try to initialize if there are no dictionary options
-      @_dictionary ||= Dictionary.new dictionary_options(import)
+    # Our wants and needs :)
+    def wants_split?
+      split_options.present?
+    end
+    def wants_sprintf?
+      sprintf.present?
+    end
+    def wants_upcase?
+      upcase.present?
+    end
+    def wants_static?
+      options.has_key? :static
+    end
+    def wants_nullification?
+      nullify != false
+    end
+    def wants_chars?
+      chars.present?
+    end
+    def wants_overwriting?
+      overwrite != false
+    end
+    def wants_conversion?
+      from_units.present? or units_field_name.present?
+    end
+    def wants_dictionary?
+      options[:dictionary].present?
+    end
+
+    # Options that always have values
+    def field_name
+      (options[:field_name] || name).to_s
+    end
+    def delimiter
+      (options[:delimiter] || ', ')
     end
     
-    # {
-    #   :static => 'options_for_import[import].has_key?(:static)',
-    #   :chars => :chars,
-    #   :upcase => :upcase,
-    #   :conversion => '!from_units(import).nil? or !units_field_name(import).nil?',
-    #   :sprintf => :sprintf,
-    #   :dictionary => :dictionary_options,
-    #   :split => :split_options,
-    #   :nullification => 'nullify(import) != false',
-    #   :overwriting => 'overwrite(import) != false',
-    # }.each do |name, condition|
-    #   condition = "!#{condition}(import).nil?" if condition.is_a?(Symbol)
-    #   puts <<-EOS
-    #     def wants_#{name}?(import)
-    #       #{condition}
-    #     end
-    #   EOS
-    # end
-    def wants_split?(import)
-      !split_options(import).nil?
-    end
-    def wants_sprintf?(import)
-      !sprintf(import).nil?
-    end
-    def wants_upcase?(import)
-      !upcase(import).nil?
-    end
-    def wants_static?(import)
-      options_for_import[import].has_key?(:static)
-    end
-    def wants_nullification?(import)
-      nullify(import) != false
-    end
-    def wants_chars?(import)
-      !chars(import).nil?
-    end
-    def wants_overwriting?(import)
-      overwrite(import) != false
-    end
-    def wants_conversion?(import)
-      !from_units(import).nil? or !units_field_name(import).nil?
-    end
-    def wants_dictionary?(import)
-      !dictionary_options(import).nil?
+    # Options that can't be referred to by their names
+    def split_options
+      options[:split]
     end
     
-    # {
-    #   :field_name => { :default => :name,                           :stringify => true },
-    #   :delimiter      => { :default => '", "' }
-    # }.each do |name, options|
-    #   puts <<-EOS
-    #     def #{name}(import)
-    #       (options_for_import[import][:#{name}] || #{options[:default]})#{'.to_s' if options[:stringify]}
-    #     end
-    #   EOS
-    # end
-    def field_name(import)
-      (options_for_import[import][:field_name] || name).to_s
-    end
-    def delimiter(import)
-      (options_for_import[import][:delimiter] || ", ")
-    end
-    
-    # %w(dictionary split).each do |name|
-    #   puts <<-EOS
-    #     def #{name}_options(import)
-    #       options_for_import[import][:#{name}]
-    #     end
-    #   EOS
-    # end
-    def dictionary_options(import)
-      options_for_import[import][:dictionary]
-    end
-    def split_options(import)
-      options_for_import[import][:split]
-    end
-        
+    # Normal options
     # %w(from_units to_units conditions sprintf nullify overwrite upcase units_field_name field_number chars static).each do |name|
     #   puts <<-EOS
-    #     def #{name}(import)
-    #       options_for_import[import][:#{name}]
+    #     def #{name}
+    #       options[:#{name}]
     #     end
     #   EOS
     # end
-    def from_units(import)
-      options_for_import[import][:from_units]
+    def from_units
+      options[:from_units]
     end
-    def to_units(import)
-      options_for_import[import][:to_units]
+    def to_units
+      options[:to_units]
     end
-    def conditions(import)
-      options_for_import[import][:conditions]
+    def conditions
+      options[:conditions]
     end
-    def sprintf(import)
-      options_for_import[import][:sprintf]
+    def sprintf
+      options[:sprintf]
     end
-    def nullify(import)
-      options_for_import[import][:nullify]
+    def nullify
+      options[:nullify]
     end
-    def overwrite(import)
-      options_for_import[import][:overwrite]
+    def overwrite
+      options[:overwrite]
     end
-    def upcase(import)
-      options_for_import[import][:upcase]
+    def upcase
+      options[:upcase]
     end
-    def units_field_name(import)
-      options_for_import[import][:units_field_name]
+    def units_field_name
+      options[:units_field_name]
     end
-    def field_number(import)
-      options_for_import[import][:field_number]
+    def field_number
+      options[:field_number]
     end
-    def chars(import)
-      options_for_import[import][:chars]
+    def chars
+      options[:chars]
     end
-    def static(import)
-      options_for_import[import][:static]
+    def static
+      options[:static]
+    end
+    def dictionary
+      @_dictionary ||= Dictionary.new options[:dictionary]
     end
   end
 end

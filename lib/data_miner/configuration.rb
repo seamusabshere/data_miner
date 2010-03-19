@@ -30,19 +30,15 @@ module DataMiner
       options = args.last
         
       self.runnable_counter += 1
-      runnables << DataMiner::Import.new(self, runnable_counter, description, options, &block)
-    end
-        
-    def after_invoke
-      if unique_indices.empty?
-        raise(MissingHashColumn, "No unique_index defined for #{resource.name}, so you need a row_hash:string column.") unless resource.column_names.include?('row_hash')
-        unique_indices.add 'row_hash'
-      end
-      runnables.select { |runnable| runnable.is_a?(Import) }.each { |runnable| unique_indices.each { |unique_index| runnable.store(unique_index) unless runnable.stores?(unique_index) } }
+      runnable = DataMiner::Import.new self, runnable_counter, description, options
+      Blockenspiel.invoke block, runnable
+      runnables << runnable
     end
 
     # Mine data for this class.
     def run(options = {})
+      options.symbolize_keys!
+      
       finished = false
       run = DataMiner::Run.create! :started_at => Time.now, :resource_name => resource.name
       resource.delete_all if options[:from_scratch]
@@ -63,6 +59,8 @@ module DataMiner
       # Options
       # * <tt>:resource_names</tt>: array of resource (class) names to mine
       def run(options = {})
+        options.symbolize_keys!
+        
         resource_names.each do |resource_name|
           if options[:resource_names].blank? or options[:resource_names].include?(resource_name)
             resource_name.constantize.data_miner_config.run options
