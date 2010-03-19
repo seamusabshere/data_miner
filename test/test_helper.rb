@@ -112,70 +112,6 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
   end
   execute "ALTER TABLE automobile_fuel_types ADD PRIMARY KEY (code);"
 
-  create_table "automobile_make_fleet_years", :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
-    t.string   "automobile_make_id"
-    t.string   "automobile_model_year_id"
-    t.integer  "automobile_make_year_id"
-
-    t.string   "fleet"
-    t.string   "make_name"
-    t.string   "year"
-    t.float    "fuel_efficiency"
-    t.integer  "volume"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-
-    t.string   "row_hash"
-    t.integer 'data_miner_touch_count'
-    t.integer 'data_miner_last_run_id'
-  end
-  execute "ALTER TABLE automobile_make_fleet_years ADD PRIMARY KEY (row_hash);"
-
-  create_table "automobile_make_years", :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
-    t.integer  "automobile_make_id" # user-defined
-    t.integer  "automobile_model_year_id" # user-defined
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.float    "fuel_efficiency"
-    t.integer  "volume"
-    t.string   "row_hash"
-    t.integer 'data_miner_touch_count'
-    t.integer 'data_miner_last_run_id'
-  end
-  execute "ALTER TABLE automobile_make_years ADD PRIMARY KEY (row_hash);"
-
-  create_table "automobile_makes", :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
-    t.string   "name"
-    t.datetime "updated_at"
-    t.datetime "created_at"
-    t.float    "fuel_efficiency"
-    t.boolean  "major"
-    t.integer 'data_miner_touch_count'
-    t.integer 'data_miner_last_run_id'
-  end
-  execute "ALTER TABLE automobile_makes ADD PRIMARY KEY (name);"
-
-  create_table "automobile_model_years", :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
-    t.integer  "year"
-    t.datetime "updated_at"
-    t.datetime "created_at"
-    t.float    "fuel_efficiency"
-    t.integer 'data_miner_touch_count'
-    t.integer 'data_miner_last_run_id'
-  end
-  execute "ALTER TABLE automobile_model_years ADD PRIMARY KEY (year);"
-
-  create_table "automobile_models", :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
-    t.string   "name"
-    t.string   "automobile_make_id"
-    t.datetime "updated_at"
-    t.datetime "created_at"
-    t.string   "row_hash"
-    t.integer 'data_miner_touch_count'
-    t.integer 'data_miner_last_run_id'
-  end
-  execute "ALTER TABLE automobile_models ADD PRIMARY KEY (row_hash);"
-  
   create_table "residential_energy_consumption_survey_responses", :options => 'ENGINE=InnoDB default charset=utf8', :id => false, :force => true do |t|
     t.integer  "department_of_energy_identifier"
 
@@ -250,39 +186,4 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE residential_energy_consumption_survey_responses ADD PRIMARY KEY (department_of_energy_identifier);"
-
-  # add_index "residence_survey_responses", ["annual_energy_from_electricity_for_clothes_driers", "annual_energy_from_electricity_for_dishwashers", "annual_energy_from_electricity_for_freezers", "annual_energy_from_electricity_for_refrigerators", "annual_energy_from_electricity_for_air_conditioners", "annual_energy_from_electricity_for_heating_space", "annual_energy_from_electricity_for_heating_water", "annual_energy_from_electricity_for_other_appliances", "weighting", "floorspace", "residents", "heating_degree_days", "census_region_id"], :name => "index_residence_survey_responses_on_annu3501626657"
-  # add_index "residence_survey_responses", ["annual_energy_from_electricity_for_clothes_driers", "weighting", "floorspace"], :name => "index_residence_survey_responses_on_annu1433274229"
-  # add_index "residence_survey_responses", ["annual_energy_from_electricity_for_clothes_driers", "weighting", "residence_clothes_drier_use_id"], :name => "index_residence_survey_responses_on_annu1262382397"
-  # add_index "residence_survey_responses", ["annual_energy_from_electricity_for_dishwashers", "weighting", "floorspace", "residents", "heating_degree_days", "census_region_id"], :name => "index_residence_survey_responses_on_annu4218458677"
-  # add_index "residence_survey_responses", ["annual_energy_from_electricity_for_dishwashers", "weighting", "floorspace"], :name => "index_residence_survey_responses_on_annu119061746"
-  # add_index "residence_survey_responses", ["annual_energy_from_electricity_for_dishwashers", "weighting", "residence_dishwasher_use_id"], :name => "index_residence_survey_responses_on_annu3439036757"
-  # add_index "residence_survey_responses", ["annual_energy_from_electricity_for_freezers", "weighting", "floorspace", "residents", "heating_degree_days", "census_region_id"], :name => "index_residence_survey_responses_on_annu3327447874"
-  # add_index "residence_survey_responses", ["annual_energy_from_electricity_for_freezers", "weighting", "floorspace"], :name => "index_residence_survey_responses_on_annu1386319236"
-  # add_index "residence_survey_responses", ["annual_energy_from_electricity_for_refrigerators", "weighting", "floorspace", "residents", "heating_degree_days", "census_region_id"], :name => "index_residence_survey_responses_on_annu73542686"
-  # add_index "residence_survey_responses", ["annual_energy_from_electricity_for_refrigerators", "weighting", "floorspace"], :name => "index_residence_survey_responses_on_annu3936186192"
-  # add_index "residence_survey_responses", ["annual_energy_from_fuel_oil_for_heating_space", "annual_energy_from_fuel_oil_for_heating_water", "annual_energy_from_fuel_oil_for_appliances", "weighting", "floorspace", "residents", "heating_degree_days", "census_region_id"], :name => "index_residence_survey_responses_on_annu2746016586"
-  # add_index "residence_survey_responses", ["annual_energy_from_kerosene", "weighting", "floorspace", "residents", "heating_degree_days", "census_region_id"], :name => "index_residence_survey_responses_on_annu2598214"
-  # add_index "residence_survey_responses", ["annual_energy_from_kerosene", "weighting", "floorspace"], :name => "index_residence_survey_responses_on_annu502197058"
-  # add_index "residence_survey_responses", ["annual_energy_from_natural_gas_for_heating_space", "annual_energy_from_natural_gas_for_heating_water", "annual_energy_from_natural_gas_for_appliances", "weighting", "floorspace", "residents", "heating_degree_days", "census_region_id"], :name => "index_residence_survey_responses_on_annu830199308"
-  # add_index "residence_survey_responses", ["annual_energy_from_propane_for_heating_space", "annual_energy_from_propane_for_heating_water", "annual_energy_from_propane_for_appliances", "weighting", "floorspace", "residents", "heating_degree_days", "census_region_id"], :name => "index_residence_survey_responses_on_annu4097984181"
-  # add_index "residence_survey_responses", ["annual_energy_from_wood", "weighting", "floorspace", "residents", "heating_degree_days", "census_region_id"], :name => "index_residence_survey_responses_on_annu250862876"
-  # add_index "residence_survey_responses", ["annual_energy_from_wood", "weighting", "floorspace"], :name => "index_residence_survey_responses_on_annu3742395500"
-  # add_index "residence_survey_responses", ["floorspace", "annual_energy_from_electricity_for_clothes_driers", "annual_energy_from_electricity_for_dishwashers", "annual_energy_from_electricity_for_freezers", "annual_energy_from_electricity_for_refrigerators", "annual_energy_from_electricity_for_air_conditioners", "annual_energy_from_electricity_for_heating_space", "annual_energy_from_electricity_for_heating_water", "annual_energy_from_electricity_for_other_appliances", "weighting"], :name => "index_residence_survey_responses_on_floo1081052200"
-  # add_index "residence_survey_responses", ["floorspace", "annual_energy_from_fuel_oil_for_heating_space", "annual_energy_from_fuel_oil_for_heating_water", "annual_energy_from_fuel_oil_for_appliances", "weighting"], :name => "index_residence_survey_responses_on_floo2042532749"
-  # add_index "residence_survey_responses", ["floorspace", "annual_energy_from_natural_gas_for_heating_space", "annual_energy_from_natural_gas_for_heating_water", "annual_energy_from_natural_gas_for_appliances", "weighting"], :name => "index_residence_survey_responses_on_floo4150514738"
-  # add_index "residence_survey_responses", ["floorspace", "annual_energy_from_propane_for_heating_space", "annual_energy_from_propane_for_heating_water", "annual_energy_from_propane_for_appliances", "weighting"], :name => "index_residence_survey_responses_on_floo2054994085"
-  # add_index "residence_survey_responses", ["floorspace", "construction_year", "residents", "heating_degree_days", "census_region_id", "residence_class_id", "ownership", "cooling_degree_days", "residence_urbanity_id"], :name => "index_residence_survey_responses_on_floo2191768676"
-  # add_index "residence_survey_responses", ["floorspace", "construction_year", "residents", "heating_degree_days", "census_region_id", "residence_class_id", "ownership", "cooling_degree_days"], :name => "index_residence_survey_responses_on_floo1971465492"
-  # add_index "residence_survey_responses", ["floorspace", "construction_year", "residents", "heating_degree_days", "census_region_id", "residence_class_id", "ownership"], :name => "index_residence_survey_responses_on_floo4007566201"
-  # add_index "residence_survey_responses", ["floorspace", "construction_year", "residents", "heating_degree_days", "census_region_id", "residence_class_id"], :name => "index_residence_survey_responses_on_floo1574191187"
-  # add_index "residence_survey_responses", ["floorspace", "construction_year", "residents", "heating_degree_days", "census_region_id"], :name => "index_residence_survey_responses_on_floo259916455"
-  # add_index "residence_survey_responses", ["floorspace", "construction_year", "residents", "heating_degree_days"], :name => "index_residence_survey_responses_on_floo2330810762"
-  # add_index "residence_survey_responses", ["floorspace", "construction_year", "residents"], :name => "index_residence_survey_responses_on_floo3429600394"
-  # add_index "residence_survey_responses", ["floorspace", "construction_year"], :name => "index_residence_survey_responses_on_floo809808213"
-  # add_index "residence_survey_responses", ["floorspace"], :name => "index_residence_survey_responses_on_floorspace"
-  # add_index "residence_survey_responses", ["lighting_efficiency", "weighting", "floorspace"], :name => "index_residence_survey_responses_on_ligh1681825374"
-  # add_index "residence_survey_responses", ["lighting_use", "weighting", "floorspace"], :name => "index_residence_survey_responses_on_ligh3781776396"
-  # add_index "residence_survey_responses", ["refrigerator_count"], :name => "index_residence_survey_responses_on_refr2806359993"
-  # add_index "residence_survey_responses", ["residence_clothes_drier_use_id"], :name => "index_residence_survey_responses_on_resi3713455541"
 end

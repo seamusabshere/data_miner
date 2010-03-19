@@ -176,103 +176,6 @@ module FuelEconomyGuide
   end
 end
 
-class AutomobileMakeYear < ActiveRecord::Base
-  set_primary_key :row_hash
-  
-  belongs_to :make, :class_name => 'AutomobileMake', :foreign_key => 'automobile_make_id'
-  belongs_to :model_year, :class_name => 'AutomobileModelYear', :foreign_key => 'automobile_model_year_id'
-  has_many :fleet_years, :class_name => 'AutomobileMakeFleetYear'
-  
-  data_miner do
-    process :derive_from_make_fleet_years
-    process :derive_association_to_make_fleet_years
-    process :derive_fuel_efficiency
-    process :derive_volume
-  end
-  
-  # validates_numericality_of :fuel_efficiency, :greater_than => 0, :allow_nil => true
-  
-  class << self
-    def derive_from_make_fleet_years
-      AutomobileMakeFleetYear.find_in_batches do |batch|
-        batch.each do |record|
-          #puts "   * Considering AMFY #{record.inspect}"
-          if record.make and record.model_year
-            find_or_create_by_automobile_make_id_and_automobile_model_year_id record.make.id, record.model_year.id
-          end
-        end
-      end
-    end
-    
-    def derive_association_to_make_fleet_years
-      AutomobileMakeFleetYear.find_in_batches do |batch|
-        batch.each do |record|
-          if record.make and record.model_year
-            record.make_year = find_by_automobile_make_id_and_automobile_model_year_id record.make.id, record.model_year.id
-            record.save! if record.changed?
-          end
-        end
-      end
-    end
-
-    def derive_fuel_efficiency
-      AutomobileMakeFleetYear.find_in_batches do |batch|
-        batch.each do |record|
-          if record.make and record.model_year
-            make_year = find_by_automobile_make_id_and_automobile_model_year_id record.make.id, record.model_year.id
-            # make_year.fuel_efficiency = make_year.fleet_years.weighted_average :fuel_efficiency, :by => :volume
-            make_year.save!
-          end
-        end
-      end
-    end
-    
-    def derive_volume
-      find_in_batches do |batch|
-        batch.each do |record|
-          record.volume = record.fleet_years.collect(&:volume).sum
-          record.save!
-        end
-      end
-    end
-  end
-end
-
-class AutomobileMakeFleetYear < ActiveRecord::Base
-  set_primary_key :row_hash
-  belongs_to :make, :class_name => 'AutomobileMake', :foreign_key => 'automobile_make_id'
-  belongs_to :model_year, :class_name => 'AutomobileModelYear', :foreign_key => 'automobile_model_year_id'
-  belongs_to :make_year, :class_name => 'AutomobileMakeYear', :foreign_key => 'automobile_make_year_id'
-
-  data_miner do
-    # CAFE data privately emailed to Andy from Terry Anderson at the DOT/NHTSA
-    import :url => 'http://static.brighterplanet.com/science/data/transport/automobiles/make_fleet_years/make_fleet_years.csv',
-           :errata => 'http://static.brighterplanet.com/science/data/transport/automobiles/make_fleet_years/errata.csv',
-           :select => lambda { |row| row['volume'].to_i > 0 } do |attr|
-      attr.store 'make_name', :field_name => 'manufacturer_name' # prefix
-      attr.store 'year', :field_name => 'year_content'
-      attr.store 'fleet', :chars => 2..3
-      attr.store 'fuel_efficiency', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
-      attr.store 'volume'
-    end
-  end
-end
-
-class AutomobileModelYear < ActiveRecord::Base
-  set_primary_key :year
-  
-  has_many :make_years, :class_name => 'AutomobileMakeYear'
-  has_many :variants, :class_name => 'AutomobileVariant'
-  
-  data_miner do
-    unique_index 'year'
-    
-    # await :other_class => AutomobileMakeYear do |deferred|
-    #   # deferred.derive :fuel_efficiency, :weighting_association => :make_years, :weighting_column => :volume
-    # end
-  end
-end
-
 class AutomobileFuelType < ActiveRecord::Base
   set_primary_key :code
   
@@ -313,43 +216,11 @@ class AutomobileFuelType < ActiveRecord::Base
   }
 end
 
-class AutomobileModel < ActiveRecord::Base
-  set_primary_key :row_hash
-  
-  has_many :variants, :class_name => 'AutomobileVariant'
-  belongs_to :make, :class_name => 'AutomobileMake', :foreign_key => 'automobile_make_id'
-  
-  data_miner do
-    # derived from FEG automobile variants
-  end
-end
-
-class AutomobileMake < ActiveRecord::Base
-  set_primary_key :name
-
-  has_many :make_years, :class_name => 'AutomobileMakeYear'
-  has_many :models, :class_name => 'AutomobileModel'
-  has_many :fleet_years, :class_name => 'AutomobileMakeFleetYear'
-  has_many :variants, :class_name => 'AutomobileVariant'
-
-  data_miner do
-    unique_index 'name'
-    
-    import :url => 'http://static.brighterplanet.com/science/data/transport/automobiles/makes/make_importance.csv' do |attr|
-      attr.store 'major'
-    end
-    # await :other_class => AutomobileMakeYear do |deferred|
-    #   deferred.derive :fuel_efficiency, :weighting_association => :make_years, :weighting_column => 'volume'
-    # end
-  end
-end
-
 class AutomobileVariant < ActiveRecord::Base
   set_primary_key :row_hash
   
   belongs_to :make, :class_name => 'AutomobileMake', :foreign_key => 'automobile_make_id'
   belongs_to :model, :class_name => 'AutomobileModel', :foreign_key => 'automobile_model_id'
-  belongs_to :model_year, :class_name => 'AutomobileModelYear', :foreign_key => 'automobile_model_year_id'
   belongs_to :fuel_type, :class_name => 'AutomobileFuelType', :foreign_key => 'automobile_fuel_type_id'
 
   data_miner do
@@ -444,7 +315,6 @@ class AutomobileVariant < ActiveRecord::Base
     
     # associate :make, :key => :original_automobile_make_name, :foreign_key => :name
     # derive :automobile_model_id # creates models by name
-    # associate :model_year, :key => :original_automobile_model_year_year, :foreign_key => :year
     # associate :fuel_type, :key => :original_automobile_fuel_type_code, :foreign_key => :code
     
     process 'Set adjusted fuel economy' do
