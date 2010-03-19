@@ -50,7 +50,8 @@ Put this in <tt>lib/tasks/data_miner_tasks.rake</tt>: (unfortunately I don't kno
 
   namespace :data_miner do
     task :run => :environment do
-      DataMiner.run :resource_names => ENV['RESOURCES'].to_s.split(/\s*,\s*/).flatten.compact
+      resource_names = %w{R RESOURCES RESOURCE RESOURCE_NAMES}.map { |possible_key| ENV[possible_key].to_s }.join.split(/\s*,\s*/).flatten.compact
+      DataMiner.run :resource_names => resource_names
     end
   end
 
