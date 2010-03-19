@@ -47,7 +47,7 @@ module DataMiner
     end
     
     cattr_accessor :resource_names
-    self.resource_names = Set.new
+    self.resource_names = Array.new
     class << self
       # Mine data. Defaults to all resource_names touched by DataMiner.
       #

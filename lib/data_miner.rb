@@ -50,7 +50,7 @@ ActiveRecord::Base.class_eval do
       return
     end
     
-    DataMiner.resource_names.add self.name
+    DataMiner.resource_names.push self.name unless DataMiner.resource_names.include? self.name
     DataMiner.create_tables
 
     belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
