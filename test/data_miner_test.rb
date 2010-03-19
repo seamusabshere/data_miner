@@ -1,181 +1,5 @@
 require 'test_helper'
 
-module FuelEconomyGuide
-  TRANSMISSIONS = {
-    'A' => 'automatic', 
-    'M' => 'manual', 
-    'L' => 'automatic',     # Lockup/automatic
-    'S' => 'semiautomatic', # Semiautomatic
-    'C' => 'manual' # TODO verify for VW Syncro
-  }
-
-  ENGINE_TYPES = {
-    '(GUZZLER)' => nil, # "gas guzzler"
-    '(POLICE)' => nil, # police automobile_variant
-    '(MPFI)' => 'injection',
-    '(MPI*)' => 'injection',
-    '(SPFI)' => 'injection',
-    '(FFS)' => 'injection',
-    '(TURBO)' => 'turbo',
-    '(TRBO)' => 'turbo',
-    '(TC*)' => 'turbo',
-    '(FFS,TRBO)' => %w(injection turbo),
-    '(S-CHARGE)' => 'supercharger',
-    '(SC*)' => 'supercharger',
-    '(DIESEL)' => nil, # diesel
-    '(DSL)' => nil, # diesel
-    '(ROTARY)' => nil, # rotary
-    '(VARIABLE)' => nil, # variable displacement
-    '(NO-CAT)' => nil, # no catalytic converter
-    '(OHC)' => nil, # overhead camshaft
-    '(OHV)' => nil, # overhead valves
-    '(16-VALVE)' => nil, # 16V
-    '(305)' => nil, # 305 cubic inch displacement
-    '(307)' => nil, # 307 cubic inch displacement
-    '(M-ENG)' => nil,
-    '(W-ENG)' => nil,
-    '(GM-BUICK)' => nil,
-    '(GM-CHEV)' => nil,
-    '(GM-OLDS)' => nil,
-    '(GM-PONT)' => nil,
-  }
-  
-  class ParserB
-    attr_accessor :year
-    def initialize(options = {})
-      @year = options[:year]
-    end
-  
-    def apply(row)
-      row.merge!({
-        'make'           => row['carline_mfr_name'], # make it line up with the errata
-        'model'          => row['carline_name'],     # ditto
-        'transmission'   => TRANSMISSIONS[row['model_trans'][0, 1]],
-        'speeds'         => (row['model_trans'][1, 1] == 'V') ? 'variable' : row['model_trans'][1, 1],
-        'turbo'          => [ENGINE_TYPES[row['engine_desc1']], ENGINE_TYPES[row['engine_desc2']]].flatten.include?('turbo'),
-        'supercharger'   => [ENGINE_TYPES[row['engine_desc1']], ENGINE_TYPES[row['engine_desc2']]].flatten.include?('supercharger'),
-        'injection'      => [ENGINE_TYPES[row['engine_desc1']], ENGINE_TYPES[row['engine_desc2']]].flatten.include?('injection'),
-        'displacement'   => _displacement(row['opt_disp']),
-        'year'           => year
-      })
-      row
-    end
-  
-    def _displacement(str)
-      str = str.gsub(/[\(\)]/, '').strip
-      if str =~ /^(.+)L$/
-        $1.to_f
-      elsif str =~ /^(.+)CC$/
-        $1.to_f / 1000
-      end
-    end
-  
-    def add_hints!(bus)
-      bus[:format] = :fixed_width
-      bus[:cut] = '13-' if year == 1995
-      bus[:schema_name] = :fuel_economy_guide_b
-      bus[:select] = lambda { |row| row['supress_code'].blank? and row['state_code'] == 'F' }
-      Slither.define :fuel_economy_guide_b do |d|
-        d.rows do |row|
-          row.trap { true } # there's only one section
-          row.column 'active_year'      , 4,    :type => :integer  #   ACTIVE YEAR
-          row.column 'state_code'       , 1,    :type => :string  #   STATE CODE:  F=49-STATE,C=CALIFORNIA
-          row.column 'carline_clss'     , 2,    :type => :integer  #   CARLINE CLASS CODE
-          row.column 'carline_mfr_code' , 3,    :type => :integer  #   CARLINE MANUFACTURER CODE
-          row.column 'carline_name'     , 28,   :type => :string  #   CARLINE NAME
-          row.column 'disp_cub_in'      , 4,    :type => :integer   #  DISP CUBIC INCHES
-          row.column 'fuel_system'      , 2,    :type => :string   #  FUEL SYSTEM: 'FI' FOR FUEL INJECTION, 2-DIGIT INTEGER VALUE FOR #OF VENTURIES IF CARBURETOR SYSTEM.
-          row.column 'model_trans'      , 6,    :type => :string   #  TRANSMISSION TYPE
-          row.column 'no_cyc'           , 2,    :type => :integer   #  NUMBER OF ENGINE CYLINDERS
-          row.column 'date_time'        , 12,   :type => :string  #   DATE AND TIME RECORD ENTERED -YYMMDDHHMMSS (YEAR, MONTH, DAY, HOUR, MINUTE, SECOND)
-          row.column 'release_date'     , 6,    :type => :string   #  RELEASE DATE - YYMMDD (YEAR, MONTH, DAY)
-          row.column 'vi_mfr_code'      , 3,    :type => :integer   #  VI MANUFACTURER CODE
-          row.column 'carline_code'     , 5,    :type => :integer   #  CARLINE CODE
-          row.column 'basic_eng_id'     , 5,    :type => :integer   #  BASIC ENGINE INDEX
-          row.column 'carline_mfr_name' , 32,   :type => :string  #   CARLINE MANUFACTURER NAME
-          row.column 'suppress_code'    , 1,    :type => :integer    # SUPPRESSION CODE (NO SUPPRESSED RECORD IF FOR PUBLIC ACCESS)
-          row.column 'est_city_mpg'     , 3,    :type => :integer    # ESTIMATED (CITY) MILES PER GALLON - 90% OF UNADJUSTED VALUE
-          row.spacer 2
-          row.column 'highway_mpg'      , 3,    :type => :integer    # ESTIMATED (HWY) MILES PER GALLON - 78% OF UNADJUSTED VALUE
-          row.spacer 2
-          row.column 'combined_mpg'     , 3,    :type => :integer    # COMBINED MILES PER GALLON
-          row.spacer 2
-          row.column 'unadj_city_mpg'   , 3,    :type => :integer    # UNADJUSTED  CITY MILES PER GALLON
-          row.spacer 2
-          row.column 'unadj_hwy_mpg'    , 3,    :type => :integer    # UNADJUSTED HIGHWAY MILES PER GALLON
-          row.spacer 2
-          row.column 'unadj_comb_mpg'   , 3,    :type => :integer    # UNADJUSTED COMBINED MILES PER GALLON
-          row.spacer 2
-          row.column 'ave_anl_fuel'     , 6,    :type => :integer    # "$" in col 147, Annual Fuel Cost starting col 148 in I5
-          row.column 'opt_disp'         , 8,    :type => :string    # OPTIONAL DISPLACEMENT
-          row.column 'engine_desc1'     , 10,   :type => :string   #  ENGINE DESCRIPTION 1
-          row.column 'engine_desc2'     , 10,   :type => :string   #  ENGINE DESCRIPTION 2
-          row.column 'engine_desc3'     , 10,   :type => :string   #  ENGINE DESCRIPTION 3
-          row.column 'body_type_2d'     , 10,   :type => :string   #  BODY TYPE 2 DOOR - IF THE BODY TYPE APPLIES IT WILL TAKE THE FORM '2DR-PPP/LL' WHERE PPP=PASSENGER INTERIOR VOLUME AND LL=LUGGAGE INTERIOR VOLUME.
-          row.column 'body_type_4d'     , 10,   :type => :string   #  BODY TYPE 4 DOOR - IF THE BODY TYPE APPLIES IT WILL TAKE THE FORM '4DR-PPP/LL' WHERE PPP=PASSENGER INTERIOR VOLUME AND LL=LUGGAGE INTERIOR VOLUME.
-          row.column 'body_type_hbk'    , 10,   :type => :string   #  BODY TYPE HBK    - IF THE BODY TYPE APPLIES IT WILL TAKE THE FORM 'HBK-PPP/LL' WHERE PPP=PASSENGER INTERIOR VOLUME AND LL=LUGGAGE INTERIOR VOLUME.
-          row.column 'puerto_rico'      , 1,    :type => :string    # '*' IF FOR PUERTO RICO SALES ONLY
-          row.column 'overdrive'        , 4,    :type => :string    # OVERDRIVE:  ' OD ' FOR OVERDRIVE, 'EOD ' FOR ELECTRICALLY OPERATED OVERDRIVE AND 'AEOD' FOR AUTOMATIC OVERDRIVE
-          row.column 'drive_system'     , 3,    :type => :string    # FWD=FRONT WHEEL DRIVE, RWD=REAR,  4WD=4-WHEEL
-          row.column 'filler'           , 1,    :type => :string    # NOT USED
-          row.column 'fuel_type'        , 1,    :type => :string    # R=REGULAR(UNLEADED), P=PREMIUM,  D=DIESEL
-          row.column 'trans_desc'       , 15,   :type => :string   #  TRANSMISSION DESCRIPTORS
-        end
-      end
-    end
-  end
-  class ParserC
-    attr_accessor :year
-    def initialize(options = {})
-      @year = options[:year]
-    end
-    
-    def add_hints!(bus)
-      # File will decide format based on filename
-    end
-    
-    def apply(row)
-      row.merge!({
-        'make'           => row['Manufacturer'], # make it line up with the errata
-        'model'          => row['carline name'], # ditto
-        'drive'          => row['drv'] + 'WD',
-        'transmission'   => TRANSMISSIONS[row['trans'][-3, 1]],
-        'speeds'         => (row['trans'][-2, 1] == 'V') ? 'variable' : row['trans'][-2, 1],
-        'turbo'          => row['T'] == 'T',
-        'supercharger'   => row['S'] == 'S',
-        'injection'      => true,
-        'year'           => year
-      })
-      row
-    end
-  end
-  class ParserD
-    attr_accessor :year
-    def initialize(options = {})
-      @year = options[:year]
-    end
-    
-    def add_hints!(bus)
-      bus[:reject] = lambda { |row| row.values.first.blank? } if year == 2007
-    end
-    
-    def apply(row)
-      row.merge!({
-        'make'           => row['MFR'],          # make it line up with the errata
-        'model'          => row['CAR LINE'],     # ditto
-        'drive'          => row['DRIVE SYS'] + 'WD',
-        'transmission'   => TRANSMISSIONS[row['TRANS'][-3, 1]],
-        'speeds'         => (row['TRANS'][-2, 1] == 'V') ? 'variable' : row['TRANS'][-2, 1],
-        'turbo'          => row['TURBO'] == 'T',
-        'supercharger'   => row['SPCHGR'] == 'S',
-        'injection'      => true,
-        'year'           => year
-      })
-      row
-    end
-  end
-end
-
 class AutomobileFuelType < ActiveRecord::Base
   set_primary_key :code
   
@@ -218,11 +42,183 @@ end
 
 class AutomobileVariant < ActiveRecord::Base
   set_primary_key :row_hash
-  
-  belongs_to :make, :class_name => 'AutomobileMake', :foreign_key => 'automobile_make_id'
-  belongs_to :model, :class_name => 'AutomobileModel', :foreign_key => 'automobile_model_id'
-  belongs_to :fuel_type, :class_name => 'AutomobileFuelType', :foreign_key => 'automobile_fuel_type_id'
 
+  module FuelEconomyGuide
+    TRANSMISSIONS = {
+      'A' => 'automatic', 
+      'M' => 'manual', 
+      'L' => 'automatic',     # Lockup/automatic
+      'S' => 'semiautomatic', # Semiautomatic
+      'C' => 'manual' # TODO verify for VW Syncro
+    }
+
+    ENGINE_TYPES = {
+      '(GUZZLER)' => nil, # "gas guzzler"
+      '(POLICE)' => nil, # police automobile_variant
+      '(MPFI)' => 'injection',
+      '(MPI*)' => 'injection',
+      '(SPFI)' => 'injection',
+      '(FFS)' => 'injection',
+      '(TURBO)' => 'turbo',
+      '(TRBO)' => 'turbo',
+      '(TC*)' => 'turbo',
+      '(FFS,TRBO)' => %w(injection turbo),
+      '(S-CHARGE)' => 'supercharger',
+      '(SC*)' => 'supercharger',
+      '(DIESEL)' => nil, # diesel
+      '(DSL)' => nil, # diesel
+      '(ROTARY)' => nil, # rotary
+      '(VARIABLE)' => nil, # variable displacement
+      '(NO-CAT)' => nil, # no catalytic converter
+      '(OHC)' => nil, # overhead camshaft
+      '(OHV)' => nil, # overhead valves
+      '(16-VALVE)' => nil, # 16V
+      '(305)' => nil, # 305 cubic inch displacement
+      '(307)' => nil, # 307 cubic inch displacement
+      '(M-ENG)' => nil,
+      '(W-ENG)' => nil,
+      '(GM-BUICK)' => nil,
+      '(GM-CHEV)' => nil,
+      '(GM-OLDS)' => nil,
+      '(GM-PONT)' => nil,
+    }
+
+    class ParserB
+      attr_accessor :year
+      def initialize(options = {})
+        @year = options[:year]
+      end
+
+      def apply(row)
+        row.merge!({
+          'make'           => row['carline_mfr_name'], # make it line up with the errata
+          'model'          => row['carline_name'],     # ditto
+          'transmission'   => TRANSMISSIONS[row['model_trans'][0, 1]],
+          'speeds'         => (row['model_trans'][1, 1] == 'V') ? 'variable' : row['model_trans'][1, 1],
+          'turbo'          => [ENGINE_TYPES[row['engine_desc1']], ENGINE_TYPES[row['engine_desc2']]].flatten.include?('turbo'),
+          'supercharger'   => [ENGINE_TYPES[row['engine_desc1']], ENGINE_TYPES[row['engine_desc2']]].flatten.include?('supercharger'),
+          'injection'      => [ENGINE_TYPES[row['engine_desc1']], ENGINE_TYPES[row['engine_desc2']]].flatten.include?('injection'),
+          'displacement'   => _displacement(row['opt_disp']),
+          'year'           => year
+        })
+        row
+      end
+
+      def _displacement(str)
+        str = str.gsub(/[\(\)]/, '').strip
+        if str =~ /^(.+)L$/
+          $1.to_f
+        elsif str =~ /^(.+)CC$/
+          $1.to_f / 1000
+        end
+      end
+
+      def add_hints!(bus)
+        bus[:format] = :fixed_width
+        bus[:cut] = '13-' if year == 1995
+        bus[:schema_name] = :fuel_economy_guide_b
+        bus[:select] = lambda { |row| row['supress_code'].blank? and row['state_code'] == 'F' }
+        Slither.define :fuel_economy_guide_b do |d|
+          d.rows do |row|
+            row.trap { true } # there's only one section
+            row.column 'active_year'      , 4,    :type => :integer  #   ACTIVE YEAR
+            row.column 'state_code'       , 1,    :type => :string  #   STATE CODE:  F=49-STATE,C=CALIFORNIA
+            row.column 'carline_clss'     , 2,    :type => :integer  #   CARLINE CLASS CODE
+            row.column 'carline_mfr_code' , 3,    :type => :integer  #   CARLINE MANUFACTURER CODE
+            row.column 'carline_name'     , 28,   :type => :string  #   CARLINE NAME
+            row.column 'disp_cub_in'      , 4,    :type => :integer   #  DISP CUBIC INCHES
+            row.column 'fuel_system'      , 2,    :type => :string   #  FUEL SYSTEM: 'FI' FOR FUEL INJECTION, 2-DIGIT INTEGER VALUE FOR #OF VENTURIES IF CARBURETOR SYSTEM.
+            row.column 'model_trans'      , 6,    :type => :string   #  TRANSMISSION TYPE
+            row.column 'no_cyc'           , 2,    :type => :integer   #  NUMBER OF ENGINE CYLINDERS
+            row.column 'date_time'        , 12,   :type => :string  #   DATE AND TIME RECORD ENTERED -YYMMDDHHMMSS (YEAR, MONTH, DAY, HOUR, MINUTE, SECOND)
+            row.column 'release_date'     , 6,    :type => :string   #  RELEASE DATE - YYMMDD (YEAR, MONTH, DAY)
+            row.column 'vi_mfr_code'      , 3,    :type => :integer   #  VI MANUFACTURER CODE
+            row.column 'carline_code'     , 5,    :type => :integer   #  CARLINE CODE
+            row.column 'basic_eng_id'     , 5,    :type => :integer   #  BASIC ENGINE INDEX
+            row.column 'carline_mfr_name' , 32,   :type => :string  #   CARLINE MANUFACTURER NAME
+            row.column 'suppress_code'    , 1,    :type => :integer    # SUPPRESSION CODE (NO SUPPRESSED RECORD IF FOR PUBLIC ACCESS)
+            row.column 'est_city_mpg'     , 3,    :type => :integer    # ESTIMATED (CITY) MILES PER GALLON - 90% OF UNADJUSTED VALUE
+            row.spacer 2
+            row.column 'highway_mpg'      , 3,    :type => :integer    # ESTIMATED (HWY) MILES PER GALLON - 78% OF UNADJUSTED VALUE
+            row.spacer 2
+            row.column 'combined_mpg'     , 3,    :type => :integer    # COMBINED MILES PER GALLON
+            row.spacer 2
+            row.column 'unadj_city_mpg'   , 3,    :type => :integer    # UNADJUSTED  CITY MILES PER GALLON
+            row.spacer 2
+            row.column 'unadj_hwy_mpg'    , 3,    :type => :integer    # UNADJUSTED HIGHWAY MILES PER GALLON
+            row.spacer 2
+            row.column 'unadj_comb_mpg'   , 3,    :type => :integer    # UNADJUSTED COMBINED MILES PER GALLON
+            row.spacer 2
+            row.column 'ave_anl_fuel'     , 6,    :type => :integer    # "$" in col 147, Annual Fuel Cost starting col 148 in I5
+            row.column 'opt_disp'         , 8,    :type => :string    # OPTIONAL DISPLACEMENT
+            row.column 'engine_desc1'     , 10,   :type => :string   #  ENGINE DESCRIPTION 1
+            row.column 'engine_desc2'     , 10,   :type => :string   #  ENGINE DESCRIPTION 2
+            row.column 'engine_desc3'     , 10,   :type => :string   #  ENGINE DESCRIPTION 3
+            row.column 'body_type_2d'     , 10,   :type => :string   #  BODY TYPE 2 DOOR - IF THE BODY TYPE APPLIES IT WILL TAKE THE FORM '2DR-PPP/LL' WHERE PPP=PASSENGER INTERIOR VOLUME AND LL=LUGGAGE INTERIOR VOLUME.
+            row.column 'body_type_4d'     , 10,   :type => :string   #  BODY TYPE 4 DOOR - IF THE BODY TYPE APPLIES IT WILL TAKE THE FORM '4DR-PPP/LL' WHERE PPP=PASSENGER INTERIOR VOLUME AND LL=LUGGAGE INTERIOR VOLUME.
+            row.column 'body_type_hbk'    , 10,   :type => :string   #  BODY TYPE HBK    - IF THE BODY TYPE APPLIES IT WILL TAKE THE FORM 'HBK-PPP/LL' WHERE PPP=PASSENGER INTERIOR VOLUME AND LL=LUGGAGE INTERIOR VOLUME.
+            row.column 'puerto_rico'      , 1,    :type => :string    # '*' IF FOR PUERTO RICO SALES ONLY
+            row.column 'overdrive'        , 4,    :type => :string    # OVERDRIVE:  ' OD ' FOR OVERDRIVE, 'EOD ' FOR ELECTRICALLY OPERATED OVERDRIVE AND 'AEOD' FOR AUTOMATIC OVERDRIVE
+            row.column 'drive_system'     , 3,    :type => :string    # FWD=FRONT WHEEL DRIVE, RWD=REAR,  4WD=4-WHEEL
+            row.column 'filler'           , 1,    :type => :string    # NOT USED
+            row.column 'fuel_type'        , 1,    :type => :string    # R=REGULAR(UNLEADED), P=PREMIUM,  D=DIESEL
+            row.column 'trans_desc'       , 15,   :type => :string   #  TRANSMISSION DESCRIPTORS
+          end
+        end
+      end
+    end
+    class ParserC
+      attr_accessor :year
+      def initialize(options = {})
+        @year = options[:year]
+      end
+
+      def add_hints!(bus)
+        # File will decide format based on filename
+      end
+
+      def apply(row)
+        row.merge!({
+          'make'           => row['Manufacturer'], # make it line up with the errata
+          'model'          => row['carline name'], # ditto
+          'drive'          => row['drv'] + 'WD',
+          'transmission'   => TRANSMISSIONS[row['trans'][-3, 1]],
+          'speeds'         => (row['trans'][-2, 1] == 'V') ? 'variable' : row['trans'][-2, 1],
+          'turbo'          => row['T'] == 'T',
+          'supercharger'   => row['S'] == 'S',
+          'injection'      => true,
+          'year'           => year
+        })
+        row
+      end
+    end
+    class ParserD
+      attr_accessor :year
+      def initialize(options = {})
+        @year = options[:year]
+      end
+
+      def add_hints!(bus)
+        bus[:reject] = lambda { |row| row.values.first.blank? } if year == 2007
+      end
+
+      def apply(row)
+        row.merge!({
+          'make'           => row['MFR'],          # make it line up with the errata
+          'model'          => row['CAR LINE'],     # ditto
+          'drive'          => row['DRIVE SYS'] + 'WD',
+          'transmission'   => TRANSMISSIONS[row['TRANS'][-3, 1]],
+          'speeds'         => (row['TRANS'][-2, 1] == 'V') ? 'variable' : row['TRANS'][-2, 1],
+          'turbo'          => row['TURBO'] == 'T',
+          'supercharger'   => row['SPCHGR'] == 'S',
+          'injection'      => true,
+          'year'           => year
+        })
+        row
+      end
+    end
+  end
+  
   data_miner do
     # 1985---1997
     (85..97).each do |yy|
