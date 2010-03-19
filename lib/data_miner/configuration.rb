@@ -11,10 +11,6 @@ module DataMiner
       @attributes = HashWithIndifferentAccess.new
     end
     
-    def logger
-      DataMiner.logger
-    end
-    
     def process(method_name_or_block_description, &block)
       self.runnable_counter += 1
       runnables << DataMiner::Process.new(self, runnable_counter, method_name_or_block_description, &block)
@@ -76,7 +72,7 @@ module DataMiner
       import_runnables.each do |runnable|
         runnable.attributes.each do |_, attribute|
           if attribute.options.any? { |k, _| k.to_s =~ /unit/ } and COMPLETE_UNIT_DEFINITIONS.none? { |complete_definition| complete_definition.all? { |required_option| attribute.options[required_option].present? } }
-            logger.error %{
+            DataMiner.logger.error %{
 
 ================================
 
@@ -97,7 +93,7 @@ You need to supply one of #{COMPLETE_UNIT_DEFINITIONS.map(&:inspect).to_sentence
       missing_columns = Array.new
       import_runnables.each do |runnable|
         runnable.attributes.each do |_, attribute|
-          logger.error "[data_miner gem] You can't have an attribute column that ends in _units (reserved): #{resource.table_name}.#{attribute.name}" if attribute.name.ends_with? '_units'
+          DataMiner.logger.error "[data_miner gem] You can't have an attribute column that ends in _units (reserved): #{resource.table_name}.#{attribute.name}" if attribute.name.ends_with? '_units'
           unless resource.column_names.include? attribute.name
             missing_columns << attribute.name
           end
@@ -108,7 +104,7 @@ You need to supply one of #{COMPLETE_UNIT_DEFINITIONS.map(&:inspect).to_sentence
       end
       missing_columns.uniq!
       if missing_columns.any?
-        logger.error %{
+        DataMiner.logger.error %{
 
 ================================
 

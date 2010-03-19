@@ -28,10 +28,12 @@ module DataMiner
     end
     
     def store(attr_name, attr_options = {})
+      DataMiner.logger.error "[data_miner gem] You should only call store or key once for #{resource.name}##{attr_name}" if attributes.has_key? attr_name
       attributes[attr_name] = Attribute.new self, attr_name, attr_options
     end
     
     def key(attr_name, attr_options = {})
+      DataMiner.logger.error "[data_miner gem] You should only call store or key once for #{resource.name}##{attr_name}" if attributes.has_key? attr_name
       @key = attr_name
       store attr_name, attr_options
     end

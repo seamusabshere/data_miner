@@ -412,14 +412,12 @@ class Country < ActiveRecord::Base
   
   data_miner do
     import 'The official ISO country list', :url => 'http://www.iso.org/iso/list-en1-semic-3.txt', :skip => 2, :headers => false, :delimiter => ';' do
-      key 'iso_3166'
-      store 'iso_3166', :field_number => 1
+      key 'iso_3166', :field_number => 1
       store 'name', :field_number => 0
     end
     
     import 'A Princeton dataset with better capitalization', :url => 'http://www.cs.princeton.edu/introcs/data/iso3166.csv' do
-      key 'iso_3166'
-      store 'iso_3166', :field_name => 'country code'
+      key 'iso_3166', :field_name => 'country code'
       store 'name', :field_name => 'country'
     end
   end
@@ -430,11 +428,10 @@ class Airport < ActiveRecord::Base
   
   data_miner do
     import :url => 'http://openflights.svn.sourceforge.net/viewvc/openflights/openflights/data/airports.dat', :headers => false, :select => lambda { |row| row[4].present? } do
-      key 'iata_code'
+      key 'iata_code', :field_number => 4
       store 'name', :field_number => 1
       store 'city', :field_number => 2
       store 'country_name', :field_number => 3
-      store 'iata_code', :field_number => 4
       store 'latitude', :field_number => 6
       store 'longitude', :field_number => 7
     end
@@ -446,17 +443,15 @@ class CensusRegion < ActiveRecord::Base
   
   data_miner do
     import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Region'].to_i > 0 and row['Division'].to_s.strip == 'X'} do
-      key 'number'
+      key 'number', :field_name => 'Region'
       store 'name', :field_name => 'Name'
-      store 'number', :field_name => 'Region'
     end
     
     # pretend this is a different data source
     # fake! just for testing purposes
     import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Region'].to_i > 0 and row['Division'].to_s.strip == 'X'} do
-      key 'number'
+      key 'number', :field_name => 'Region'
       store 'name', :field_name => 'Name'
-      store 'number', :field_name => 'Region'
     end
   end
 end
@@ -467,9 +462,8 @@ class CensusDivision < ActiveRecord::Base
   
   data_miner do
     import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Division'].to_s.strip != 'X' and row['FIPS CODE STATE'].to_s.strip == 'X'} do
-      key 'number'
+      key 'number', :field_name => 'Division'
       store 'name', :field_name => 'Name'
-      store 'number', :field_name => 'Division'
       store 'census_region_number', :field_name => 'Region'
       store 'census_region_name', :field_name => 'Region', :dictionary => { :input => 'number', :output => 'name', :url => 'http://data.brighterplanet.com/census_regions.csv' }
     end
@@ -488,8 +482,7 @@ class ResidentialEnergyConsumptionSurveyResponse < ActiveRecord::Base
     # conversions are NOT performed here, since we first have to zero out legitimate skips
     # otherwise you will get values like "999 pounds = 453.138778 kilograms" (where 999 is really a legit skip)
     import 'RECs 2005 (but not converting units to metric just yet)', :url => 'http://www.eia.doe.gov/emeu/recs/recspubuse05/datafiles/RECS05alldata.csv', :headers => :upcase do
-      key 'department_of_energy_identifier'
-      store 'department_of_energy_identifier', :field_name => 'DOEID'
+      key 'department_of_energy_identifier', :field_name => 'DOEID'
       
       store 'residence_class', :field_name => 'TYPEHUQ', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/typehuq/typehuq.csv' }
       store 'construction_year', :field_name => 'YEARMADE', :dictionary => { :input => 'Code', :sprintf => '%02d', :output => 'Date in the middle (synthetic)', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/yearmade/yearmade.csv' }
