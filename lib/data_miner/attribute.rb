@@ -63,7 +63,10 @@ module DataMiner
       return false if !wants_overwriting? and !record.send(name).nil?
       what_it_was = record.send name
       what_it_should_be = value_from_row row
+
       record.send "#{name}=", what_it_should_be
+      record.send "#{name}_units=", (to_units || unit_from_source(row)).to_s if wants_units?
+      
       what_it_is = record.send name
       if what_it_is.nil? and !what_it_should_be.nil?
         DataMiner.logger.info "ActiveRecord didn't like trying to set #{resource}.#{name} = #{what_it_should_be} (it came out as nil)"
@@ -76,10 +79,11 @@ module DataMiner
     end
 
     def unit_from_source(row)
-      row[units_field_name].to_s.strip.underscore.to_sym
+      row[units_field_name || units_field_number].to_s.strip.underscore.to_sym
     end
     
     def do_convert(row, value)
+      logger.error "[data_miner gem] If you use :from_units, you need to set :to_units (#{resource.name}##{name})" unless wants_units?
       value.to_f.convert((from_units || unit_from_source(row)), to_units)
     end
     
@@ -125,7 +129,10 @@ module DataMiner
       overwrite != false
     end
     def wants_conversion?
-      from_units.present? or units_field_name.present?
+      from_units.present? or units_field_name.present? or units_field_number.present?
+    end
+    def wants_units?
+      to_units.present? or units_field_name.present? or units_field_number.present?
     end
     def wants_dictionary?
       options[:dictionary].present?
@@ -156,7 +163,7 @@ module DataMiner
       options[:from_units]
     end
     def to_units
-      options[:to_units]
+      options[:to_units] || options[:units]
     end
     def conditions
       options[:conditions]
@@ -175,6 +182,9 @@ module DataMiner
     end
     def units_field_name
       options[:units_field_name]
+    end
+    def units_field_number
+      options[:units_field_number]
     end
     def field_number
       options[:field_number]

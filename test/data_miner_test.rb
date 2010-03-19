@@ -233,6 +233,8 @@ class AutomobileVariant < ActiveRecord::Base
         store 'model_name', :field_name => 'model'
         store 'year'
         store 'fuel_type_code', :field_name => 'fuel_type'
+        store 'fuel_efficiency_highway', :static => nil, :units => :kilometres_per_litre # we'll convert these in a later step, just setting the stage
+        store 'fuel_efficiency_city', :static => nil, :units => :kilometres_per_litre    # ditto
         store 'raw_fuel_efficiency_highway', :field_name => 'unadj_hwy_mpg', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
         store 'raw_fuel_efficiency_city', :field_name => 'unadj_city_mpg', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
         store 'cylinders', :field_name => 'no_cyc'
@@ -267,6 +269,8 @@ class AutomobileVariant < ActiveRecord::Base
         store 'make_name', :field_name => 'make'
         store 'model_name', :field_name => 'model'
         store 'fuel_type_code', :field_name => 'fl'
+        store 'fuel_efficiency_highway', :static => nil, :units => :kilometres_per_litre # we'll convert these in a later step, just setting the stage
+        store 'fuel_efficiency_city', :static => nil, :units => :kilometres_per_litre    # ditto
         store 'raw_fuel_efficiency_highway', :field_name => 'uhwy', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
         store 'raw_fuel_efficiency_city', :field_name => 'ucty', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
         store 'cylinders', :field_name => 'cyl'
@@ -297,6 +301,8 @@ class AutomobileVariant < ActiveRecord::Base
         store 'make_name', :field_name => 'make'
         store 'model_name', :field_name => 'model'
         store 'fuel_type_code', :field_name => 'FUEL TYPE'
+        store 'fuel_efficiency_highway', :static => nil, :units => :kilometres_per_litre # we'll convert these in a later step, just setting the stage
+        store 'fuel_efficiency_city', :static => nil, :units => :kilometres_per_litre    # ditto
         store 'raw_fuel_efficiency_highway', :field_name => 'UNRND HWY (EPA)', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
         store 'raw_fuel_efficiency_city', :field_name => 'UNRND CITY (EPA)', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
         store 'cylinders', :field_name => 'NUMB CYL'
@@ -734,9 +740,9 @@ class DataMinerTest < Test::Unit::TestCase
       assert AutomobileVariant.count('make_name LIKE "%tesla"') > 0
     end
     
-    should "mine residence survey day" do
-      ResidentialEnergyConsumptionSurveyResponse.run_data_miner!
-      assert ResidentialEnergyConsumptionSurveyResponse.find(6).residence_class.starts_with?('Single-family detached house')
-    end
+    # should "mine residence survey day" do
+    #   ResidentialEnergyConsumptionSurveyResponse.run_data_miner!
+    #   assert ResidentialEnergyConsumptionSurveyResponse.find(6).residence_class.starts_with?('Single-family detached house')
+    # end
   end
 end

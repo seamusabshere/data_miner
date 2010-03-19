@@ -66,11 +66,6 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
   execute 'ALTER TABLE census_divisions ADD PRIMARY KEY (number);'
   
   create_table "automobile_variants", :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
-    t.string   "automobile_make_id"
-    t.string   "automobile_model_id"
-    t.string   "automobile_model_year_id"
-    t.string   "automobile_fuel_type_id"
-    
     t.float    "fuel_efficiency_city"
     t.float    "fuel_efficiency_highway"
     t.string   "make_name"
@@ -94,6 +89,12 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.boolean  "injection"
     t.string   "carline_class_name"
     t.string   "speeds"
+    
+    t.string 'raw_fuel_efficiency_highway_units'
+    t.string 'raw_fuel_efficiency_city_units'
+    t.string 'fuel_efficiency_highway_units'
+    t.string 'fuel_efficiency_city_units'
+    
     t.string   "row_hash"
     t.integer 'data_miner_touch_count'
     t.integer 'data_miner_last_run_id'

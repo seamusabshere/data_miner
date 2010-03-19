@@ -28,7 +28,6 @@ module DataMiner
     end
     
     def store(attr_name, attr_options = {})
-      raise "[data_miner gem] Column #{attr_name} doesn't exist on table #{resource.table_name}" unless resource.column_names.include?(attr_name)
       attributes[attr_name] = Attribute.new self, attr_name, attr_options
     end
     

@@ -17,16 +17,21 @@ require 'data_miner/run'
 module DataMiner
   class MissingHashColumn < RuntimeError; end
   
-  include Log4r
+  include Log4r unless defined? Rails
 
   mattr_accessor :logger
   
   def self.start_logging
-    if defined?(Rails)
+    if defined? Rails
       self.logger = Rails.logger
     else
+      info_outputter = FileOutputter.new 'f1', :filename => 'data_miner.log'
+      error_outputter = Outputter.stderr
+      info_outputter.only_at DEBUG, INFO
+      error_outputter.only_at WARN, ERROR, FATAL
+      
       self.logger = Logger.new 'data_miner'
-      logger.outputters = FileOutputter.new 'f1', :filename => 'data_miner.log'
+      logger.add info_outputter, error_outputter
     end
   end
   
@@ -68,6 +73,8 @@ ActiveRecord::Base.class_eval do
     self.data_miner_config = DataMiner::Configuration.new self
 
     Blockenspiel.invoke block, data_miner_config
+    
+    data_miner_config.after_invoke
   end
 end
 
