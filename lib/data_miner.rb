@@ -32,6 +32,17 @@ module DataMiner
       
       self.logger = Logger.new 'data_miner'
       logger.add info_outputter, error_outputter
+      ActiveRecord::Base.logger = logger
+      ActiveRecord::Base.colorize_logging = false
+    end
+  end
+  
+  def self.log_or_raise(message)
+    message = "[data_miner gem] #{message}"
+    if ENV['RAILS_ENV'] == 'production'
+      logger.error message
+    else
+      raise message
     end
   end
   
@@ -51,7 +62,7 @@ end
 ActiveRecord::Base.class_eval do
   def self.data_miner(&block)
     unless table_exists?
-      logger.error "[DataMiner gem] Database table `#{table_name}` doesn't exist. DataMiner probably won't work properly until you run a migration or otherwise fix the schema."
+      DataMiner.log_or_raise "Database table `#{table_name}` doesn't exist. DataMiner probably won't work properly until you run a migration or otherwise fix the schema."
       return
     end
     

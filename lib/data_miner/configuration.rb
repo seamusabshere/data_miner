@@ -72,11 +72,11 @@ module DataMiner
       import_runnables.each do |runnable|
         runnable.attributes.each do |_, attribute|
           if attribute.options.any? { |k, _| k.to_s =~ /unit/ } and COMPLETE_UNIT_DEFINITIONS.none? { |complete_definition| complete_definition.all? { |required_option| attribute.options[required_option].present? } }
-            DataMiner.logger.error %{
+            DataMiner.log_or_raise %{
 
 ================================
 
-[data_miner gem] You don't have a valid unit definition for #{resource.name}##{attribute.name}.
+You don't have a valid unit definition for #{resource.name}##{attribute.name}.
 
 You supplied #{attribute.options.keys.select { |k, _| k.to_s =~ /unit/ }.map(&:to_sym).inspect }.
 
@@ -93,7 +93,7 @@ You need to supply one of #{COMPLETE_UNIT_DEFINITIONS.map(&:inspect).to_sentence
       missing_columns = Array.new
       import_runnables.each do |runnable|
         runnable.attributes.each do |_, attribute|
-          DataMiner.logger.error "[data_miner gem] You can't have an attribute column that ends in _units (reserved): #{resource.table_name}.#{attribute.name}" if attribute.name.ends_with? '_units'
+          DataMiner.log_or_raise "You can't have an attribute column that ends in _units (reserved): #{resource.table_name}.#{attribute.name}" if attribute.name.ends_with? '_units'
           unless resource.column_names.include? attribute.name
             missing_columns << attribute.name
           end
@@ -104,11 +104,11 @@ You need to supply one of #{COMPLETE_UNIT_DEFINITIONS.map(&:inspect).to_sentence
       end
       missing_columns.uniq!
       if missing_columns.any?
-        DataMiner.logger.error %{
+        DataMiner.log_or_raise %{
 
 ================================
 
-[data_miner gem] On #{resource}, it looks like you're missing some columns...
+On #{resource}, it looks like you're missing some columns...
 
 Please run this...
 

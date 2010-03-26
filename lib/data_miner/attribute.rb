@@ -83,7 +83,7 @@ module DataMiner
     end
     
     def do_convert(row, value)
-      logger.error "[data_miner gem] If you use :from_units, you need to set :to_units (#{resource.name}##{name})" unless wants_units?
+      DataMiner.log_or_raise "If you use :from_units, you need to set :to_units (#{resource.name}##{name})" unless wants_units?
       value.to_f.convert((from_units || unit_from_source(row)), to_units)
     end
     
