@@ -18,6 +18,71 @@ class Test::Unit::TestCase
 end
 
 ActiveRecord::Schema.define(:version => 20090819143429) do
+  create_table "t100_flight_segments", :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
+    t.integer  "departures_performed"
+    t.integer  "payload"
+    t.integer  "seats"
+    t.integer  "passengers"
+    t.integer  "freight"
+    t.integer  "mail"
+    t.integer  "ramp_to_ramp"
+    t.integer  "air_time"
+    t.float    "load_factor"
+    t.float    "freight_share"
+    t.integer  "distance"
+    t.integer  "departures_scheduled"
+    t.string   "unique_carrier"
+    t.integer  "dot_airline_id"
+    t.string   "unique_carrier_name"
+    t.string   "unique_carrier_entity"
+    t.string   "region"
+    t.string   "carrier"
+    t.string   "carrier_name"
+    t.integer  "carrier_group"
+    t.integer  "carrier_group_new"
+    t.string   "origin_airport_iata"
+    t.string   "origin_city_name"
+    t.integer  "origin_city_num"
+    t.string   "origin_state_abr"
+    t.string   "origin_state_fips"
+    t.string   "origin_state_nm"
+    t.string   "origin_country_iso_3166"
+    t.string   "origin_country_name"
+    t.integer  "origin_wac"
+    t.string   "dest_airport_iata"
+    t.string   "dest_city_name"
+    t.integer  "dest_city_num"
+    t.string   "dest_state_abr"
+    t.string   "dest_state_fips"
+    t.string   "dest_state_nm"
+    t.string   "dest_country_iso_3166"
+    t.string   "dest_country_name"
+    t.integer  "dest_wac"
+    t.integer  "bts_aircraft_group"
+    t.integer  "bts_aircraft_type"
+    t.integer  "bts_aircraft_config"
+    t.integer  "year"
+    t.integer  "quarter"
+    t.integer  "month"
+    t.integer  "bts_distance_group"
+    t.string   "bts_service_class"
+    t.string   "data_source"
+    t.float    "seats_per_departure"
+    
+    t.string 'payload_units'
+    t.string 'freight_units'
+    t.string 'mail_units'
+    t.string 'distance_units'
+    
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    
+    t.string   "row_hash"
+    t.integer 'data_miner_touch_count'
+    t.integer 'data_miner_last_run_id'
+  end
+  execute 'ALTER TABLE t100_flight_segments ADD PRIMARY KEY (row_hash);'
+  
   create_table 'airports', :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
     t.string   'iata_code'
     t.string   'name'
