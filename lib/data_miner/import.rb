@@ -40,6 +40,10 @@ module DataMiner
 
     def run(run)
       begin; ActiveRecord::Base.connection.execute("SET NAMES 'utf8'"); rescue; end
+      
+      increment_counter = resource.column_names.include?('data_miner_touch_count')
+      log_run = resource.column_names.include?('data_miner_last_run_id')
+      
       table.each_row do |row|
         if errata
           next if errata.rejects?(row)
@@ -48,10 +52,9 @@ module DataMiner
         
         record = resource.send "find_or_initialize_by_#{@key}", attributes[@key].value_from_row(row)
         changes = attributes.map { |_, attr| attr.set_record_from_row record, row }
-        record.data_miner_touch_count ||= 0
         if changes.any?
-          record.data_miner_touch_count += 1
-          record.data_miner_last_run = run
+          record.increment :data_miner_touch_count if increment_counter
+          record.data_miner_last_run = run if log_run
         end
         record.save!
       end
