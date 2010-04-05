@@ -53,10 +53,6 @@ module DataMiner
   def self.resource_names
     DataMiner::Configuration.resource_names
   end
-  
-  def self.create_tables
-    DataMiner::Configuration.create_tables
-  end
 end
 
 ActiveRecord::Base.class_eval do
@@ -67,7 +63,6 @@ ActiveRecord::Base.class_eval do
     end
     
     DataMiner.resource_names.push self.name unless DataMiner.resource_names.include? self.name
-    DataMiner.create_tables
 
     belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
     

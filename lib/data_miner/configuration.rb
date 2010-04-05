@@ -35,13 +35,17 @@ module DataMiner
       options.symbolize_keys!
       
       finished = false
-      run = DataMiner::Run.create! :started_at => Time.now, :resource_name => resource.name
+      if DataMiner::Run.table_exists?
+        run = DataMiner::Run.create! :started_at => Time.now, :resource_name => resource.name if DataMiner::Run.table_exists?
+      else
+        DataMiner.info "Not logging individual runs. Please run DataMiner::Run.create_tables if you want to enable this."
+      end
       resource.delete_all if options[:from_scratch]
       begin
         runnables.each { |runnable| runnable.run(run) }
         finished = true
       ensure
-        run.update_attributes! :ended_at => Time.now, :finished => finished
+        run.update_attributes! :ended_at => Time.now, :finished => finished if DataMiner::Run.table_exists?
       end
       nil
     end
@@ -148,20 +152,6 @@ On the other hand, if you're working directly with create_table, this might be h
         resource_names.each do |resource_name|
           if options[:resource_names].blank? or options[:resource_names].include?(resource_name)
             resource_name.constantize.data_miner_config.run options
-          end
-        end
-      end
-            
-      def create_tables
-        c = ActiveRecord::Base.connection
-        unless c.table_exists?('data_miner_runs')
-          c.create_table 'data_miner_runs', :options => 'ENGINE=InnoDB default charset=utf8' do |t|
-            t.string 'resource_name'
-            t.boolean 'finished'
-            t.datetime 'started_at'
-            t.datetime 'ended_at'
-            t.datetime 'created_at'
-            t.datetime 'updated_at'
           end
         end
       end

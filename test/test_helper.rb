@@ -253,3 +253,5 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
   end
   execute "ALTER TABLE residential_energy_consumption_survey_responses ADD PRIMARY KEY (department_of_energy_identifier);"
 end
+
+DataMiner::Run.create_tables
