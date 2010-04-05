@@ -43,13 +43,23 @@ module DataMiner
       
       increment_counter = resource.column_names.include?('data_miner_touch_count')
       log_run = resource.column_names.include?('data_miner_last_run_id')
-      
+      test_counter = 0
+
       table.each_row do |row|
         if errata
           next if errata.rejects?(row)
           errata.correct!(row)
         end
         
+        if ENV['DUMP'] == 'true'
+          raise "[data_miner gem] Stopping after 5 rows because TEST=true" if test_counter > 5
+          test_counter += 1
+          DataMiner.log_info %{Row #{test_counter}
+IN:  #{row.inspect}
+OUT: #{attributes.inject(Hash.new) { |memo, v| attr_name, attr = v; memo[attr_name] = attr.value_from_row(row); memo }.inspect}
+          }
+        end
+      
         record = resource.send "find_or_initialize_by_#{@key}", attributes[@key].value_from_row(row)
         changes = attributes.map { |_, attr| attr.set_record_from_row record, row }
         if changes.any?
