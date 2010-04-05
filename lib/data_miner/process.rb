@@ -31,7 +31,7 @@ module DataMiner
       else
         resource.send method_name
       end
-      DataMiner.logger.info "ran #{inspect}"
+      DataMiner.log_info "ran #{inspect}"
     end
   end
 end

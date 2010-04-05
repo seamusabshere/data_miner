@@ -55,7 +55,7 @@ module DataMiner
         end
         record.save!
       end
-      DataMiner.logger.info "performed #{inspect}"
+      DataMiner.log_info "performed #{inspect}"
     end
   end
 end

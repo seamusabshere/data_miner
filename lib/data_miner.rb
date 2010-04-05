@@ -46,6 +46,10 @@ module DataMiner
     end
   end
   
+  def self.log_info(message)
+    logger.info "[data_miner gem] #{message}"
+  end
+  
   def self.run(options = {})
     DataMiner::Configuration.run options
   end
@@ -59,7 +63,7 @@ ActiveRecord::Base.class_eval do
   def self.x_data_miner(&block)
     DataMiner.start_logging
     
-    DataMiner.logger.info "Skipping data_miner block in #{self.name} because called as x_data_miner"
+    DataMiner.log_info "Skipping data_miner block in #{self.name} because called as x_data_miner"
   end
   
   def self.data_miner(&block)
