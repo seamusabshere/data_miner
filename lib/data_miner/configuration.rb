@@ -38,7 +38,7 @@ module DataMiner
       if DataMiner::Run.table_exists?
         run = DataMiner::Run.create! :started_at => Time.now, :resource_name => resource.name if DataMiner::Run.table_exists?
       else
-        DataMiner.info "Not logging individual runs. Please run DataMiner::Run.create_tables if you want to enable this."
+        DataMiner.logger.info "Not logging individual runs. Please run DataMiner::Run.create_tables if you want to enable this."
       end
       resource.delete_all if options[:from_scratch]
       begin
