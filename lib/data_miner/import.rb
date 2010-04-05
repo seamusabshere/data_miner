@@ -39,7 +39,7 @@ module DataMiner
     end
 
     def run(run)
-      ActiveRecord::Base.connection.execute "SET NAMES 'utf8'"
+      begin; ActiveRecord::Base.connection.execute("SET NAMES 'utf8'"); rescue; end
       table.each_row do |row|
         if errata
           next if errata.rejects?(row)
