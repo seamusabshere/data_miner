@@ -12,6 +12,7 @@ require 'data_miner/configuration'
 require 'data_miner/dictionary'
 require 'data_miner/import'
 require 'data_miner/process'
+require 'data_miner/clone'
 require 'data_miner/run'
 
 module DataMiner

@@ -12,8 +12,13 @@ module DataMiner
     end
     
     def process(method_name_or_block_description, &block)
-      self.runnable_counter += 1
       runnables << DataMiner::Process.new(self, runnable_counter, method_name_or_block_description, &block)
+      self.runnable_counter += 1
+    end
+
+    def clone(description, options = {})
+      runnables << DataMiner::Clone.new(self, runnable_counter, description, options)
+      self.runnable_counter += 1
     end
 
     def import(*args, &block)
@@ -24,10 +29,10 @@ module DataMiner
       end
       options = args.last
         
-      self.runnable_counter += 1
       runnable = DataMiner::Import.new self, runnable_counter, description, options
       Blockenspiel.invoke block, runnable
       runnables << runnable
+      self.runnable_counter += 1
     end
 
     # Mine data for this class.

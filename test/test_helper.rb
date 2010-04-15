@@ -83,6 +83,10 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
   end
   execute 'ALTER TABLE t100_flight_segments ADD PRIMARY KEY (row_hash);'
   
+  create_table 'badly_cloned_airports', :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
+    t.string 'placeholder'
+  end
+  
   create_table 'airports', :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
     t.string   'iata_code'
     t.string   'name'
