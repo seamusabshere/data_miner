@@ -28,12 +28,10 @@ module DataMiner
     
     private
     
-    # from remote_table
-    def tempfile_path    
+    def tempfile_path
       return @_tempfile_path if @_tempfile_path
-      @_tempfile_path = Tempfile.open(options[:url].gsub(/[^a-z0-9]+/i, '_')[0,100]).path
-      FileUtils.rm_f @_tempfile_path
-      at_exit { FileUtils.rm_rf @_tempfile_path }
+      @_tempfile_path = File.join Dir.tmpdir, rand.to_s
+      at_exit { FileUtils.rm_f @_tempfile_path }
       @_tempfile_path
     end
     

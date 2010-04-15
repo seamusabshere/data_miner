@@ -6,6 +6,8 @@ require 'remote_table'
 require 'errata'
 require 'andand'
 require 'log4r'
+require 'fileutils'
+require 'tmpdir'
 
 require 'data_miner/attribute'
 require 'data_miner/configuration'
