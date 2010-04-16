@@ -51,7 +51,10 @@ module DataMiner
       end
       resource.delete_all if options[:from_scratch]
       begin
-        steps.each { |step| step.run run }
+        steps.each do |step|
+          step.run run
+          resource.reset_column_information
+        end
         finished = true
       ensure
         run.update_attributes! :ended_at => Time.now, :finished => finished if DataMiner::Run.table_exists?
