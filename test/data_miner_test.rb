@@ -999,15 +999,15 @@ class DataMinerTest < Test::Unit::TestCase
     end
       
     should "hash things" do
-      AutomobileVariant.data_miner_config.runnables[0].run(nil)
+      AutomobileVariant.data_miner_config.steps[0].run(nil)
       assert AutomobileVariant.first.row_hash.present?
     end
   
     should "process a callback block instead of a method" do
       AutomobileVariant.delete_all
-      AutomobileVariant.data_miner_config.runnables[0].run(nil)
+      AutomobileVariant.data_miner_config.steps[0].run(nil)
       assert !AutomobileVariant.first.fuel_efficiency_city.present?
-      AutomobileVariant.data_miner_config.runnables.last.run(nil)
+      AutomobileVariant.data_miner_config.steps.last.run(nil)
       assert AutomobileVariant.first.fuel_efficiency_city.present?
     end
   

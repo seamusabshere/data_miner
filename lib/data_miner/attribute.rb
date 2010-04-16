@@ -1,16 +1,16 @@
 module DataMiner
   class Attribute
-    attr_accessor :runnable
+    attr_accessor :step
     attr_accessor :name
     attr_accessor :options
 
-    delegate :resource, :to => :runnable
+    delegate :resource, :to => :step
 
-    def initialize(runnable, name, options = {})
+    def initialize(step, name, options = {})
       options.symbolize_keys!
       @options = options
 
-      @runnable = runnable
+      @step = step
       @name = name
     end
         

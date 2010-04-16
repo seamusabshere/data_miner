@@ -2,23 +2,23 @@ module DataMiner
   class Configuration
     include Blockenspiel::DSL
     
-    attr_accessor :resource, :runnables, :runnable_counter, :attributes
+    attr_accessor :resource, :steps, :step_counter, :attributes
 
     def initialize(resource)
-      @runnables = Array.new
+      @steps = Array.new
       @resource = resource
-      @runnable_counter = 0
+      @step_counter = 0
       @attributes = HashWithIndifferentAccess.new
     end
     
     def process(method_name_or_block_description, &block)
-      runnables << DataMiner::Process.new(self, runnable_counter, method_name_or_block_description, &block)
-      self.runnable_counter += 1
+      steps << DataMiner::Process.new(self, step_counter, method_name_or_block_description, &block)
+      self.step_counter += 1
     end
 
     def clone(description, options = {})
-      runnables << DataMiner::Clone.new(self, runnable_counter, description, options)
-      self.runnable_counter += 1
+      steps << DataMiner::Clone.new(self, step_counter, description, options)
+      self.step_counter += 1
     end
 
     def import(*args, &block)
@@ -29,10 +29,10 @@ module DataMiner
       end
       options = args.last
         
-      runnable = DataMiner::Import.new self, runnable_counter, description, options
-      Blockenspiel.invoke block, runnable
-      runnables << runnable
-      self.runnable_counter += 1
+      step = DataMiner::Import.new self, step_counter, description, options
+      Blockenspiel.invoke block, step
+      steps << step
+      self.step_counter += 1
     end
 
     # Mine data for this class.
@@ -51,7 +51,7 @@ module DataMiner
       end
       resource.delete_all if options[:from_scratch]
       begin
-        runnables.each { |runnable| runnable.run run }
+        steps.each { |step| step.run run }
         finished = true
       ensure
         run.update_attributes! :ended_at => Time.now, :finished => finished if DataMiner::Run.table_exists?
@@ -60,8 +60,8 @@ module DataMiner
       nil
     end
     
-    def import_runnables
-      runnables.select { |runnable| runnable.is_a? Import }
+    def import_steps
+      steps.select { |step| step.is_a? Import }
     end
     
     def before_invoke
@@ -84,8 +84,8 @@ module DataMiner
     ]
     
     def make_sure_unit_definitions_make_sense
-      import_runnables.each do |runnable|
-        runnable.attributes.each do |_, attribute|
+      import_steps.each do |step|
+        step.attributes.each do |_, attribute|
           if attribute.options.any? { |k, _| k.to_s =~ /unit/ } and COMPLETE_UNIT_DEFINITIONS.none? { |complete_definition| complete_definition.all? { |required_option| attribute.options[required_option].present? } }
             DataMiner.log_or_raise %{
 
@@ -116,8 +116,8 @@ You need to supply one of #{COMPLETE_UNIT_DEFINITIONS.map(&:inspect).to_sentence
         DataMiner.log_info "Not recording which run touched a row."
       end
       
-      import_runnables.each do |runnable|
-        runnable.attributes.each do |_, attribute|
+      import_steps.each do |step|
+        step.attributes.each do |_, attribute|
           DataMiner.log_or_raise "You can't have an attribute column that ends in _units (reserved): #{resource.table_name}.#{attribute.name}" if attribute.name.ends_with? '_units'
           unless resource.column_names.include? attribute.name
             missing_columns << attribute.name
