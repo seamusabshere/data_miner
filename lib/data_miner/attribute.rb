@@ -83,8 +83,8 @@ module DataMiner
     end
     
     def do_convert(row, value)
-      DataMiner.log_or_raise "If you use :from_units, you need to set :to_units (#{resource.name}##{name})" unless wants_units?
-      value.to_f.convert((from_units || unit_from_source(row)), to_units)
+      DataMiner.log_or_raise "If you use :from_units, you need to set :to_units (#{inspect})" unless wants_units?
+      value.to_f.convert((from_units || unit_from_source(row)), (to_units || unit_from_source(row)))
     end
     
     def do_sprintf(value)
