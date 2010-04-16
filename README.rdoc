@@ -81,6 +81,11 @@ Now you should have
   >> Airport.first.country_name
   => "Papua New Guinea"
 
+==Wishlist
+
+* each_record do |record| ... which would use find_in_batches
+* when proxying add_column, rename_column, etc. automatically include the table name
+
 ==Authors
 
 * Seamus Abshere <seamus@abshere.net>
