@@ -65,6 +65,7 @@ module DataMiner
     end
     
     def after_invoke
+      return unless resource.table_exists?
       make_sure_unit_definitions_make_sense
       suggest_missing_column_migrations
     end

@@ -72,10 +72,7 @@ ActiveRecord::Base.class_eval do
   def self.data_miner(&block)
     DataMiner.start_logging
     
-    unless table_exists?
-      DataMiner.log_or_raise "Database table `#{table_name}` doesn't exist. DataMiner probably won't work properly until you run a migration or otherwise fix the schema."
-      return
-    end
+    DataMiner.log_info "Database table `#{table_name}` doesn't exist. It might be created in the data_miner block, but if it's not, DataMiner probably won't work properly until you run a migration or otherwise fix the schema." unless table_exists?
     
     DataMiner.resource_names.push self.name unless DataMiner.resource_names.include? self.name
 
