@@ -39,6 +39,9 @@ module DataMiner
     def run(options = {})
       options.symbolize_keys!
       
+      return if DataMiner::Configuration.call_stack.include? resource.name
+      DataMiner::Configuration.call_stack.push resource.name
+      
       finished = false
       if DataMiner::Run.table_exists?
         run = DataMiner::Run.create! :started_at => Time.now, :resource_name => resource.name if DataMiner::Run.table_exists?
@@ -52,6 +55,7 @@ module DataMiner
         finished = true
       ensure
         run.update_attributes! :ended_at => Time.now, :finished => finished if DataMiner::Run.table_exists?
+        DataMiner::Configuration.call_stack.clear if DataMiner::Configuration.call_stack.first == resource.name
       end
       nil
     end
@@ -161,6 +165,9 @@ On the other hand, if you're working directly with create_table, this might be h
     
     cattr_accessor :resource_names
     self.resource_names = Array.new
+    
+    cattr_accessor :call_stack
+    self.call_stack = Array.new
     class << self
       # Mine data. Defaults to all resource_names touched by DataMiner.
       #

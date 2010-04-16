@@ -488,6 +488,47 @@ class CensusDivision < ActiveRecord::Base
   end
 end
 
+class CrosscallingCensusRegion < ActiveRecord::Base
+  set_primary_key :number
+  
+  has_many :crosscalling_census_divisions
+  
+  data_miner do
+    process "derive ourselves from the census divisions table (i.e., cross call census divisions)" do
+      CrosscallingCensusDivision.run_data_miner!
+      connection.drop_table :crosscalling_census_regions rescue nil
+      connection.create_table :crosscalling_census_regions, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
+        t.column :number, :integer
+        t.column :name, :string
+      end
+      connection.execute 'ALTER TABLE crosscalling_census_regions ADD PRIMARY KEY (number);'
+      connection.execute %{
+        INSERT IGNORE INTO crosscalling_census_regions(number, name)
+        SELECT crosscalling_census_divisions.census_region_number, crosscalling_census_divisions.census_region_name FROM crosscalling_census_divisions
+      }
+    end
+  end
+end
+
+class CrosscallingCensusDivision < ActiveRecord::Base
+  set_primary_key :number
+  
+  belongs_to :crosscalling_census_regions, :foreign_key => 'census_region_number'
+  
+  data_miner do
+    import "get a list of census divisions and their regions", :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Division'].to_s.strip != 'X' and row['FIPS CODE STATE'].to_s.strip == 'X'} do
+      key 'number', :field_name => 'Division'
+      store 'name', :field_name => 'Name'
+      store 'census_region_number', :field_name => 'Region'
+      store 'census_region_name', :field_name => 'Region', :dictionary => { :input => 'number', :output => 'name', :url => 'http://data.brighterplanet.com/census_regions.csv' }
+    end
+    
+    process "make sure my parent object is set up (i.e., cross-call it)" do
+      CrosscallingCensusRegion.run_data_miner!
+    end
+  end
+end
+
 class ResidentialEnergyConsumptionSurveyResponse < ActiveRecord::Base
   set_primary_key :department_of_energy_identifier
   
@@ -906,6 +947,18 @@ class DataMinerTest < Test::Unit::TestCase
   end
     
   if ENV['FAST'] == 'true'
+    should "keep a call stack so that you can call run_data_miner! on a child" do
+      CrosscallingCensusDivision.run_data_miner!
+      assert CrosscallingCensusDivision.exists? :name => 'Mountain Division', :number => 8, :census_region_number => 4, :census_region_name => 'West Region'
+      assert CrosscallingCensusRegion.exists? :name => 'West Region', :number => 4
+    end
+    
+    should "keep a call stack so that you can call run_data_miner! on a parent" do
+      CrosscallingCensusRegion.run_data_miner!
+      assert CrosscallingCensusDivision.exists? :name => 'Mountain Division', :number => 8, :census_region_number => 4, :census_region_name => 'West Region'
+      assert CrosscallingCensusRegion.exists? :name => 'West Region', :number => 4
+    end
+    
     should "clone airports" do
       ClonedAirport.run_data_miner!
       assert ClonedAirport.count > 0
