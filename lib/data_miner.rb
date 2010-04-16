@@ -42,7 +42,7 @@ module DataMiner
   
   def self.log_or_raise(message)
     message = "[data_miner gem] #{message}"
-    if ENV['RAILS_ENV'] == 'production'
+    if ENV['RAILS_ENV'] == 'production' or ENV['DONT_RAISE'] == 'true'
       logger.error message
     else
       raise message
