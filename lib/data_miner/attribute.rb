@@ -6,12 +6,34 @@ module DataMiner
 
     delegate :resource, :to => :step
 
+    VALID_OPTIONS = [
+      :from_units,
+      :to_units,
+      :static,
+      :dictionary,
+      :field_name,
+      :delimiter,
+      :split,
+      :units,
+      :sprintf,
+      :nullify,
+      :overwrite,
+      :upcase,
+      :units_field_name,
+      :units_field_number,
+      :field_number,
+      :chars
+    ]
+
     def initialize(step, name, options = {})
       options.symbolize_keys!
-      @options = options
 
       @step = step
       @name = name
+      
+      invalid_option_keys = options.keys.select { |k| not VALID_OPTIONS.include? k }
+      DataMiner.log_or_raise "Invalid options: #{invalid_option_keys.map(&:inspect).to_sentence} (#{inspect})" if invalid_option_keys.any?
+      @options = options
     end
         
     def inspect
@@ -151,22 +173,11 @@ module DataMiner
       options[:split]
     end
     
-    # Normal options
-    # %w(from_units to_units conditions sprintf nullify overwrite upcase units_field_name field_number chars static).each do |name|
-    #   puts <<-EOS
-    #     def #{name}
-    #       options[:#{name}]
-    #     end
-    #   EOS
-    # end
     def from_units
       options[:from_units]
     end
     def to_units
       options[:to_units] || options[:units]
-    end
-    def conditions
-      options[:conditions]
     end
     def sprintf
       options[:sprintf]
