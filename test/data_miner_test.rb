@@ -496,13 +496,12 @@ class CrosscallingCensusRegion < ActiveRecord::Base
   data_miner do
     process "derive ourselves from the census divisions table (i.e., cross call census divisions)" do
       CrosscallingCensusDivision.run_data_miner!
-      connection.drop_table :crosscalling_census_regions rescue nil
-      connection.create_table :crosscalling_census_regions, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
+      create_table :crosscalling_census_regions, :options => 'ENGINE=InnoDB default charset=utf8', :id => false, :force => true do |t|
         t.column :number, :integer
         t.column :name, :string
       end
-      connection.execute 'ALTER TABLE crosscalling_census_regions ADD PRIMARY KEY (number);'
-      connection.execute %{
+      execute 'ALTER TABLE crosscalling_census_regions ADD PRIMARY KEY (number);'
+      execute %{
         INSERT IGNORE INTO crosscalling_census_regions(number, name)
         SELECT crosscalling_census_divisions.census_region_number, crosscalling_census_divisions.census_region_name FROM crosscalling_census_divisions
       }

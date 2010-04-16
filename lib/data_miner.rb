@@ -70,6 +70,22 @@ module DataMiner
 end
 
 ActiveRecord::Base.class_eval do
+  # convenience
+  %w{
+    create_table
+    execute
+    add_column
+    rename_column
+    remove_column
+    drop_table
+  }.each do |method_name|
+    eval %{
+      def self.#{method_name}(*args, &block)
+        ActiveRecord::Base.connection.send(:#{method_name}, *args, &block)
+      end
+    }
+  end
+  
   def self.x_data_miner(&block)
     DataMiner.start_logging
     
