@@ -14,6 +14,10 @@ ActiveRecord::Base.establish_connection(
   'password' => ''
 )
 
+ActiveSupport::Inflector.inflections do |inflect|
+  inflect.uncountable 'aircraft'
+end
+
 class Test::Unit::TestCase
 end
 
@@ -269,6 +273,25 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE residential_energy_consumption_survey_responses ADD PRIMARY KEY (department_of_energy_identifier);"
+  
+  create_table 'aircraft', :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
+    t.string 'icao_code'
+    t.string  'bts_aircraft_type_code'
+    t.string   'name'
+    t.string   'manufacturer_name'
+    t.string   'brighter_planet_aircraft_class_code'
+    t.float    'm3'
+    t.float    'm2'
+    t.float    'm1'
+    t.float    'endpoint_fuel'
+    t.string   'bts_begin_date'
+    t.string   'bts_end_date'
+    t.datetime 'updated_at'
+    t.datetime 'created_at'
+    t.integer  'data_miner_touch_count'
+    t.integer  'data_miner_last_run_id'
+  end
+  execute 'ALTER TABLE aircraft ADD PRIMARY KEY (icao_code);'
 end
 
 DataMiner::Run.create_tables

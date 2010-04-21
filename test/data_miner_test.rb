@@ -940,9 +940,74 @@ class T100FlightSegment < ActiveRecord::Base
   end
 end
 
+
+# these have messed up tabs
+# AA37 S - L 2 2 P  1000  1000   AA37       Aeropract        add 03/07
+# ALIG S - L 1 1 P  1000  1000   Lightning      Arion    add 03/07
+# ATG1 S - L 5 2 J  4000  3500   ATG1 Javelin     ATG      add 03/07
+# AVID S - L 1 1 P  1000  1000   Avid Flyer     Airdale    add 03/07
+# LA8  S - A 2 2 P  1350  1500   LA8 Flagman      Aero Volga     add 03/07
+# MAGN S - L 1 1 P  1000  1000   Magnum       Airdale    add 03/07
+# MGNM S - L 1 1 P  1100  1100   Magnum       Aviation Enterprises add 03/07
+# PAT2 S - L 1 1 P  1300  1200   Patriot 2      ATAC     add 03/07
+# SCOM S - L 1 1 P  825   825    Comet        Airdale    add 03/07
+class Aircraft < ActiveRecord::Base
+  set_primary_key :icao_code
+  
+  data_miner do
+    import "the ICAO codes used by the FAA",
+            :url => 'http://www.fly.faa.gov/ASDI/asdidocs/aircraft_types.txt',
+            :format => :fixed_width,
+            :select => lambda { |row| row.values.none? { |v| v =~ /\t/ } },
+            :schema => ([[ 'icao_code', 5, { :type => :string }  ],
+                        [ 'spacer', 1 ],
+                        [ 'small_large_heavy', 1, { :type => :string }  ],
+                        [ 'spacer', 1 ],
+                        [ 'military_not_military', 1, { :type => :string }  ],
+                        [ 'spacer', 1 ],
+                        [ 'land_amphibian_seaplane_helicopter', 1, { :type => :string }  ],
+                        [ 'spacer', 1 ],
+                        [ 'category', 1, { :type => :integer }  ],
+                        [ 'spacer', 1 ],
+                        [ 'number_of_engines', 1, { :type => :integer }  ],
+                        [ 'spacer', 1 ],
+                        [ 'jet_turboprop_prop', 1, { :type => :string }  ],
+                        [ 'spacer', 1 ],
+                        [ 'climb_rate', 5, { :type => :integer }  ],
+                        [ 'spacer', 1 ],
+                        [ 'descent_rate', 5, { :type => :integer }  ],
+                        [ 'spacer', 2 ],
+                        [ 'model', 20, { :type => :string }  ],
+                        [ 'spacer', 1 ],
+                        [ 'manufacturer', 20, { :type => :string }  ],
+                        [ 'spacer', 1 ],
+                        [ 'comments', 100, { :type => :string }  ]]) do
+      key 'icao_code'
+      store 'manufacturer_name', :field_name => 'manufacturer'
+      store 'name', :field_name => 'model'
+    end
+    
+    # Directive 260
+    # import 'the BTS Directive 260 aircraft types',
+    #        :url => 'http://www.bts.gov/programs/airline_information/accounting_and_reporting_directives/csv/number_260.csv',
+    #        :select => lambda { |row| row['Aircraft Type'].to_i.between?(1, 998) },
+    #        :errata => 'http://static.brighterplanet.com/science/data/transport/air/bts_directive_260/errata.csv' do
+    #   key   'bts_aircraft_type', :field_name => 'Aircraft Type'
+    #   store 'name', :field_name => 'Long Name'
+    #   store 'bts_begin_date', :field_name => 'Begin Date'
+    #   store 'bts_end_date', :field_name => 'End Date'
+    #   store 'manufacturer_name', :field_name => 'Manufacturer'
+    # end
+  end
+end
+
 # todo: have somebody properly organize these
 class DataMinerTest < Test::Unit::TestCase
   if ENV['NEW'] == 'true'
+    should "mine aircraft" do
+      Aircraft.run_data_miner!
+      assert Aircraft.exists? :icao_code => 'A310', :manufacturer_name => 'Airbus Industries', :name => 'Airbus A310'
+    end
   end
     
   if ENV['FAST'] == 'true'
