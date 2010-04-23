@@ -16,7 +16,7 @@ module DataMiner
       @position_in_run = position_in_run
       @description = description
       @errata = Errata.new(:url => options[:errata], :klass => resource) if options[:errata]
-      @table = RemoteTable.new(options.slice(:url, :filename, :form_data, :format, :skip, :cut, :schema, :schema_name, :trap, :select, :reject, :sheet, :delimiter, :headers, :transform, :crop, :encoding, :compression, :glob))
+      @table = RemoteTable.new options
     end
 
     def inspect

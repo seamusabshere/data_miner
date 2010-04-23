@@ -11,6 +11,7 @@ module DataMiner
       :to_units,
       :static,
       :dictionary,
+      :matcher,
       :field_name,
       :delimiter,
       :split,
@@ -72,7 +73,12 @@ module DataMiner
       value
     end
     
+    def match_row(row)
+      matcher.lookup row
+    end
+    
     def value_from_row(row)
+      return match_row row if wants_matcher?
       value = value_in_source row
       return value if value.is_a? ActiveRecord::Base # carry through trapdoor
       value = value_in_dictionary value if wants_dictionary?
@@ -159,6 +165,9 @@ module DataMiner
     def wants_dictionary?
       options[:dictionary].present?
     end
+    def wants_matcher?
+      options[:matcher].present?
+    end
 
     # Options that always have values
     def field_name
@@ -208,6 +217,9 @@ module DataMiner
     end
     def dictionary
       @_dictionary ||= Dictionary.new options[:dictionary]
+    end
+    def matcher
+      @_matcher ||= options[:matcher].new
     end
   end
 end

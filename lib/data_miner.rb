@@ -2,6 +2,8 @@ require 'active_support'
 require 'active_support/version'
 %w{
   active_support/core_ext/array/conversions
+  active_support/core_ext/string/access
+  active_support/core_ext/string/multibyte
 }.each do |active_support_3_requirement|
   require active_support_3_requirement
 end if ActiveSupport::VERSION::MAJOR == 3
@@ -15,6 +17,7 @@ require 'andand'
 require 'log4r'
 require 'fileutils'
 require 'tmpdir'
+require 'amatch'
 
 require 'data_miner/attribute'
 require 'data_miner/configuration'

@@ -276,16 +276,22 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
   
   create_table 'aircraft', :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
     t.string 'icao_code'
-    t.string  'bts_aircraft_type_code'
     t.string   'name'
     t.string   'manufacturer_name'
-    t.string   'brighter_planet_aircraft_class_code'
-    t.float    'm3'
-    t.float    'm2'
-    t.float    'm1'
-    t.float    'endpoint_fuel'
-    t.string   'bts_begin_date'
-    t.string   'bts_end_date'
+
+    %w{pair_distance longest_subsequence longest_substring jaro jarowinkler levenshtein}.each do |n|
+      # t.string   "#{n}_bts_aircraft_type_code"
+      t.string   "#{n}_bts_name"
+      # t.string   "#{n}_bts_manufacturer_name"
+    end
+
+    # t.string   'brighter_planet_aircraft_class_code'
+    # t.float    'm3'
+    # t.float    'm2'
+    # t.float    'm1'
+    # t.float    'endpoint_fuel'
+    # t.string   'bts_begin_date'
+    # t.string   'bts_end_date'
     t.datetime 'updated_at'
     t.datetime 'created_at'
     t.integer  'data_miner_touch_count'
