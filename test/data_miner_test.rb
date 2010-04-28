@@ -940,216 +940,77 @@ class T100FlightSegment < ActiveRecord::Base
   end
 end
 
-
-FOO = %w{pair_distance longest_subsequence longest_substring jaro jarowinkler levenshtein}
-
-# these have messed up tabs
-# AA37 S - L 2 2 P  1000  1000   AA37       Aeropract        add 03/07
-# ALIG S - L 1 1 P  1000  1000   Lightning      Arion    add 03/07
-# ATG1 S - L 5 2 J  4000  3500   ATG1 Javelin     ATG      add 03/07
-# AVID S - L 1 1 P  1000  1000   Avid Flyer     Airdale    add 03/07
-# LA8  S - A 2 2 P  1350  1500   LA8 Flagman      Aero Volga     add 03/07
-# MAGN S - L 1 1 P  1000  1000   Magnum       Airdale    add 03/07
-# MGNM S - L 1 1 P  1100  1100   Magnum       Aviation Enterprises add 03/07
-# PAT2 S - L 1 1 P  1300  1200   Patriot 2      ATAC     add 03/07
-# SCOM S - L 1 1 P  825   825    Comet        Airdale    add 03/07
+require 'loose_tight_dictionary'
 class Aircraft < ActiveRecord::Base
   set_primary_key :icao_code
 
-  # http://userweb.cs.utexas.edu/users/EWD/transcriptions/EWD10xx/EWD1036.html
-  MEEKS = {
-    /Douglas/i => {
-      :meek => /(DC)-*(\d{1,2})-*([\d]{0,2})/i,
-      :meek_2 => /(MD)-*(\d\d)/i,
-      :definit => /(DC)-*(\d)/i,
-      :definit_2 => /(MD)-*(\d)/i
-    },
-    /Boeing/i => {
-      :meek => /(7\d)(7|0)-*([\d]{1,3}|[A-Z]{0,3})/i,
-      :meek_2 => /(7\d)(7|0)-*\d{1,3}\/(\d\d\d)/i,
-      :definit => /(7\d)(7|0)/i
-    },
-    /Airbus/i => {
-      :meek => /(A3\d\d)-*(B)*([\d]{0,4})/i,
-      :definit => /(A3\d\d)/i
-    }
-  }
+  def self.bts_dictionary
+    @_dictionary ||= LooseTightDictionary.new RemoteTable.new(:url => 'http://www.bts.gov/programs/airline_information/accounting_and_reporting_directives/csv/number_260.csv', :select => lambda { |record| record['Aircraft Type'].to_i.between?(1, 998) and record['Manufacturer'].present? }),
+                                              :tightenings  => RemoteTable.new(:url => 'http://spreadsheets.google.com/pub?key=tiS_6CCDDM_drNphpYwE_iw&single=true&gid=0&output=csv', :headers => false),
+                                              :restrictions => RemoteTable.new(:url => 'http://spreadsheets.google.com/pub?key=tiS_6CCDDM_drNphpYwE_iw&single=true&gid=3&output=csv', :headers => false),
+                                              :blockings    => RemoteTable.new(:url => 'http://spreadsheets.google.com/pub?key=tiS_6CCDDM_drNphpYwE_iw&single=true&gid=4&output=csv', :headers => false),
+                                              :left_reader  => lambda { |record| record['Manufacturer'] + ' ' + record['Model'] },
+                                              :right_reader => lambda { |record| record['Manufacturer'] + ' ' + record['Long Name'] }
+  end
+
+  class BtsAircraftTypeCodeMatcher
+    def lookup(left_record)
+      right_record = Aircraft.bts_dictionary.left_to_right left_record
+      right_record['Aircraft Type'] if right_record
+    end
+  end
   
-  def self.meek(str, selector, kill = nil)
-    str = str.to_s.downcase
+  class BtsNameMatcher
+    def lookup(left_record)
+      right_record = Aircraft.bts_dictionary.left_to_right left_record
+      right_record['Manufacturer'] + ' ' + right_record['Long Name'] if right_record
+    end
+  end
+  
+  class << self
+    # for errata
+    def is_not_attributed_to_aerospatiale?(row)
+      not row['Manufacturer'] =~ /AEROSPATIALE/i
+    end
     
-    meekset = MEEKS[MEEKS.keys.detect { |regexp| selector =~ regexp }]
-
-    meeked = false
-    meek_2 = meekset.andand[:meek_2] ? nil : :ignore
-    definit = meekset.andand[:definit] ? nil : :ignore
-    definit_2 = meekset.andand[:definit_2] ? nil : :ignore
-
-    if meekset.andand[:meek_2].andand.match str
-      meek_2 = $~.captures.compact.join
-      meeked = true
+    def is_not_attributed_to_cessna?(row)
+      not row['Manufacturer'] =~ /CESSNA/i
     end
-
-    if meekset.andand[:meek].andand.match str
-      result = $~.captures.compact.join
-      meeked = true
-    else
-      result = str.dup
-      result.sub! kill, '' if kill
-      result.strip!
+    
+    def is_not_attributed_to_learjet?(row)
+      not row['Manufacturer'] =~ /LEAR/i
     end
-
-    if meekset.andand[:definit].andand.match str
-      definit = $~.captures.compact.join
+    
+    def is_not_attributed_to_dehavilland?(row)
+      not row['Manufacturer'] =~ /DE ?HAVILLAND/i
     end
-
-    if meekset.andand[:definit_2].andand.match str
-      definit_2 = $~.captures.compact.join
+    
+    def is_not_attributed_to_mcdonnell_douglas?(row)
+      not row['Manufacturer'] =~ /MCDONNELL DOUGLAS/i
     end
-
-    [definit_2, meek_2, definit, meeked, result]
-  end
-  
-  # FOO.each do |n|
-  #   eval %{
-  #     class Dict#{n.camelcase}
-  class DictPairDistance
-    include Amatch
-
-    def bts_manufacturer_names
-      @_bts_manufacturer_names ||= table.rows.map { |row| row['Manufacturer'] }.uniq
+    
+    def is_not_a_dc_plane?(row)
+      not row['Model'] =~ /DC/i
     end
-
-    def table
-      @_table ||= RemoteTable.new :url => 'http://www.bts.gov/programs/airline_information/accounting_and_reporting_directives/csv/number_260.csv',
-                                  :select => lambda { |row| row['Aircraft Type'].to_i.between?(1, 998) and row['Manufacturer'].present? }
-    end
-
-    def btses(manufacturer_name)
-      return @_btses[manufacturer_name] if @_btses.andand.has_key?(manufacturer_name)
-      @_btses ||= Hash.new
-      @_btses[manufacturer_name] = table.rows.inject(Array.new) do |memo, row|
-        memo.push row.slice('Aircraft Type', 'Long Name', 'Manufacturer') if row['Manufacturer'].to_s.downcase.include? manufacturer_name.to_s.downcase
-        memo
-      end
-    end
-
-    # what's your raashee?
-    def lookup(row)
-      @_lookup ||= Hash.new
-      return @_lookup[row['row_hash']] if @_lookup.andand.has_key?(row['row_hash'])
-
-      icao_manufacturer_name = row['Manufacturer'].to_s.downcase
-
-      icao_definit_2, icao_model_2, icao_definit, icao_model_meeked, icao_model = Aircraft.meek(row['Model'], icao_manufacturer_name, icao_manufacturer_name)
-
-      # blocking
-      # /[^a-zA-Z0-9]/
-      best_bts_manufacturer_name = bts_manufacturer_names.max do |a, b|
-        a.to_s.downcase.pair_distance_similar(icao_manufacturer_name) <=> b.to_s.downcase.pair_distance_similar(icao_manufacturer_name)
-      end
-      
-      # x = 1
-      # debugger if row['Model'] == '737700, BBJ, C40'
-      # x = 1
-      
-
-      # scoring
-      best_bts = btses(best_bts_manufacturer_name).max do |a, b|
-        bts_a_definit_2, bts_a_2, bts_a_definit, bts_a_meeked, bts_a = Aircraft.meek(a['Long Name'], a['Manufacturer'], a['Manufacturer'])
-        bts_b_definit_2, bts_b_2, bts_b_definit, bts_b_meeked, bts_b = Aircraft.meek(b['Long Name'], b['Manufacturer'], b['Manufacturer'])
-
-        a_impossible =      (icao_definit != :ignore and icao_definit and bts_a_definit and icao_definit != bts_a_definit)
-        a_2_impossible =  (icao_definit_2 != :ignore and icao_definit_2 and bts_a_definit_2 and icao_definit_2 != bts_a_definit_2)
-        b_impossible =      (icao_definit != :ignore and icao_definit and bts_b_definit and icao_definit != bts_b_definit)
-        b_2_impossible =  (icao_definit_2 != :ignore and icao_definit_2 and bts_b_definit_2 and icao_definit_2 != bts_b_definit_2)
-
-        if a_impossible and a_2_impossible and b_impossible and b_2_impossible
-          0
-        elsif a_impossible and a_2_impossible
-          -1
-        elsif b_impossible and b_2_impossible
-          1
-        else
-          bts_a_2 = nil if bts_a_2 == :ignore
-          bts_b_2 = nil if bts_b_2 == :ignore
-
-          a_prefix = [ bts_a, icao_model ].map(&:length).min if icao_model_meeked and bts_a_meeked
-          a_2_prefix = [ bts_a_2, icao_model ].map(&:length).min if icao_model_meeked and bts_a_2
-          b_prefix = [ bts_b, icao_model ].map(&:length).min if icao_model_meeked and bts_b_meeked
-          b_2_prefix = [ bts_b_2, icao_model ].map(&:length).min if icao_model_meeked and bts_b_2
-          
-          a_score = a_prefix ? bts_a.first(a_prefix).pair_distance_similar(icao_model.first(a_prefix)) : bts_a.pair_distance_similar(icao_model)
-          a_2_score = a_2_prefix ? bts_a_2.andand.first(a_2_prefix).andand.pair_distance_similar(icao_model.first(a_2_prefix)) : bts_a_2.andand.pair_distance_similar(icao_model)
-          
-          b_score = b_prefix ? bts_b.first(b_prefix).pair_distance_similar(icao_model.first(b_prefix)) : bts_b.pair_distance_similar(icao_model)
-          b_2_score = b_2_prefix ? bts_b_2.andand.first(b_2_prefix).andand.pair_distance_similar(icao_model.first(b_2_prefix)) : bts_b_2.andand.pair_distance_similar(icao_model)
-          
-          if a_score >= a_2_score.to_f
-            a_max_score = a_score
-            a_used_prefix = a_prefix
-          else
-            a_max_score = a_2_score
-            a_used_prefix = a_2_prefix
-          end
-          
-          if b_score >= b_2_score.to_f
-            b_max_score = b_score
-            b_used_prefix = b_prefix
-          else
-            b_max_score = b_2_score
-            b_used_prefix = b_2_prefix
-          end
-          
-          # x = 1
-          # debugger if [ a['Long Name'], b['Long Name'] ].any? { |fff| fff =~ /A340/ } and row['Model'] == 'A340300'
-          # x = 1
-
-          if a_max_score != b_max_score
-            # highest score wins (ASC, a <=> b)
-            a_max_score <=> b_max_score
-          elsif a_used_prefix and b_used_prefix and a_used_prefix != b_used_prefix
-            # longest used prefix wins (ASC, a <=> b)
-            a_used_prefix <=> b_used_prefix
-          else
-            # shortest input wins (DESC, b <=> a)
-            b['Long Name'].to_s.downcase.sub(b['Manufacturer'].to_s.downcase, '').strip.length <=> a['Long Name'].to_s.downcase.sub(a['Manufacturer'].to_s.downcase, '').strip.length
-          end
-        end
-      end
-
-      # x = 1
-      # debugger if [ a['Long Name'], b['Long Name'] ].any? { |fff| fff =~ /BOEING 747.*200/ } and row['Model'] == '747300'
-      # x = 1
-
-      # final check for definit
-      guess_definit_2, guess_2, guess_definit, guess_long_name_meeked, guess_long_name = Aircraft.meek(best_bts['Long Name'], best_bts['Manufacturer'], best_bts['Manufacturer'])
-      
-      guess_impossible =      (icao_definit != :ignore and icao_definit and guess_definit and icao_definit != guess_definit)
-      guess_2_impossible =  (icao_definit_2 != :ignore and icao_definit_2 and guess_definit_2 and icao_definit_2 != guess_definit_2)
-      
-      if !guess_impossible and (guess_2 == :ignore or !guess_2_impossible)
-        @_lookup[row['row_hash']] = best_bts['Long Name']
-      else
-        @_lookup[row['row_hash']] = nil
-      end
+    
+    def is_a_crj_900?(row)
+      row['Designator'].downcase == 'crj9'
     end
   end
-  #   }
-  # end
   
   data_miner do
-    %w{ A B D M }.each do |letter|
+    # ('A'..'Z').each do |letter|
+    # Note: for the purposes of testing, only importing "D"
+    %w{ D }.each do |letter|
       import("ICAO codes starting with letter #{letter} used by the FAA",
               :url => "http://www.faa.gov/air_traffic/publications/atpubs/CNT/5-2-#{letter}.htm",
               :encoding => 'US-ASCII',
               :row_xpath => '//table/tr[2]/td/table/tr',
-              :select => lambda { |row| row['Type/Wt Class'] =~ /\A[^HG]/ }, # exclude helicopters and gyros (we could exclude amphibious and seaplanes too)
+              :errata => 'http://spreadsheets.google.com/pub?key=tObVAGyqOkCBtGid0tJUZrw',
               :column_xpath => 'td') do
         key 'icao_code', :field_name => 'Designator'
-        # FOO.each do |n|
-          store "pair_distance_bts_name", :matcher => Aircraft::DictPairDistance
-        # end
+        store 'bts_name', :matcher => Aircraft::BtsNameMatcher
+        store 'bts_aircraft_type_code', :matcher => Aircraft::BtsAircraftTypeCodeMatcher
         store 'manufacturer_name', :field_name => 'Manufacturer'
         store 'name', :field_name => 'Model'
       end
@@ -1162,7 +1023,7 @@ class DataMinerTest < Test::Unit::TestCase
   if ENV['NEW'] == 'true'
     should "mine aircraft" do
       Aircraft.run_data_miner!
-      assert Aircraft.exists? :icao_code => 'A310', :manufacturer_name => 'Airbus Industries', :name => 'Airbus A310'
+      assert Aircraft.exists? :icao_code => 'DC91', :bts_aircraft_type_code => '630'
     end
   end
     
