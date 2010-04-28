@@ -947,7 +947,7 @@ class Aircraft < ActiveRecord::Base
   def self.bts_dictionary
     @_dictionary ||= LooseTightDictionary.new RemoteTable.new(:url => 'http://www.bts.gov/programs/airline_information/accounting_and_reporting_directives/csv/number_260.csv', :select => lambda { |record| record['Aircraft Type'].to_i.between?(1, 998) and record['Manufacturer'].present? }),
                                               :tightenings  => RemoteTable.new(:url => 'http://spreadsheets.google.com/pub?key=tiS_6CCDDM_drNphpYwE_iw&single=true&gid=0&output=csv', :headers => false),
-                                              :restrictions => RemoteTable.new(:url => 'http://spreadsheets.google.com/pub?key=tiS_6CCDDM_drNphpYwE_iw&single=true&gid=3&output=csv', :headers => false),
+                                              :identities   => RemoteTable.new(:url => 'http://spreadsheets.google.com/pub?key=tiS_6CCDDM_drNphpYwE_iw&single=true&gid=3&output=csv', :headers => false),
                                               :blockings    => RemoteTable.new(:url => 'http://spreadsheets.google.com/pub?key=tiS_6CCDDM_drNphpYwE_iw&single=true&gid=4&output=csv', :headers => false),
                                               :left_reader  => lambda { |record| record['Manufacturer'] + ' ' + record['Model'] },
                                               :right_reader => lambda { |record| record['Manufacturer'] + ' ' + record['Long Name'] }

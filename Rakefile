@@ -19,7 +19,7 @@ begin
     gem.add_dependency 'blockenspiel', '>=0.3.2'
     gem.add_dependency 'text', '>=0.2.0'
     gem.add_dependency 'log4r', '>=1.1.7'
-    gem.add_development_dependency "loose_tight_dictionary", ">=0.0.1"
+    gem.add_development_dependency "loose_tight_dictionary", ">=0.0.3"
     gem.require_path = "lib"
     gem.files.include %w(lib/data_miner) unless gem.files.empty? # seems to fail once it's in the wild
     gem.rdoc_options << '--line-numbers' << '--inline-source'
