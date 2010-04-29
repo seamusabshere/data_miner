@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{data_miner}
-  s.version = "0.4.22"
+  s.version = "0.4.23"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Seamus Abshere", "Andy Rossmeissl"]
-  s.date = %q{2010-04-28}
+  s.date = %q{2010-04-29}
   s.description = %q{Mine remote data into your ActiveRecord models. You can also perform associations and convert units.}
   s.email = %q{seamus@abshere.net}
   s.extra_rdoc_files = [
@@ -52,37 +52,34 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<remote_table>, [">= 0.2.17"])
+      s.add_runtime_dependency(%q<remote_table>, [">= 0.2.19"])
       s.add_runtime_dependency(%q<activerecord>, [">= 2.3.4"])
       s.add_runtime_dependency(%q<activesupport>, [">= 2.3.4"])
       s.add_runtime_dependency(%q<andand>, [">= 1.3.1"])
       s.add_runtime_dependency(%q<errata>, [">= 0.1.7"])
       s.add_runtime_dependency(%q<conversions>, [">= 1.4.4"])
       s.add_runtime_dependency(%q<blockenspiel>, [">= 0.3.2"])
-      s.add_runtime_dependency(%q<text>, [">= 0.2.0"])
       s.add_runtime_dependency(%q<log4r>, [">= 1.1.7"])
       s.add_development_dependency(%q<loose_tight_dictionary>, [">= 0.0.3"])
     else
-      s.add_dependency(%q<remote_table>, [">= 0.2.17"])
+      s.add_dependency(%q<remote_table>, [">= 0.2.19"])
       s.add_dependency(%q<activerecord>, [">= 2.3.4"])
       s.add_dependency(%q<activesupport>, [">= 2.3.4"])
       s.add_dependency(%q<andand>, [">= 1.3.1"])
       s.add_dependency(%q<errata>, [">= 0.1.7"])
       s.add_dependency(%q<conversions>, [">= 1.4.4"])
       s.add_dependency(%q<blockenspiel>, [">= 0.3.2"])
-      s.add_dependency(%q<text>, [">= 0.2.0"])
       s.add_dependency(%q<log4r>, [">= 1.1.7"])
       s.add_dependency(%q<loose_tight_dictionary>, [">= 0.0.3"])
     end
   else
-    s.add_dependency(%q<remote_table>, [">= 0.2.17"])
+    s.add_dependency(%q<remote_table>, [">= 0.2.19"])
     s.add_dependency(%q<activerecord>, [">= 2.3.4"])
     s.add_dependency(%q<activesupport>, [">= 2.3.4"])
     s.add_dependency(%q<andand>, [">= 1.3.1"])
     s.add_dependency(%q<errata>, [">= 0.1.7"])
     s.add_dependency(%q<conversions>, [">= 1.4.4"])
     s.add_dependency(%q<blockenspiel>, [">= 0.3.2"])
-    s.add_dependency(%q<text>, [">= 0.2.0"])
     s.add_dependency(%q<log4r>, [">= 1.1.7"])
     s.add_dependency(%q<loose_tight_dictionary>, [">= 0.0.3"])
   end
