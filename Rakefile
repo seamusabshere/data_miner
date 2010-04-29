@@ -10,7 +10,7 @@ begin
     gem.email = "seamus@abshere.net"
     gem.homepage = "http://github.com/seamusabshere/data_miner"
     gem.authors = ["Seamus Abshere", "Andy Rossmeissl"]
-    gem.add_dependency 'remote_table', '>=0.2.12'
+    gem.add_dependency 'remote_table', '>=0.2.17'
     gem.add_dependency 'activerecord', '>=2.3.4'
     gem.add_dependency 'activesupport', '>=2.3.4'
     gem.add_dependency 'andand', '>=1.3.1'
