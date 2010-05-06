@@ -14,6 +14,11 @@ module DataMiner
       @configuration = configuration
       @position_in_run = position_in_run
       @description = description
+      
+      if table_options[:errata].is_a?(String)
+        table_options[:errata] = Errata.new :url => table_options[:errata], :responder => resource
+      end
+        
       if table_options[:table].present?
         DataMiner.log_or_raise "You should specify :table or :url, but not both" if table_options[:url].present?
         @table = table_options[:table]

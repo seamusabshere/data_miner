@@ -3,8 +3,6 @@ require 'test/unit'
 require 'shoulda'
 require 'ruby-debug'
 
-require 'errata'
-
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'data_miner'
@@ -17,7 +15,7 @@ ActiveRecord::Base.establish_connection(
 )
 
 ActiveSupport::Inflector.inflections do |inflect|
-  inflect.uncountable 'aircraft'
+  inflect.uncountable %w{ aircraft aircraft_deux }
 end
 
 class Test::Unit::TestCase
@@ -295,6 +293,26 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.integer  'data_miner_last_run_id'
   end
   execute 'ALTER TABLE aircraft ADD PRIMARY KEY (icao_code);'
+  
+  create_table 'aircraft_deux', :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
+    t.string 'icao_code'
+    t.string   'manufacturer_name'
+    t.string   'name'
+    
+    t.string   "bts_name"
+    t.string "bts_aircraft_type_code"
+
+    # t.string   'brighter_planet_aircraft_class_code'
+    # t.float    'm3'
+    # t.float    'm2'
+    # t.float    'm1'
+    # t.float    'endpoint_fuel'
+    t.datetime 'updated_at'
+    t.datetime 'created_at'
+    t.integer  'data_miner_touch_count'
+    t.integer  'data_miner_last_run_id'
+  end
+  execute 'ALTER TABLE aircraft_deux ADD PRIMARY KEY (icao_code);'
 end
 
 DataMiner::Run.create_tables

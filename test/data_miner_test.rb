@@ -1022,6 +1022,61 @@ class Aircraft < ActiveRecord::Base
   end
 end
 
+# note that this depends on stuff in Aircraft
+class AircraftDeux < ActiveRecord::Base
+  set_primary_key :icao_code
+  
+  # defined on the class because we defined the errata with a shorthand
+  class << self
+    def is_not_attributed_to_aerospatiale?(row)
+      not row['Manufacturer'] =~ /AEROSPATIALE/i
+    end
+    
+    def is_not_attributed_to_cessna?(row)
+      not row['Manufacturer'] =~ /CESSNA/i
+    end
+    
+    def is_not_attributed_to_learjet?(row)
+      not row['Manufacturer'] =~ /LEAR/i
+    end
+    
+    def is_not_attributed_to_dehavilland?(row)
+      not row['Manufacturer'] =~ /DE ?HAVILLAND/i
+    end
+    
+    def is_not_attributed_to_mcdonnell_douglas?(row)
+      not row['Manufacturer'] =~ /MCDONNELL DOUGLAS/i
+    end
+    
+    def is_not_a_dc_plane?(row)
+      not row['Model'] =~ /DC/i
+    end
+    
+    def is_a_crj_900?(row)
+      row['Designator'].downcase == 'crj9'
+    end
+  end
+  
+  data_miner do
+    # ('A'..'Z').each do |letter|
+    # Note: for the purposes of testing, only importing "D"
+    %w{ D }.each do |letter|
+      import("ICAO codes starting with letter #{letter} used by the FAA",
+              :url => "http://www.faa.gov/air_traffic/publications/atpubs/CNT/5-2-#{letter}.htm",
+              :encoding => 'US-ASCII',
+              :errata => 'http://spreadsheets.google.com/pub?key=tObVAGyqOkCBtGid0tJUZrw',
+              :row_xpath => '//table/tr[2]/td/table/tr',
+              :column_xpath => 'td') do
+        key 'icao_code', :field_name => 'Designator'
+        store 'bts_name', :matcher => Aircraft::BtsNameMatcher.new
+        store 'bts_aircraft_type_code', :matcher => Aircraft::BtsAircraftTypeCodeMatcher.new
+        store 'manufacturer_name', :field_name => 'Manufacturer'
+        store 'name', :field_name => 'Model'
+      end
+    end
+  end
+end
+
 # todo: have somebody properly organize these
 class DataMinerTest < Test::Unit::TestCase
   if ENV['ALL'] == 'true' or ENV['NEW'] == 'true'
@@ -1140,6 +1195,11 @@ class DataMinerTest < Test::Unit::TestCase
   end
   
   if ENV['ALL'] == 'true' or ENV['SLOW'] == 'true'
+    should "allow errata to be specified with a shorthand, assuming the responder is the resource class itself" do
+      AircraftDeux.run_data_miner!
+      assert AircraftDeux.exists? :icao_code => 'DC91', :bts_aircraft_type_code => '630'
+    end
+    
     should "mine aircraft" do
       Aircraft.run_data_miner!
       assert Aircraft.exists? :icao_code => 'DC91', :bts_aircraft_type_code => '630'

@@ -11,6 +11,7 @@ end if ActiveSupport::VERSION::MAJOR == 3
 require 'active_record'
 require 'blockenspiel'
 require 'conversions'
+require 'errata'
 require 'remote_table'
 require 'andand'
 require 'log4r'
