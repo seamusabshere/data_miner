@@ -74,7 +74,7 @@ module DataMiner
     end
     
     def match_row(row)
-      matcher.lookup row
+      matcher.match row
     end
     
     def value_from_row(row)
@@ -219,7 +219,7 @@ module DataMiner
       @_dictionary ||= Dictionary.new options[:dictionary]
     end
     def matcher
-      @_matcher ||= options[:matcher].new
+      @_matcher ||= (options[:matcher].is_a?(String) ? options[:matcher].constantize.new : options[:matcher])
     end
   end
 end

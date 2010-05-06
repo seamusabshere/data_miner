@@ -3,20 +3,23 @@ module DataMiner
     include Blockenspiel::DSL
     
     attr_reader :attributes
-    attr_accessor :configuration, :position_in_run, :options, :table, :errata
+    attr_accessor :configuration, :position_in_run, :table
     attr_accessor :description
     delegate :resource, :to => :configuration
     
-    def initialize(configuration, position_in_run, description, options = {})
-      options.symbolize_keys!
-      @options = options
+    def initialize(configuration, position_in_run, description, table_options = {})
+      table_options.symbolize_keys!
 
       @attributes = ActiveSupport::OrderedHash.new
       @configuration = configuration
       @position_in_run = position_in_run
       @description = description
-      @errata = Errata.new(:url => options[:errata], :klass => resource) if options[:errata]
-      @table = RemoteTable.new options
+      if table_options[:table].present?
+        DataMiner.log_or_raise "You should specify :table or :url, but not both" if table_options[:url].present?
+        @table = table_options[:table]
+      else
+        @table = RemoteTable.new table_options
+      end
     end
 
     def inspect
@@ -46,11 +49,6 @@ module DataMiner
       test_counter = 0
 
       table.each_row do |row|
-        if errata
-          next if errata.rejects?(row)
-          errata.correct!(row)
-        end
-        
         if ENV['DUMP'] == 'true'
           raise "[data_miner gem] Stopping after 5 rows because TEST=true" if test_counter > 5
           test_counter += 1

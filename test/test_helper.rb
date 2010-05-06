@@ -3,6 +3,8 @@ require 'test/unit'
 require 'shoulda'
 require 'ruby-debug'
 
+require 'errata'
+
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'data_miner'
@@ -11,7 +13,7 @@ ActiveRecord::Base.establish_connection(
   'adapter' => 'mysql',
   'database' => 'data_miner_test',
   'username' => 'root',
-  'password' => ''
+  'password' => 'password'
 )
 
 ActiveSupport::Inflector.inflections do |inflect|

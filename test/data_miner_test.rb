@@ -220,132 +220,7 @@ class AutomobileVariant < ActiveRecord::Base
     end
   end
   
-  data_miner do
-    # 1985---1997
-    (85..97).each do |yy|
-      filename = (yy == 96) ? "#{yy}MFGUI.ASC" : "#{yy}MFGUI.DAT"
-      import(:url => "http://www.fueleconomy.gov/FEG/epadata/#{yy}mfgui.zip",
-             :filename => filename,
-             :transform => { :class => FuelEconomyGuide::ParserB, :year => "19#{yy}".to_i },
-             :errata => 'http://static.brighterplanet.com/science/data/transport/automobiles/fuel_economy_guide/errata.csv') do
-        key 'row_hash'
-        store 'make_name', :field_name => 'make'
-        store 'model_name', :field_name => 'model'
-        store 'year'
-        store 'fuel_type_code', :field_name => 'fuel_type'
-        store 'fuel_efficiency_highway', :static => nil, :units => :kilometres_per_litre # we'll convert these in a later step, just setting the stage
-        store 'fuel_efficiency_city', :static => nil, :units => :kilometres_per_litre    # ditto
-        store 'raw_fuel_efficiency_highway', :field_name => 'unadj_hwy_mpg', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
-        store 'raw_fuel_efficiency_city', :field_name => 'unadj_city_mpg', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
-        store 'cylinders', :field_name => 'no_cyc'
-        store 'drive', :field_name => 'drive_system'
-        store 'carline_mfr_code'
-        store 'vi_mfr_code'
-        store 'carline_code'
-        store 'carline_class_code', :field_name => 'carline_clss'
-        store 'transmission'
-        store 'speeds'
-        store 'turbo'
-        store 'supercharger'
-        store 'injection'
-        store 'displacement'
-      end
-    end
-    
-    # 1998--2005
-    {
-      1998 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/98guide6.zip', :filename => '98guide6.csv' },
-      1999 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/99guide.zip', :filename => '99guide6.csv' },
-      2000 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/00data.zip', :filename => 'G6080900.xls' },
-      2001 => { :url => 'http://static.brighterplanet.com/science/data/transport/automobiles/fuel_economy_guide/01guide0918.csv' }, # parseexcel 0.5.2 can't read Excel 5.0 { :url => 'http://www.fueleconomy.gov/FEG/epadata/01data.zip', :filename => '01guide0918.xls' }
-      2002 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/02data.zip', :filename => 'guide_jan28.xls' },
-      2003 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/03data.zip', :filename => 'guide_2003_feb04-03b.csv' },
-      2004 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/04data.zip', :filename => 'gd04-Feb1804-RelDtFeb20.csv' },
-      2005 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/05data.zip', :filename => 'guide2005-2004oct15.csv' }
-    }.sort { |a, b| a.first <=> b.first }.each do |year, options|
-      import options.merge(:transform => { :class => FuelEconomyGuide::ParserC, :year => year },
-                           :errata => 'http://static.brighterplanet.com/science/data/transport/automobiles/fuel_economy_guide/errata.csv') do
-        key 'row_hash'
-        store 'make_name', :field_name => 'make'
-        store 'model_name', :field_name => 'model'
-        store 'fuel_type_code', :field_name => 'fl'
-        store 'fuel_efficiency_highway', :static => nil, :units => :kilometres_per_litre # we'll convert these in a later step, just setting the stage
-        store 'fuel_efficiency_city', :static => nil, :units => :kilometres_per_litre    # ditto
-        store 'raw_fuel_efficiency_highway', :field_name => 'uhwy', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
-        store 'raw_fuel_efficiency_city', :field_name => 'ucty', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
-        store 'cylinders', :field_name => 'cyl'
-        store 'displacement', :field_name => 'displ'
-        store 'carline_class_code', :field_name => 'cls' if year >= 2000
-        store 'carline_class_name', :field_name => 'Class'
-        store 'year'
-        store 'transmission'
-        store 'speeds'
-        store 'turbo'
-        store 'supercharger'
-        store 'injection'
-        store 'drive'
-      end
-    end
-    
-    # 2006--2010
-    {
-      2006 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/06data.zip', :filename => '2006_FE_Guide_14-Nov-2005_download.csv' },
-      2007 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/07data.zip', :filename => '2007_FE_guide_ALL_no_sales_May_01_2007.xls' },
-      2008 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/08data.zip', :filename => '2008_FE_guide_ALL_rel_dates_-no sales-for DOE-5-1-08.csv' },
-      2009 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/09data.zip', :filename => '2009_FE_guide for DOE_ALL-rel dates-no-sales-8-28-08download.csv' },
-      # 2010 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/10data.zip', :filename => '2010FEguide-for DOE-rel dates before 10-16-09-no-sales10-8-09public.xls' }
-    }.sort { |a, b| a.first <=> b.first }.each do |year, options|
-      import options.merge(:transform => { :class => FuelEconomyGuide::ParserD, :year => year },
-                           :errata => 'http://static.brighterplanet.com/science/data/transport/automobiles/fuel_economy_guide/errata.csv') do
-        key 'row_hash'
-        store 'make_name', :field_name => 'make'
-        store 'model_name', :field_name => 'model'
-        store 'fuel_type_code', :field_name => 'FUEL TYPE'
-        store 'fuel_efficiency_highway', :static => nil, :units => :kilometres_per_litre # we'll convert these in a later step, just setting the stage
-        store 'fuel_efficiency_city', :static => nil, :units => :kilometres_per_litre    # ditto
-        store 'raw_fuel_efficiency_highway', :field_name => 'UNRND HWY (EPA)', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
-        store 'raw_fuel_efficiency_city', :field_name => 'UNRND CITY (EPA)', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
-        store 'cylinders', :field_name => 'NUMB CYL'
-        store 'displacement', :field_name => 'DISPLACEMENT'
-        store 'carline_class_code', :field_name => 'CLS'
-        store 'carline_class_name', :field_name => 'CLASS'
-        store 'year'
-        store 'transmission'
-        store 'speeds'
-        store 'turbo'
-        store 'supercharger'
-        store 'injection'
-        store 'drive'
-      end
-    end
-    
-    # associate :make, :key => :original_automobile_make_name, :foreign_key => :name
-    # derive :automobile_model_id # creates models by name
-    # associate :fuel_type, :key => :original_automobile_fuel_type_code, :foreign_key => :code
-    
-    process 'Set adjusted fuel economy' do
-      update_all 'fuel_efficiency_city = 1 / ((0.003259 / 0.425143707) + (1.1805 / raw_fuel_efficiency_city))'
-      update_all 'fuel_efficiency_highway = 1 / ((0.001376 / 0.425143707) + (1.3466 / raw_fuel_efficiency_highway))'
-    end
-  end
-  
-  def name
-    extra = []
-    extra << "V#{cylinders}" if cylinders
-    extra << "#{displacement}L" if displacement
-    extra << "turbo" if turbo
-    extra << "FI" if injection
-    extra << "#{speeds}spd" if speeds.present?
-    extra << transmission if transmission.present?
-    extra << "(#{fuel_type.name})" if fuel_type
-    extra.join(' ')
-  end
-  
-  def fuel_economy_description
-    [ fuel_efficiency_city, fuel_efficiency_highway ].map { |f| f.kilometres_per_litre.to(:miles_per_gallon).round }.join('/')
-  end
-  
-  class << self
+  class Guru
     # the following matching methods are needed by the errata
     # per https://brighterplanet.sifterapp.com/projects/30/issues/750/comments
 
@@ -404,6 +279,134 @@ class AutomobileVariant < ActiveRecord::Base
     def model_contains_bentley?(row)
       row['model'] =~ /BENTLEY/i
     end
+  end
+  
+  errata = Errata.new :url => 'http://static.brighterplanet.com/science/data/transport/automobiles/fuel_economy_guide/errata.csv',
+                      :responder => AutomobileVariant::Guru.new
+  
+  data_miner do
+    # 1985---1997
+    (85..97).each do |yy|
+      filename = (yy == 96) ? "#{yy}MFGUI.ASC" : "#{yy}MFGUI.DAT"
+      import(:url => "http://www.fueleconomy.gov/FEG/epadata/#{yy}mfgui.zip",
+             :filename => filename,
+             :transform => { :class => FuelEconomyGuide::ParserB, :year => "19#{yy}".to_i },
+             :errata => errata) do
+        key 'row_hash'
+        store 'make_name', :field_name => 'make'
+        store 'model_name', :field_name => 'model'
+        store 'year'
+        store 'fuel_type_code', :field_name => 'fuel_type'
+        store 'fuel_efficiency_highway', :static => nil, :units => :kilometres_per_litre # we'll convert these in a later step, just setting the stage
+        store 'fuel_efficiency_city', :static => nil, :units => :kilometres_per_litre    # ditto
+        store 'raw_fuel_efficiency_highway', :field_name => 'unadj_hwy_mpg', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
+        store 'raw_fuel_efficiency_city', :field_name => 'unadj_city_mpg', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
+        store 'cylinders', :field_name => 'no_cyc'
+        store 'drive', :field_name => 'drive_system'
+        store 'carline_mfr_code'
+        store 'vi_mfr_code'
+        store 'carline_code'
+        store 'carline_class_code', :field_name => 'carline_clss'
+        store 'transmission'
+        store 'speeds'
+        store 'turbo'
+        store 'supercharger'
+        store 'injection'
+        store 'displacement'
+      end
+    end
+    
+    # 1998--2005
+    {
+      1998 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/98guide6.zip', :filename => '98guide6.csv' },
+      1999 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/99guide.zip', :filename => '99guide6.csv' },
+      2000 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/00data.zip', :filename => 'G6080900.xls' },
+      2001 => { :url => 'http://static.brighterplanet.com/science/data/transport/automobiles/fuel_economy_guide/01guide0918.csv' }, # parseexcel 0.5.2 can't read Excel 5.0 { :url => 'http://www.fueleconomy.gov/FEG/epadata/01data.zip', :filename => '01guide0918.xls' }
+      2002 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/02data.zip', :filename => 'guide_jan28.xls' },
+      2003 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/03data.zip', :filename => 'guide_2003_feb04-03b.csv' },
+      2004 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/04data.zip', :filename => 'gd04-Feb1804-RelDtFeb20.csv' },
+      2005 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/05data.zip', :filename => 'guide2005-2004oct15.csv' }
+    }.sort { |a, b| a.first <=> b.first }.each do |year, options|
+      import options.merge(:transform => { :class => FuelEconomyGuide::ParserC, :year => year },
+                           :errata => errata) do
+        key 'row_hash'
+        store 'make_name', :field_name => 'make'
+        store 'model_name', :field_name => 'model'
+        store 'fuel_type_code', :field_name => 'fl'
+        store 'fuel_efficiency_highway', :static => nil, :units => :kilometres_per_litre # we'll convert these in a later step, just setting the stage
+        store 'fuel_efficiency_city', :static => nil, :units => :kilometres_per_litre    # ditto
+        store 'raw_fuel_efficiency_highway', :field_name => 'uhwy', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
+        store 'raw_fuel_efficiency_city', :field_name => 'ucty', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
+        store 'cylinders', :field_name => 'cyl'
+        store 'displacement', :field_name => 'displ'
+        store 'carline_class_code', :field_name => 'cls' if year >= 2000
+        store 'carline_class_name', :field_name => 'Class'
+        store 'year'
+        store 'transmission'
+        store 'speeds'
+        store 'turbo'
+        store 'supercharger'
+        store 'injection'
+        store 'drive'
+      end
+    end
+    
+    # 2006--2010
+    {
+      2006 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/06data.zip', :filename => '2006_FE_Guide_14-Nov-2005_download.csv' },
+      2007 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/07data.zip', :filename => '2007_FE_guide_ALL_no_sales_May_01_2007.xls' },
+      2008 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/08data.zip', :filename => '2008_FE_guide_ALL_rel_dates_-no sales-for DOE-5-1-08.csv' },
+      2009 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/09data.zip', :filename => '2009_FE_guide for DOE_ALL-rel dates-no-sales-8-28-08download.csv' },
+      # 2010 => { :url => 'http://www.fueleconomy.gov/FEG/epadata/10data.zip', :filename => '2010FEguide-for DOE-rel dates before 10-16-09-no-sales10-8-09public.xls' }
+    }.sort { |a, b| a.first <=> b.first }.each do |year, options|
+      import options.merge(:transform => { :class => FuelEconomyGuide::ParserD, :year => year },
+                           :errata => errata) do
+        key 'row_hash'
+        store 'make_name', :field_name => 'make'
+        store 'model_name', :field_name => 'model'
+        store 'fuel_type_code', :field_name => 'FUEL TYPE'
+        store 'fuel_efficiency_highway', :static => nil, :units => :kilometres_per_litre # we'll convert these in a later step, just setting the stage
+        store 'fuel_efficiency_city', :static => nil, :units => :kilometres_per_litre    # ditto
+        store 'raw_fuel_efficiency_highway', :field_name => 'UNRND HWY (EPA)', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
+        store 'raw_fuel_efficiency_city', :field_name => 'UNRND CITY (EPA)', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
+        store 'cylinders', :field_name => 'NUMB CYL'
+        store 'displacement', :field_name => 'DISPLACEMENT'
+        store 'carline_class_code', :field_name => 'CLS'
+        store 'carline_class_name', :field_name => 'CLASS'
+        store 'year'
+        store 'transmission'
+        store 'speeds'
+        store 'turbo'
+        store 'supercharger'
+        store 'injection'
+        store 'drive'
+      end
+    end
+    
+    # associate :make, :key => :original_automobile_make_name, :foreign_key => :name
+    # derive :automobile_model_id # creates models by name
+    # associate :fuel_type, :key => :original_automobile_fuel_type_code, :foreign_key => :code
+    
+    process 'Set adjusted fuel economy' do
+      update_all 'fuel_efficiency_city = 1 / ((0.003259 / 0.425143707) + (1.1805 / raw_fuel_efficiency_city))'
+      update_all 'fuel_efficiency_highway = 1 / ((0.001376 / 0.425143707) + (1.3466 / raw_fuel_efficiency_highway))'
+    end
+  end
+  
+  def name
+    extra = []
+    extra << "V#{cylinders}" if cylinders
+    extra << "#{displacement}L" if displacement
+    extra << "turbo" if turbo
+    extra << "FI" if injection
+    extra << "#{speeds}spd" if speeds.present?
+    extra << transmission if transmission.present?
+    extra << "(#{fuel_type.name})" if fuel_type
+    extra.join(' ')
+  end
+  
+  def fuel_economy_description
+    [ fuel_efficiency_city, fuel_efficiency_highway ].map { |f| f.kilometres_per_litre.to(:miles_per_gallon).round }.join('/')
   end
 end
 
@@ -954,20 +957,20 @@ class Aircraft < ActiveRecord::Base
   end
 
   class BtsAircraftTypeCodeMatcher
-    def lookup(left_record)
+    def match(left_record)
       right_record = Aircraft.bts_dictionary.left_to_right left_record
       right_record['Aircraft Type'] if right_record
     end
   end
   
   class BtsNameMatcher
-    def lookup(left_record)
+    def match(left_record)
       right_record = Aircraft.bts_dictionary.left_to_right left_record
       right_record['Manufacturer'] + ' ' + right_record['Long Name'] if right_record
     end
   end
   
-  class << self
+  class Guru
     # for errata
     def is_not_attributed_to_aerospatiale?(row)
       not row['Manufacturer'] =~ /AEROSPATIALE/i
@@ -1005,12 +1008,13 @@ class Aircraft < ActiveRecord::Base
       import("ICAO codes starting with letter #{letter} used by the FAA",
               :url => "http://www.faa.gov/air_traffic/publications/atpubs/CNT/5-2-#{letter}.htm",
               :encoding => 'US-ASCII',
+              :errata => Errata.new(:url => 'http://spreadsheets.google.com/pub?key=tObVAGyqOkCBtGid0tJUZrw',
+                                    :responder => Aircraft::Guru.new),
               :row_xpath => '//table/tr[2]/td/table/tr',
-              :errata => 'http://spreadsheets.google.com/pub?key=tObVAGyqOkCBtGid0tJUZrw',
               :column_xpath => 'td') do
         key 'icao_code', :field_name => 'Designator'
-        store 'bts_name', :matcher => Aircraft::BtsNameMatcher
-        store 'bts_aircraft_type_code', :matcher => Aircraft::BtsAircraftTypeCodeMatcher
+        store 'bts_name', :matcher => Aircraft::BtsNameMatcher.new
+        store 'bts_aircraft_type_code', :matcher => Aircraft::BtsAircraftTypeCodeMatcher.new
         store 'manufacturer_name', :field_name => 'Manufacturer'
         store 'name', :field_name => 'Model'
       end
@@ -1020,14 +1024,10 @@ end
 
 # todo: have somebody properly organize these
 class DataMinerTest < Test::Unit::TestCase
-  if ENV['NEW'] == 'true'
-    should "mine aircraft" do
-      Aircraft.run_data_miner!
-      assert Aircraft.exists? :icao_code => 'DC91', :bts_aircraft_type_code => '630'
-    end
+  if ENV['ALL'] == 'true' or ENV['NEW'] == 'true'
   end
     
-  if ENV['FAST'] == 'true'
+  if ENV['ALL'] == 'true' or ENV['FAST'] == 'true'
     should "keep a call stack so that you can call run_data_miner! on a child" do
       CrosscallingCensusDivision.run_data_miner!
       assert CrosscallingCensusDivision.exists? :name => 'Mountain Division', :number => 8, :census_region_number => 4, :census_region_name => 'West Region'
@@ -1139,7 +1139,12 @@ class DataMinerTest < Test::Unit::TestCase
     end
   end
   
-  if ENV['SLOW'] == 'true'
+  if ENV['ALL'] == 'true' or ENV['SLOW'] == 'true'
+    should "mine aircraft" do
+      Aircraft.run_data_miner!
+      assert Aircraft.exists? :icao_code => 'DC91', :bts_aircraft_type_code => '630'
+    end
+    
     should "mine automobile variants" do
       AutomobileVariant.run_data_miner!
       assert AutomobileVariant.count('make_name LIKE "%tesla"') > 0
@@ -1150,7 +1155,7 @@ class DataMinerTest < Test::Unit::TestCase
       assert T100FlightSegment.count('dest_country_name LIKE "%United States"') > 0
     end
     
-    should "mine residence survey day" do
+    should "mine residence survey responses" do
       ResidentialEnergyConsumptionSurveyResponse.run_data_miner!
       assert ResidentialEnergyConsumptionSurveyResponse.find(6).residence_class.starts_with?('Single-family detached house')
     end
