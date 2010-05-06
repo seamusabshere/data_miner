@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{data_miner}
-  s.version = "0.4.25"
+  s.version = "0.4.26"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Seamus Abshere", "Andy Rossmeissl"]
@@ -59,7 +59,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<conversions>, [">= 1.4.4"])
       s.add_runtime_dependency(%q<blockenspiel>, [">= 0.3.2"])
       s.add_runtime_dependency(%q<log4r>, [">= 1.1.7"])
-      s.add_development_dependency(%q<errata>, [">= 0.2.1"])
+      s.add_runtime_dependency(%q<errata>, [">= 0.2.1"])
       s.add_development_dependency(%q<loose_tight_dictionary>, [">= 0.0.5"])
     else
       s.add_dependency(%q<remote_table>, [">= 0.2.20"])
