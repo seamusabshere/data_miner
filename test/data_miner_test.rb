@@ -441,21 +441,12 @@ class Airport < ActiveRecord::Base
   end
 end
 
-class ClonedAirport < ActiveRecord::Base
+class TappedAirport < ActiveRecord::Base
   set_primary_key :iata_code
-  set_table_name 'airports'
   
   data_miner do
-    clone 'a sanitized airports table', :url => 'http://data.brighterplanet.com/airports.sql', :sanity_check => true
-  end
-end
-
-class BadlyClonedAirport < ActiveRecord::Base
-  set_primary_key :iata_code
-  set_table_name 'badly_cloned_airports'
-  
-  data_miner do
-    clone 'a sanitized airports table', :url => 'http://data.brighterplanet.com/airports.sql', :sanity_check => true
+    tap "Brighter Planet's sanitized airports table", "http://carbon:neutral@data.brighterplanet.com:5001", :source_table_name => 'airports'
+    # tap "Brighter Planet's sanitized airports table", "http://carbon:neutral@localhost:5000", :source_table_name => 'airports'
   end
 end
 
@@ -1094,21 +1085,15 @@ class DataMinerTest < Test::Unit::TestCase
       assert CrosscallingCensusDivision.exists? :name => 'Mountain Division', :number => 8, :census_region_number => 4, :census_region_name => 'West Region'
       assert CrosscallingCensusRegion.exists? :name => 'West Region', :number => 4
     end
-    
-    should "clone airports" do
-      ClonedAirport.run_data_miner!
-      assert ClonedAirport.count > 0
-    end
-    
-    should "raise an error when the SQL for cloning doesn't seem to match up" do
-      assert_raises(RuntimeError) do
-        BadlyClonedAirport.run_data_miner!
-      end
-    end
-    
+        
     should "import airports" do
       Airport.run_data_miner!
       assert Airport.count > 0
+    end
+    
+    should "tap airports" do
+      TappedAirport.run_data_miner!
+      assert TappedAirport.count > 0
     end
     
     should "pull in census divisions using a data.brighterplanet.com dictionary" do

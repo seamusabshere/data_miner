@@ -18,6 +18,7 @@ begin
     gem.add_dependency 'blockenspiel', '>=0.3.2'
     gem.add_dependency 'log4r', '>=1.1.7'
     gem.add_dependency 'errata', '>=0.2.1'
+    gem.add_dependency 'taps', '>=0.3.5'
     gem.add_development_dependency "loose_tight_dictionary", ">=0.0.5"
     gem.require_path = "lib"
     gem.files.include %w(lib/data_miner) unless gem.files.empty? # seems to fail once it's in the wild

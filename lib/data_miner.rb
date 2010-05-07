@@ -22,8 +22,8 @@ require 'data_miner/attribute'
 require 'data_miner/configuration'
 require 'data_miner/dictionary'
 require 'data_miner/import'
+require 'data_miner/tap'
 require 'data_miner/process'
-require 'data_miner/clone'
 require 'data_miner/run'
 
 module DataMiner
@@ -69,6 +69,24 @@ module DataMiner
   def self.resource_names
     DataMiner::Configuration.resource_names
   end
+  
+    # TODO this should probably live somewhere else
+  def self.backtick_with_reporting(cmd, raise_on_error = true)
+    cmd = cmd.gsub /\s+/m, ' '
+    output = `#{cmd}`
+    if raise_on_error and not $?.success?
+      raise %{
+From the data_miner gem...
+
+Command failed:
+#{cmd}
+
+Output:
+#{output}
+}
+    end
+  end
+
 end
 
 ActiveRecord::Base.class_eval do

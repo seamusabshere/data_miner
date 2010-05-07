@@ -86,9 +86,9 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.integer 'data_miner_last_run_id'
   end
   execute 'ALTER TABLE t100_flight_segments ADD PRIMARY KEY (row_hash);'
-  
-  create_table 'badly_cloned_airports', :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
-    t.string 'placeholder'
+
+  create_table 'tapped_airports', :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
+    t.string 'i_am_just_here_to_get_in_the_way'
   end
   
   create_table 'airports', :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|

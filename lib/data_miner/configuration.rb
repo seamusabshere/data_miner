@@ -16,8 +16,8 @@ module DataMiner
       self.step_counter += 1
     end
 
-    def clone(description, options = {})
-      steps << DataMiner::Clone.new(self, step_counter, description, options)
+    def tap(description, source, options = {})
+      steps << DataMiner::Tap.new(self, step_counter, description, source, options)
       self.step_counter += 1
     end
 
