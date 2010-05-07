@@ -1063,7 +1063,7 @@ class AircraftDeux < ActiveRecord::Base
     %w{ D }.each do |letter|
       import("ICAO codes starting with letter #{letter} used by the FAA",
               :url => "http://www.faa.gov/air_traffic/publications/atpubs/CNT/5-2-#{letter}.htm",
-              :encoding => 'US-ASCII',
+              :encoding => 'windows-1252',
               :errata => 'http://spreadsheets.google.com/pub?key=tObVAGyqOkCBtGid0tJUZrw',
               :row_xpath => '//table/tr[2]/td/table/tr',
               :column_xpath => 'td') do
