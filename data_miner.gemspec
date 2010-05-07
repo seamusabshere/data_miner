@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{data_miner}
-  s.version = "0.4.26"
+  s.version = "0.4.27"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Seamus Abshere", "Andy Rossmeissl"]
-  s.date = %q{2010-05-06}
+  s.date = %q{2010-05-07}
   s.description = %q{Mine remote data into your ActiveRecord models. You can also perform associations and convert units.}
   s.email = %q{seamus@abshere.net}
   s.extra_rdoc_files = [
@@ -27,12 +27,12 @@ Gem::Specification.new do |s|
      "data_miner.gemspec",
      "lib/data_miner.rb",
      "lib/data_miner/attribute.rb",
-     "lib/data_miner/clone.rb",
      "lib/data_miner/configuration.rb",
      "lib/data_miner/dictionary.rb",
      "lib/data_miner/import.rb",
      "lib/data_miner/process.rb",
      "lib/data_miner/run.rb",
+     "lib/data_miner/tap.rb",
      "test/data_miner_test.rb",
      "test/test_helper.rb"
   ]
@@ -60,6 +60,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<blockenspiel>, [">= 0.3.2"])
       s.add_runtime_dependency(%q<log4r>, [">= 1.1.7"])
       s.add_runtime_dependency(%q<errata>, [">= 0.2.1"])
+      s.add_runtime_dependency(%q<taps>, [">= 0.3.5"])
       s.add_development_dependency(%q<loose_tight_dictionary>, [">= 0.0.5"])
     else
       s.add_dependency(%q<remote_table>, [">= 0.2.20"])
@@ -70,6 +71,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<blockenspiel>, [">= 0.3.2"])
       s.add_dependency(%q<log4r>, [">= 1.1.7"])
       s.add_dependency(%q<errata>, [">= 0.2.1"])
+      s.add_dependency(%q<taps>, [">= 0.3.5"])
       s.add_dependency(%q<loose_tight_dictionary>, [">= 0.0.5"])
     end
   else
@@ -81,6 +83,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<blockenspiel>, [">= 0.3.2"])
     s.add_dependency(%q<log4r>, [">= 1.1.7"])
     s.add_dependency(%q<errata>, [">= 0.2.1"])
+    s.add_dependency(%q<taps>, [">= 0.3.5"])
     s.add_dependency(%q<loose_tight_dictionary>, [">= 0.0.5"])
   end
 end
