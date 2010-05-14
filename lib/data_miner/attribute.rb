@@ -23,7 +23,8 @@ module DataMiner
       :units_field_name,
       :units_field_number,
       :field_number,
-      :chars
+      :chars,
+      :synthesize
     ]
 
     def initialize(step, name, options = {})
@@ -82,6 +83,7 @@ module DataMiner
       value = value_in_source row
       return value if value.is_a? ActiveRecord::Base # carry through trapdoor
       value = value_in_dictionary value if wants_dictionary?
+      value = synthesize.call(row) if wants_synthesize?
       value
     end
         
@@ -153,6 +155,9 @@ module DataMiner
     def wants_chars?
       chars.present?
     end
+    def wants_synthesize?
+      synthesize.is_a?(Proc)
+    end
     def wants_overwriting?
       overwrite != false
     end
@@ -211,6 +216,9 @@ module DataMiner
     end
     def chars
       options[:chars]
+    end
+    def synthesize
+      options[:synthesize]
     end
     def static
       options[:static]

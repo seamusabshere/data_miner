@@ -1068,12 +1068,53 @@ class AircraftDeux < ActiveRecord::Base
   end
 end
 
+class AutomobileMakeFleetYear < ActiveRecord::Base
+  set_primary_key :name
+
+  data_miner do
+    process "create a table on the fly" do
+      create_table "automobile_make_fleet_years", :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
+        t.string "name"
+        t.string   "make_name"
+        t.string   "fleet"
+        t.integer   "year"
+        t.float    "fuel_efficiency"
+        t.string "fuel_efficiency_units"
+        t.integer  "volume"
+        t.string  "make_year_name"
+        t.datetime "created_at"
+        t.datetime "updated_at"
+        t.integer  'data_miner_touch_count'
+        t.integer  'data_miner_last_run_id'
+      end
+      execute 'ALTER TABLE automobile_make_fleet_years ADD PRIMARY KEY (name)'
+    end
+
+    # CAFE data privately emailed to Andy from Terry Anderson at the DOT/NHTSA
+    import :url => 'http://static.brighterplanet.com/science/data/transport/automobiles/make_fleet_years/make_fleet_years.csv',
+           :errata => 'http://static.brighterplanet.com/science/data/transport/automobiles/make_fleet_years/errata.csv',
+           :select => lambda { |row| row['volume'].to_i > 0 } do
+      key   'name', :synthesize => lambda { |row| [ row['manufacturer_name'], row['fleet'][2,2], row['year_content'] ].join ' ' }
+      store 'make_name', :field_name => 'manufacturer_name'
+      store 'year', :field_name => 'year_content'
+      store 'fleet', :chars => 2..3 # zero-based
+      store 'fuel_efficiency', :from_units => :miles_per_gallon, :to_units => :kilometres_per_litre
+      store 'volume'
+    end
+  end
+end
+
 # todo: have somebody properly organize these
 class DataMinerTest < Test::Unit::TestCase
   if ENV['ALL'] == 'true' or ENV['NEW'] == 'true'
   end
     
   if ENV['ALL'] == 'true' or ENV['FAST'] == 'true'
+    should "be able to synthesize rows without using a full parser class" do
+      AutomobileMakeFleetYear.run_data_miner!
+      assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')
+    end
+    
     should "keep a call stack so that you can call run_data_miner! on a child" do
       CrosscallingCensusDivision.run_data_miner!
       assert CrosscallingCensusDivision.exists? :name => 'Mountain Division', :number => 8, :census_region_number => 4, :census_region_name => 'West Region'
