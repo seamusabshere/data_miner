@@ -47,8 +47,6 @@ module DataMiner
     end
 
     def run(run)
-      begin; ActiveRecord::Base.connection.execute("SET NAMES 'utf8'"); rescue; end
-      
       increment_counter = resource.column_names.include?('data_miner_touch_count')
       log_run = resource.column_names.include?('data_miner_last_run_id')
       test_counter = 0
