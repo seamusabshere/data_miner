@@ -15,7 +15,7 @@ ActiveRecord::Base.establish_connection(
 )
 
 ActiveSupport::Inflector.inflections do |inflect|
-  inflect.uncountable %w{ aircraft aircraft_deux }
+  inflect.uncountable %w{ aircraft aircraft_deux census_division_deux }
 end
 
 class Test::Unit::TestCase
@@ -137,6 +137,19 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.integer 'data_miner_last_run_id'
   end
   execute 'ALTER TABLE census_divisions ADD PRIMARY KEY (number);'
+  
+  create_table 'census_division_deux', :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
+    t.integer  'number'
+    t.string   'name'
+    t.datetime 'updated_at'
+    t.datetime 'created_at'
+    t.string   'census_region_name'
+    t.integer  'census_region_number'
+    
+    t.integer 'data_miner_touch_count'
+    t.integer 'data_miner_last_run_id'
+  end
+  execute 'ALTER TABLE census_division_deux ADD PRIMARY KEY (number);'
   
   create_table 'crosscalling_census_divisions', :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
     t.integer  'number'
@@ -282,7 +295,7 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.string   "bts_name"
     t.string "bts_aircraft_type_code"
 
-    # t.string   'brighter_planet_aircraft_class_code'
+    t.string   'brighter_planet_aircraft_class_code'
     # t.float    'm3'
     # t.float    'm2'
     # t.float    'm1'

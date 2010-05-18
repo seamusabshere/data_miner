@@ -49,6 +49,7 @@ module DataMiner
     def run(run)
       increment_counter = resource.column_names.include?('data_miner_touch_count')
       log_run = resource.column_names.include?('data_miner_last_run_id')
+      primary_key = resource.primary_key
       test_counter = 0
 
       table.each_row do |row|
@@ -67,7 +68,7 @@ OUT: #{attributes.inject(Hash.new) { |memo, v| attr_name, attr = v; memo[attr_na
           record.increment :data_miner_touch_count if increment_counter
           record.data_miner_last_run = run if log_run
         end
-        record.save!
+        record.save! if record.send(primary_key).present?
       end
       DataMiner.log_info "performed #{inspect}"
     end

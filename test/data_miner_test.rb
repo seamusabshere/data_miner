@@ -482,6 +482,19 @@ class CensusDivision < ActiveRecord::Base
   end
 end
 
+class CensusDivisionDeux < ActiveRecord::Base
+  set_primary_key :number
+  
+  data_miner do
+    import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Division'].to_s.strip != 'X' and row['FIPS CODE STATE'].to_s.strip == 'X'} do
+      key 'number', :field_name => 'Division'
+      store 'name', :field_name => 'Name'
+      store 'census_region_number', :field_name => 'Region'
+      store 'census_region_name', :field_name => 'Region', :dictionary => DataMiner::Dictionary.new(:input => 'number', :output => 'name', :url => 'http://data.brighterplanet.com/census_regions.csv')
+    end
+  end
+end
+
 class CrosscallingCensusRegion < ActiveRecord::Base
   set_primary_key :number
   
@@ -1009,6 +1022,12 @@ class Aircraft < ActiveRecord::Base
         store 'manufacturer_name', :field_name => 'Manufacturer'
         store 'name', :field_name => 'Model'
       end
+      
+      import 'Brighter Planet aircraft class codes',
+             :url => 'http://static.brighterplanet.com/science/data/transport/air/bts_aircraft_type/bts_aircraft_types-brighter_planet_aircraft_classes.csv' do
+        key   'bts_aircraft_type_code', :field_name => 'bts_aircraft_type'
+        store 'brighter_planet_aircraft_class_code'
+      end
     end
   end
 end
@@ -1110,6 +1129,16 @@ class DataMinerTest < Test::Unit::TestCase
   end
     
   if ENV['ALL'] == 'true' or ENV['FAST'] == 'true'
+    should "allow specifying dictionaries explicitly" do
+      CensusDivisionDeux.run_data_miner!
+      assert_equal 'South Region', CensusDivisionDeux.find(5).census_region_name
+    end
+    
+    should "be able to key on things other than the primary key" do
+      Aircraft.run_data_miner!
+      assert_equal 'SP', Aircraft.find('DHC6').brighter_planet_aircraft_class_code
+    end
+    
     should "be able to synthesize rows without using a full parser class" do
       AutomobileMakeFleetYear.run_data_miner!
       assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')

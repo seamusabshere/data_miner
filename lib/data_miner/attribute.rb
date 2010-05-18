@@ -224,7 +224,7 @@ module DataMiner
       options[:static]
     end
     def dictionary
-      @_dictionary ||= Dictionary.new options[:dictionary]
+      @_dictionary ||= (options[:dictionary].is_a?(Dictionary) ? options[:dictionary] : Dictionary.new(options[:dictionary]))
     end
     def matcher
       @_matcher ||= (options[:matcher].is_a?(String) ? options[:matcher].constantize.new : options[:matcher])
