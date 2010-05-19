@@ -62,6 +62,10 @@ module DataMiner
     logger.info "[data_miner gem] #{message}"
   end
   
+  def self.log_debug(message)
+    logger.debug "[data_miner gem] #{message}"
+  end
+  
   def self.run(options = {})
     DataMiner::Configuration.run options
   end
