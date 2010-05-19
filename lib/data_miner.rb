@@ -25,6 +25,7 @@ require 'data_miner/import'
 require 'data_miner/tap'
 require 'data_miner/process'
 require 'data_miner/run'
+require 'data_miner/schema'
 
 module DataMiner
   class MissingHashColumn < RuntimeError; end

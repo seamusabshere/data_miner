@@ -1091,22 +1091,19 @@ class AutomobileMakeFleetYear < ActiveRecord::Base
   set_primary_key :name
 
   data_miner do
-    process "create a table on the fly" do
-      create_table "automobile_make_fleet_years", :force => true, :options => 'ENGINE=InnoDB default charset=utf8', :id => false do |t|
-        t.string "name"
-        t.string   "make_name"
-        t.string   "fleet"
-        t.integer   "year"
-        t.float    "fuel_efficiency"
-        t.string "fuel_efficiency_units"
-        t.integer  "volume"
-        t.string  "make_year_name"
-        t.datetime "created_at"
-        t.datetime "updated_at"
-        t.integer  'data_miner_touch_count'
-        t.integer  'data_miner_last_run_id'
-      end
-      execute 'ALTER TABLE automobile_make_fleet_years ADD PRIMARY KEY (name)'
+    schema :id => false do
+      string "name"
+      string   "make_name"
+      string   "fleet"
+      integer   "year"
+      float    "fuel_efficiency"
+      string "fuel_efficiency_units"
+      integer  "volume"
+      string  "make_year_name"
+      datetime "created_at"
+      datetime "updated_at"
+      integer  'data_miner_touch_count'
+      integer  'data_miner_last_run_id'
     end
 
     # CAFE data privately emailed to Andy from Terry Anderson at the DOT/NHTSA
@@ -1123,12 +1120,55 @@ class AutomobileMakeFleetYear < ActiveRecord::Base
   end
 end
 
+class CensusDivisionTrois < ActiveRecord::Base
+  set_primary_key :number_code
+  data_miner do
+    schema :options => 'ENGINE=InnoDB default charset=utf8', :id => false do
+      string  'number_code'
+      string   'name'
+      string   'census_region_name'
+      integer  'census_region_number'
+      index    'census_region_name', :name => 'homefry'
+    end
+  end
+end
+
 # todo: have somebody properly organize these
 class DataMinerTest < Test::Unit::TestCase
   if ENV['ALL'] == 'true' or ENV['NEW'] == 'true'
   end
     
   if ENV['ALL'] == 'true' or ENV['FAST'] == 'true'
+    should "eagerly enforce a schema" do
+      ActiveRecord::Base.connection.create_table 'census_division_trois', :force => true, :options => 'ENGINE=InnoDB default charset=utf8' do |t|
+        t.string   'name'
+        # t.datetime 'updated_at'
+        # t.datetime 'created_at'
+        t.string   'census_region_name'
+        # t.integer  'census_region_number'
+        # t.integer 'data_miner_touch_count'
+        # t.integer 'data_miner_last_run_id'
+      end
+      ActiveRecord::Base.connection.execute 'ALTER TABLE census_division_trois ADD INDEX (census_region_name)'
+      CensusDivisionTrois.reset_column_information
+      missing_columns = %w{ updated_at created_at census_region_number data_miner_last_run_id data_miner_touch_count }
+
+      # sanity check
+      missing_columns.each do |column|
+        assert_equal false, CensusDivisionTrois.column_names.include?(column)
+      end
+      assert_equal false, ActiveRecord::Base.connection.indexes(CensusDivisionTrois.table_name).any? { |index| index.name == 'homefry' }
+      
+      3.times do
+        CensusDivisionTrois.run_data_miner!
+        missing_columns.each do |column|
+          assert_equal true, CensusDivisionTrois.column_names.include?(column)
+        end
+        assert_equal true, ActiveRecord::Base.connection.indexes(CensusDivisionTrois.table_name).any? { |index| index.name == 'homefry' }
+        assert_equal :string, CensusDivisionTrois.columns_hash[CensusDivisionTrois.primary_key].type
+      end
+    end
+    
     should "allow specifying dictionaries explicitly" do
       CensusDivisionDeux.run_data_miner!
       assert_equal 'South Region', CensusDivisionDeux.find(5).census_region_name

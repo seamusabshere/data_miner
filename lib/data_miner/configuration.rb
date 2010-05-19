@@ -11,6 +11,13 @@ module DataMiner
       @attributes = HashWithIndifferentAccess.new
     end
     
+    def schema(create_table_options = {}, &block)
+      step = DataMiner::Schema.new self, step_counter, create_table_options
+      Blockenspiel.invoke block, step
+      steps << step
+      self.step_counter += 1
+    end
+    
     def process(method_name_or_block_description, &block)
       steps << DataMiner::Process.new(self, step_counter, method_name_or_block_description, &block)
       self.step_counter += 1

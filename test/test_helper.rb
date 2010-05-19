@@ -15,7 +15,7 @@ ActiveRecord::Base.establish_connection(
 )
 
 ActiveSupport::Inflector.inflections do |inflect|
-  inflect.uncountable %w{ aircraft aircraft_deux census_division_deux }
+  inflect.uncountable %w{ aircraft aircraft_deux census_division_deux census_division_trois }
 end
 
 class Test::Unit::TestCase
