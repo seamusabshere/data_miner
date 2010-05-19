@@ -11,6 +11,10 @@ module DataMiner
       @configuration = configuration
       @position_in_run = position_in_run
       @create_table_options = create_table_options
+      @create_table_options.symbolize_keys!
+      DataMiner.log_or_raise ":id => true is not allowed in create_table_options." if @create_table_options[:id] === true
+      DataMiner.log_or_raise ":primary_key is not allowed in create_table_options. Use set_primary_key instead." if @create_table_options.has_key?(:primary_key)
+      @create_table_options[:id] = false # always
     end
     
     def connection
@@ -34,11 +38,11 @@ module DataMiner
     end
     
     def description
-      "Define a table called #{table_name} with primary key #{primary_key}"
+      "Define a table called #{table_name} with primary key #{ideal_primary_key_name}"
     end
     
     def inspect
-      "Block(#{resource}): #{description}"
+      "Schema(#{resource}): #{description}"
     end
     
     # lifted straight from activerecord-3.0.0.beta3/lib/active_record/connection_adapters/abstract/schema_definitions.rb
@@ -55,31 +59,46 @@ module DataMiner
     def column(*args)
       ideal_table.column(*args)
     end
-    # class IndexDefinition < Struct.new(:table, :name, :unique, :columns)
     def index(columns, options = {})
       options.symbolize_keys!
       columns = Array.wrap columns
-      name = connection.index_name table_name, options.merge(:columns => columns)
+      name = options[:name] || connection.index_name(table_name, options.merge(:column => columns))
       index_unique = options.has_key?(:unique) ? options[:unique] : true
       ideal_indexes.push ActiveRecord::ConnectionAdapters::IndexDefinition.new(table_name, name, index_unique, columns)
     end
-        
-    def primary_key
+    
+    def ideal_primary_key_name
       resource.primary_key.to_s
     end
     
+    def actual_primary_key_name
+      connection.primary_key(table_name).to_s
+    end
+        
     INDEX_PROPERTIES = %w{ name columns }
-    COLUMN_PROPERTIES = %w{ name type }
+    def index_equivalent?(a, b)
+      return false unless a and b
+      INDEX_PROPERTIES.all? do |property|
+        DataMiner.log_debug "...comparing #{a.send(property).inspect}.to_s <-> #{b.send(property).inspect}.to_s"
+        a.send(property).to_s == b.send(property).to_s
+      end
+    end
+
+    # FIXME mysql only (assume integer primary keys)
+    def column_equivalent?(a, b)
+      return false unless a and b
+      a_type = a.type.to_s == 'primary_key' ? 'integer' : a.type.to_s
+      b_type = b.type.to_s == 'primary_key' ? 'integer' : b.type.to_s
+      a_type == b_type and a.name.to_s == b.name.to_s
+    end
+
     %w{ column index }.each do |i|
       eval %{
         def #{i}_needs_to_be_placed?(name)
           actual = actual_#{i} name
           return true unless actual
           ideal = ideal_#{i} name
-          #{i.upcase}_PROPERTIES.any? do |property|
-            DataMiner.log_debug "...comparing \#{actual.send(property).inspect}.to_s <-> \#{ideal.send(property).inspect}.to_s"
-            actual.send(property).to_s != ideal.send(property).to_s
-          end
+          not #{i}_equivalent? actual, ideal
         end
     
         def #{i}_needs_to_be_removed?(name)
@@ -107,13 +126,13 @@ module DataMiner
     def place_column(name)
       remove_column name if actual_column name
       ideal = ideal_column name
-      DataMiner.log_info "adding column #{name}"
+      DataMiner.log_debug "ADDING COLUMN #{name}"
       connection.add_column table_name, name, ideal.type.to_sym # symbol type!
       resource.reset_column_information
     end
     
     def remove_column(name)
-      DataMiner.log_info "removing column #{name}"
+      DataMiner.log_debug "REMOVING COLUMN #{name}"
       connection.remove_column table_name, name
       resource.reset_column_information
     end
@@ -121,17 +140,17 @@ module DataMiner
     def place_index(name)
       remove_index name if actual_index name
       ideal = ideal_index name
-      DataMiner.log_info "adding index #{name}"
+      DataMiner.log_debug "ADDING INDEX #{name}"
       connection.add_index table_name, ideal.columns, :name => ideal.name
       resource.reset_column_information
     end
     
     def remove_index(name)
-      DataMiner.log_info "removing index #{name}"
+      DataMiner.log_debug "REMOVING INDEX #{name}"
       connection.remove_index table_name, :name => name
       resource.reset_column_information
     end
-        
+    
     def run(run)
       _add_extra_columns
       _create_table
@@ -140,7 +159,7 @@ module DataMiner
       _add_columns
       _remove_indexes
       _add_indexes
-      DataMiner.log_info "ran #{inspect}"
+      DataMiner.log_debug "ran #{inspect}"
     end
     
     EXTRA_COLUMNS = {
@@ -157,7 +176,7 @@ module DataMiner
     
     def _create_table
       if not resource.table_exists?
-        DataMiner.log_info "creating table #{table_name} with #{create_table_options.inspect}"
+        DataMiner.log_debug "CREATING TABLE #{table_name} with #{create_table_options.inspect}"
         connection.create_table table_name, create_table_options do |t|
           t.integer :data_miner_placeholder
         end
@@ -167,26 +186,25 @@ module DataMiner
     
     # FIXME mysql only
     def _set_primary_key
-      if column_needs_to_be_placed?(primary_key)
-        retries_allowed = 1
-        begin
-          place_column primary_key
-          DataMiner.log_info "adding primary key #{primary_key}"
-          connection.execute "ALTER TABLE `#{table_name}` ADD PRIMARY KEY (`#{primary_key}`)"
-        rescue
-          if retries_allowed > 0 and $!.message =~ /primary/i
-            DataMiner.log_info "looks like primary key changed, re-creating table from scratch"
-            connection.drop_table table_name
-            resource.reset_column_information
-            _create_table
-            retries_allowed -= 1
-            retry
-          else
-            raise $!
-          end
-        end
-        resource.reset_column_information
+      if ideal_primary_key_name == 'id' and not ideal_column('id')
+        DataMiner.log_debug "no special primary key set on #{table_name}, so using 'id'"
+        column 'id', :primary_key
       end
+      actual = actual_column actual_primary_key_name
+      ideal = ideal_column ideal_primary_key_name
+      if not column_equivalent? actual, ideal
+        DataMiner.log_debug "looks like #{table_name} has a bad (or missing) primary key"
+        if actual
+          DataMiner.log_debug "looks like primary key needs to change from #{actual_primary_key_name} to #{ideal_primary_key_name}, re-creating #{table_name} from scratch"
+          connection.drop_table table_name
+          resource.reset_column_information
+          _create_table
+        end
+        place_column ideal_primary_key_name
+        DataMiner.log_debug "ADDING PRIMARY KEY #{ideal_primary_key_name}"
+        connection.execute "ALTER TABLE `#{table_name}` ADD PRIMARY KEY (`#{ideal_primary_key_name}`)"
+      end
+      resource.reset_column_information
     end
     
     def _remove_columns
@@ -209,7 +227,7 @@ module DataMiner
     
     def _add_indexes
       ideal_indexes.each do |ideal|
-        next if ideal.name == primary_key # this should already have been taken care of
+        next if ideal.name == ideal_primary_key_name # this should already have been taken care of
         place_index ideal.name if index_needs_to_be_placed? ideal.name
       end
     end

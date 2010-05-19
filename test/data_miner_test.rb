@@ -1123,7 +1123,19 @@ end
 class CensusDivisionTrois < ActiveRecord::Base
   set_primary_key :number_code
   data_miner do
-    schema :options => 'ENGINE=InnoDB default charset=utf8', :id => false do
+    schema :options => 'ENGINE=InnoDB default charset=utf8' do
+      string  'number_code'
+      string   'name'
+      string   'census_region_name'
+      integer  'census_region_number'
+      index    'census_region_name', :name => 'homefry'
+    end
+  end
+end
+
+class CensusDivisionFour < ActiveRecord::Base
+  data_miner do
+    schema do
       string  'number_code'
       string   'name'
       string   'census_region_name'
@@ -1166,6 +1178,36 @@ class DataMinerTest < Test::Unit::TestCase
         end
         assert_equal true, ActiveRecord::Base.connection.indexes(CensusDivisionTrois.table_name).any? { |index| index.name == 'homefry' }
         assert_equal :string, CensusDivisionTrois.columns_hash[CensusDivisionTrois.primary_key].type
+      end
+    end
+    
+    should "let schemas work with default id primary keys" do
+      ActiveRecord::Base.connection.create_table 'census_division_fours', :id => true, :force => true, :options => 'ENGINE=InnoDB default charset=utf8' do |t|
+        t.string   'name'
+        # t.datetime 'updated_at'
+        # t.datetime 'created_at'
+        t.string   'census_region_name'
+        # t.integer  'census_region_number'
+        # t.integer 'data_miner_touch_count'
+        # t.integer 'data_miner_last_run_id'
+      end
+      ActiveRecord::Base.connection.execute 'ALTER TABLE census_division_fours ADD INDEX (census_region_name)'
+      CensusDivisionFour.reset_column_information
+      missing_columns = %w{ updated_at created_at census_region_number data_miner_last_run_id data_miner_touch_count }
+    
+      # sanity check
+      missing_columns.each do |column|
+        assert_equal false, CensusDivisionFour.column_names.include?(column)
+      end
+      assert_equal false, ActiveRecord::Base.connection.indexes(CensusDivisionFour.table_name).any? { |index| index.name == 'homefry' }
+      
+      3.times do
+        CensusDivisionFour.run_data_miner!
+        missing_columns.each do |column|
+          assert_equal true, CensusDivisionFour.column_names.include?(column)
+        end
+        assert_equal true, ActiveRecord::Base.connection.indexes(CensusDivisionFour.table_name).any? { |index| index.name == 'homefry' }
+        assert_equal :integer, CensusDivisionFour.columns_hash[CensusDivisionFour.primary_key].type
       end
     end
     
