@@ -1182,7 +1182,7 @@ class DataMinerTest < Test::Unit::TestCase
     end
     
     should "let schemas work with default id primary keys" do
-      ActiveRecord::Base.connection.create_table 'census_division_fours', :id => true, :force => true, :options => 'ENGINE=InnoDB default charset=utf8' do |t|
+      ActiveRecord::Base.connection.create_table 'census_division_fours', :force => true, :options => 'ENGINE=InnoDB default charset=utf8' do |t|
         t.string   'name'
         # t.datetime 'updated_at'
         # t.datetime 'created_at'
