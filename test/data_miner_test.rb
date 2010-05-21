@@ -1354,7 +1354,7 @@ class DataMinerTest < Test::Unit::TestCase
     
     should "mine residence survey responses" do
       ResidentialEnergyConsumptionSurveyResponse.run_data_miner!
-      assert ResidentialEnergyConsumptionSurveyResponse.find(6).residence_class.starts_with?('Single-family detached house')
+      assert ResidentialEnergyConsumptionSurveyResponse.find(6).residence_class.start_with?('Single-family detached house')
     end
   end
 end

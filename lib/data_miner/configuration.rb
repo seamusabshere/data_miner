@@ -128,7 +128,7 @@ You need to supply one of #{COMPLETE_UNIT_DEFINITIONS.map(&:inspect).to_sentence
       
       import_steps.each do |step|
         step.attributes.each do |_, attribute|
-          DataMiner.log_or_raise "You can't have an attribute column that ends in _units (reserved): #{resource.table_name}.#{attribute.name}" if attribute.name.ends_with? '_units'
+          DataMiner.log_or_raise "You can't have an attribute column that ends in _units (reserved): #{resource.table_name}.#{attribute.name}" if attribute.name.end_with? '_units'
           unless resource.column_names.include? attribute.name
             missing_columns << attribute.name
           end
@@ -153,7 +153,7 @@ and **replace** the resulting file with this:
 
   class AddMissingColumnsTo#{resource.name} < ActiveRecord::Migration
     def self.up
-#{missing_columns.map { |column_name| "      add_column :#{resource.table_name}, :#{column_name}, :#{column_name.ends_with?('_units') ? 'string' : 'FIXME_WHAT_COLUMN_TYPE_AM_I' }" }.join("\n") }
+#{missing_columns.map { |column_name| "      add_column :#{resource.table_name}, :#{column_name}, :#{column_name.end_with?('_units') ? 'string' : 'FIXME_WHAT_COLUMN_TYPE_AM_I' }" }.join("\n") }
 #{non_essential_missing_columns.map { |column_name| "      add_column :#{resource.table_name}, :#{column_name}, :integer #optional" }.join("\n") }
     end
     
@@ -165,7 +165,7 @@ and **replace** the resulting file with this:
 
 On the other hand, if you're working directly with create_table, this might be helpful:
 
-#{missing_columns.map { |column_name| "t.#{column_name.ends_with?('_units') ? 'string' : 'FIXME_WHAT_COLUMN_TYPE_AM_I' } '#{column_name}'" }.join("\n") }
+#{missing_columns.map { |column_name| "t.#{column_name.end_with?('_units') ? 'string' : 'FIXME_WHAT_COLUMN_TYPE_AM_I' } '#{column_name}'" }.join("\n") }
 #{non_essential_missing_columns.map { |column_name| "t.integer '#{column_name}' #optional" }.join("\n") }
 
 ================================
