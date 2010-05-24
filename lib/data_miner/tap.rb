@@ -104,7 +104,16 @@ module DataMiner
     
     # taps pull mysql://root:password@localhost/taps_test http://foo:bar@data.brighterplanet.com:5000 --tables aircraft
     def taps_pull_cmd
-      "taps pull #{adapter}://#{db_locator} #{source} --indexes-first --tables #{source_table_name}"
+      Escape.shell_command [
+        'taps',
+        'pull',
+        "#{adapter}://#{db_locator}",
+        source,
+        '--indexes-first',
+        '--tables',
+        source_table_name
+      ]
+      # "taps pull  #{source} --indexes-first --tables #{source_table_name}"
     end
     
     # 2.3.5 mysql

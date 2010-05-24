@@ -13,6 +13,7 @@ require 'blockenspiel'
 require 'conversions'
 require 'errata'
 require 'remote_table'
+require 'escape'
 require 'andand'
 require 'log4r'
 require 'fileutils'
@@ -76,10 +77,10 @@ module DataMiner
   end
   
     # TODO this should probably live somewhere else
-  def self.backtick_with_reporting(cmd, raise_on_error = true)
-    cmd = cmd.gsub /\s+/m, ' '
+  def self.backtick_with_reporting(cmd)
+    cmd = cmd.gsub /[ ]*\n[ ]*/m, ' '
     output = `#{cmd}`
-    if raise_on_error and not $?.success?
+    if not $?.success?
       raise %{
 From the data_miner gem...
 
