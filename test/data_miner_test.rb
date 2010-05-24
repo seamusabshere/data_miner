@@ -503,12 +503,12 @@ class CrosscallingCensusRegion < ActiveRecord::Base
   data_miner do
     process "derive ourselves from the census divisions table (i.e., cross call census divisions)" do
       CrosscallingCensusDivision.run_data_miner!
-      create_table :crosscalling_census_regions, :options => 'ENGINE=InnoDB default charset=utf8', :id => false, :force => true do |t|
+      connection.create_table :crosscalling_census_regions, :options => 'ENGINE=InnoDB default charset=utf8', :id => false, :force => true do |t|
         t.column :number, :integer
         t.column :name, :string
       end
-      execute 'ALTER TABLE crosscalling_census_regions ADD PRIMARY KEY (number);'
-      execute %{
+      connection.execute 'ALTER TABLE crosscalling_census_regions ADD PRIMARY KEY (number);'
+      connection.execute %{
         INSERT IGNORE INTO crosscalling_census_regions(number, name)
         SELECT crosscalling_census_divisions.census_region_number, crosscalling_census_divisions.census_region_name FROM crosscalling_census_divisions
       }
@@ -976,6 +976,10 @@ class Aircraft < ActiveRecord::Base
   
   class Guru
     # for errata
+    def is_attributed_to_boeing?(row)
+      row['Manufacturer'] =~ /BOEING/i
+    end
+    
     def is_not_attributed_to_aerospatiale?(row)
       not row['Manufacturer'] =~ /AEROSPATIALE/i
     end
@@ -1105,6 +1109,10 @@ class AutomobileMakeFleetYear < ActiveRecord::Base
       integer  'data_miner_touch_count'
       integer  'data_miner_last_run_id'
     end
+    
+    process "stop if i tell you to" do
+      raise DataMiner::Stop if $stop_stop
+    end
 
     # CAFE data privately emailed to Andy from Terry Anderson at the DOT/NHTSA
     import :url => 'http://static.brighterplanet.com/science/data/transport/automobiles/make_fleet_years/make_fleet_years.csv',
@@ -1151,6 +1159,19 @@ class DataMinerTest < Test::Unit::TestCase
   end
     
   if ENV['ALL'] == 'true' or ENV['FAST'] == 'true'
+    should "stop and finish if it gets a DataMiner::Stop" do
+      AutomobileMakeFleetYear.delete_all
+      AutomobileMakeFleetYear.data_miner_runs.delete_all
+      $stop_stop = true
+      AutomobileMakeFleetYear.run_data_miner!
+      assert_equal 0, AutomobileMakeFleetYear.count
+      assert_equal true, (AutomobileMakeFleetYear.data_miner_runs.count > 0)
+      assert_equal true, AutomobileMakeFleetYear.data_miner_runs.all? { |run| run.finished? }
+      $stop_stop = false
+      AutomobileMakeFleetYear.run_data_miner!
+      assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')
+    end
+    
     should "eagerly enforce a schema" do
       ActiveRecord::Base.connection.create_table 'census_division_trois', :force => true, :options => 'ENGINE=InnoDB default charset=utf8' do |t|
         t.string   'name'

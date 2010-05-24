@@ -63,6 +63,8 @@ module DataMiner
           resource.reset_column_information
         end
         finished = true
+      rescue DataMiner::Stop
+        finished = true
       ensure
         run.update_attributes! :ended_at => Time.now, :finished => finished if DataMiner::Run.table_exists?
         DataMiner::Configuration.call_stack.clear if DataMiner::Configuration.call_stack.first == resource.name
