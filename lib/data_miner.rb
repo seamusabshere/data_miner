@@ -111,8 +111,6 @@ ActiveRecord::Base.class_eval do
     
     DataMiner.resource_names.push self.name unless DataMiner.resource_names.include? self.name
 
-    belongs_to :data_miner_last_run, :class_name => 'DataMiner::Run'
-    
     # this is class_eval'ed here so that each ActiveRecord descendant has its own copy, or none at all
     class_eval do
       cattr_accessor :data_miner_config

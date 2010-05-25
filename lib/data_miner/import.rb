@@ -47,8 +47,6 @@ module DataMiner
     end
 
     def run(run)
-      increment_counter = resource.column_names.include?('data_miner_touch_count')
-      log_run = resource.column_names.include?('data_miner_last_run_id')
       primary_key = resource.primary_key
       test_counter = 0
 
@@ -63,11 +61,7 @@ OUT: #{attributes.inject(Hash.new) { |memo, v| attr_name, attr = v; memo[attr_na
         end
       
         record = resource.send "find_or_initialize_by_#{@key}", attributes[@key].value_from_row(row)
-        changes = attributes.map { |_, attr| attr.set_record_from_row record, row }
-        if changes.any?
-          record.increment :data_miner_touch_count if increment_counter
-          record.data_miner_last_run = run if log_run
-        end
+        attributes.each { |_, attr| attr.set_record_from_row record, row }
         record.save! if record.send(primary_key).present?
       end
       DataMiner.log_info "performed #{inspect}"

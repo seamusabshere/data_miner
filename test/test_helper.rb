@@ -82,8 +82,6 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.datetime "updated_at"
     
     t.string   "row_hash"
-    t.integer 'data_miner_touch_count'
-    t.integer 'data_miner_last_run_id'
   end
   execute 'ALTER TABLE t100_flight_segments ADD PRIMARY KEY (row_hash);'
 
@@ -100,8 +98,6 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.float    'longitude'
     t.datetime 'created_at'
     t.datetime 'updated_at'
-    t.integer 'data_miner_touch_count'
-    t.integer 'data_miner_last_run_id'
   end
   execute 'ALTER TABLE airports ADD PRIMARY KEY (iata_code);'
   
@@ -110,8 +106,6 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.integer 'data_miner_touch_count'
-    t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE countries ADD PRIMARY KEY (iso_3166);"
   
@@ -120,8 +114,6 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.string   "name"
     t.datetime "updated_at"
     t.datetime "created_at"
-    t.integer 'data_miner_touch_count'
-    t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE census_regions ADD PRIMARY KEY (number);"
   
@@ -133,8 +125,6 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.string   'census_region_name'
     t.integer  'census_region_number'
     
-    t.integer 'data_miner_touch_count'
-    t.integer 'data_miner_last_run_id'
   end
   execute 'ALTER TABLE census_divisions ADD PRIMARY KEY (number);'
   
@@ -146,8 +136,6 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.string   'census_region_name'
     t.integer  'census_region_number'
     
-    t.integer 'data_miner_touch_count'
-    t.integer 'data_miner_last_run_id'
   end
   execute 'ALTER TABLE census_division_deux ADD PRIMARY KEY (number);'
   
@@ -159,8 +147,6 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.string   'census_region_name'
     t.integer  'census_region_number'
     
-    t.integer 'data_miner_touch_count'
-    t.integer 'data_miner_last_run_id'
   end
   execute 'ALTER TABLE crosscalling_census_divisions ADD PRIMARY KEY (number);'
   
@@ -195,8 +181,6 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.string 'fuel_efficiency_city_units'
     
     t.string   "row_hash"
-    t.integer 'data_miner_touch_count'
-    t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE automobile_variants ADD PRIMARY KEY (row_hash);"
   
@@ -207,8 +191,6 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     t.float    "emission_factor"
     t.float    "annual_distance"
     t.string   "code"
-    t.integer 'data_miner_touch_count'
-    t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE automobile_fuel_types ADD PRIMARY KEY (code);"
 
@@ -282,8 +264,6 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.integer 'data_miner_touch_count'
-    t.integer 'data_miner_last_run_id'
   end
   execute "ALTER TABLE residential_energy_consumption_survey_responses ADD PRIMARY KEY (department_of_energy_identifier);"
   
@@ -302,8 +282,6 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     # t.float    'endpoint_fuel'
     t.datetime 'updated_at'
     t.datetime 'created_at'
-    t.integer  'data_miner_touch_count'
-    t.integer  'data_miner_last_run_id'
   end
   execute 'ALTER TABLE aircraft ADD PRIMARY KEY (icao_code);'
   
@@ -322,8 +300,6 @@ ActiveRecord::Schema.define(:version => 20090819143429) do
     # t.float    'endpoint_fuel'
     t.datetime 'updated_at'
     t.datetime 'created_at'
-    t.integer  'data_miner_touch_count'
-    t.integer  'data_miner_last_run_id'
   end
   execute 'ALTER TABLE aircraft_deux ADD PRIMARY KEY (icao_code);'
 end

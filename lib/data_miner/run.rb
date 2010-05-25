@@ -5,11 +5,7 @@ module DataMiner
     def resource
       resource_name.constantize
     end
-    
-    def resource_records_last_touched_by_me
-      resource.scoped :conditions => { :data_miner_last_run_id => id }
-    end
-    
+        
     class << self
       def create_tables
         return if table_exists?

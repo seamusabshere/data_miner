@@ -169,9 +169,7 @@ module DataMiner
     
     EXTRA_COLUMNS = {
       :updated_at => :datetime,
-      :created_at => :datetime,
-      :data_miner_last_run_id => :integer,
-      :data_miner_touch_count => :integer
+      :created_at => :datetime
     }
     def _add_extra_columns
       EXTRA_COLUMNS.each do |extra_name, extra_type|

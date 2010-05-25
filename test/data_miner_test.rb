@@ -1114,8 +1114,6 @@ class AutomobileMakeFleetYear < ActiveRecord::Base
       string  "make_year_name"
       datetime "created_at"
       datetime "updated_at"
-      integer  'data_miner_touch_count'
-      integer  'data_miner_last_run_id'
     end
     
     process "stop if i tell you to" do
@@ -1188,12 +1186,10 @@ class DataMinerTest < Test::Unit::TestCase
         # t.datetime 'created_at'
         t.string   'census_region_name'
         # t.integer  'census_region_number'
-        # t.integer 'data_miner_touch_count'
-        # t.integer 'data_miner_last_run_id'
       end
       ActiveRecord::Base.connection.execute 'ALTER TABLE census_division_trois ADD INDEX (census_region_name)'
       CensusDivisionTrois.reset_column_information
-      missing_columns = %w{ updated_at created_at census_region_number data_miner_last_run_id data_miner_touch_count }
+      missing_columns = %w{ updated_at created_at census_region_number }
 
       # sanity check
       missing_columns.each do |column|
@@ -1218,12 +1214,10 @@ class DataMinerTest < Test::Unit::TestCase
         # t.datetime 'created_at'
         t.string   'census_region_name'
         # t.integer  'census_region_number'
-        # t.integer 'data_miner_touch_count'
-        # t.integer 'data_miner_last_run_id'
       end
       ActiveRecord::Base.connection.execute 'ALTER TABLE census_division_fours ADD INDEX (census_region_name)'
       CensusDivisionFour.reset_column_information
-      missing_columns = %w{ updated_at created_at census_region_number data_miner_last_run_id data_miner_touch_count }
+      missing_columns = %w{ updated_at created_at census_region_number }
     
       # sanity check
       missing_columns.each do |column|
@@ -1331,29 +1325,7 @@ class DataMinerTest < Test::Unit::TestCase
       DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
       assert !Country.exists?(:iso_3166 => 'JUNK')
     end
-  
-    should "track how many times a row was touched" do
-      DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
-      assert_equal 1, Country.first.data_miner_touch_count
-      DataMiner.run :resource_names => %w{ Country }
-      assert_equal 1, Country.first.data_miner_touch_count
-    end
-  
-    should "keep track of what the last import run that touched a row was" do
-      DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
-      a = DataMiner::Run.last
-      assert_equal a, Country.first.data_miner_last_run
-      DataMiner.run :resource_names => %w{ Country }
-      b = DataMiner::Run.last
-      assert a != b
-      assert_equal a, Country.first.data_miner_last_run
-    end
-  
-    should "be able to get how many rows affected by a run" do
-      DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
-      assert_equal Country.first.data_miner_last_run.resource_records_last_touched_by_me.count, Country.count
-    end
-  
+    
     should "know what runs were on a resource" do
       DataMiner.run :resource_names => %w{ Country }
       DataMiner.run :resource_names => %w{ Country }

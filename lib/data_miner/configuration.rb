@@ -118,15 +118,6 @@ You need to supply one of #{COMPLETE_UNIT_DEFINITIONS.map(&:inspect).to_sentence
     
     def suggest_missing_column_migrations
       missing_columns = Array.new
-      non_essential_missing_columns = Array.new
-      unless resource.column_names.include?('data_miner_touch_count')
-        non_essential_missing_columns << 'data_miner_touch_count'
-        DataMiner.log_info "Not counting how many times a row has been touched by data_miner."
-      end
-      unless resource.column_names.include?('data_miner_last_run_id')
-        non_essential_missing_columns << 'data_miner_last_run_id'
-        DataMiner.log_info "Not recording which run touched a row."
-      end
       
       import_steps.each do |step|
         step.attributes.each do |_, attribute|
@@ -156,19 +147,16 @@ and **replace** the resulting file with this:
   class AddMissingColumnsTo#{resource.name} < ActiveRecord::Migration
     def self.up
 #{missing_columns.map { |column_name| "      add_column :#{resource.table_name}, :#{column_name}, :#{column_name.end_with?('_units') ? 'string' : 'FIXME_WHAT_COLUMN_TYPE_AM_I' }" }.join("\n") }
-#{non_essential_missing_columns.map { |column_name| "      add_column :#{resource.table_name}, :#{column_name}, :integer #optional" }.join("\n") }
     end
     
     def self.down
 #{missing_columns.map { |column_name| "      remove_column :#{resource.table_name}, :#{column_name}" }.join("\n") }
-#{non_essential_missing_columns.map { |column_name| "      remove_column :#{resource.table_name}, :#{column_name} #optional" }.join("\n") }
     end
   end
 
 On the other hand, if you're working directly with create_table, this might be helpful:
 
 #{missing_columns.map { |column_name| "t.#{column_name.end_with?('_units') ? 'string' : 'FIXME_WHAT_COLUMN_TYPE_AM_I' } '#{column_name}'" }.join("\n") }
-#{non_essential_missing_columns.map { |column_name| "t.integer '#{column_name}' #optional" }.join("\n") }
 
 ================================
         }
