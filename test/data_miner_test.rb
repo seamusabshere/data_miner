@@ -1137,6 +1137,7 @@ class CensusDivisionTrois < ActiveRecord::Base
       string   'census_region_name'
       integer  'census_region_number'
       index    'census_region_name', :name => 'homefry'
+      index   ['number_code', 'name', 'census_region_name', 'census_region_number', 'updated_at', 'created_at']
     end
   end
 end

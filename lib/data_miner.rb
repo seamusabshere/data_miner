@@ -18,6 +18,7 @@ require 'andand'
 require 'log4r'
 require 'fileutils'
 require 'tmpdir'
+require 'zlib'
 
 require 'data_miner/attribute'
 require 'data_miner/configuration'

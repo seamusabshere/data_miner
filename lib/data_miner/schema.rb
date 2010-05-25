@@ -59,10 +59,15 @@ module DataMiner
     def column(*args)
       ideal_table.column(*args)
     end
+    
+    MAX_INDEX_NAME_LENGTH = 50
     def index(columns, options = {})
       options.symbolize_keys!
       columns = Array.wrap columns
-      name = options[:name] || connection.index_name(table_name, options.merge(:column => columns))
+      unless name = options[:name]
+        default_name = connection.index_name(table_name, options.merge(:column => columns))
+        name = default_name.length < MAX_INDEX_NAME_LENGTH ? default_name : default_name[0..MAX_INDEX_NAME_LENGTH-11] + Zlib.crc32(default_name).to_s
+      end
       index_unique = options.has_key?(:unique) ? options[:unique] : true
       ideal_indexes.push ActiveRecord::ConnectionAdapters::IndexDefinition.new(table_name, name, index_unique, columns)
     end
