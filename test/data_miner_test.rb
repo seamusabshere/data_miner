@@ -980,6 +980,14 @@ class Aircraft < ActiveRecord::Base
       row['Manufacturer'] =~ /BOEING/i
     end
     
+    def is_attributed_to_cessna?(row)
+      row['Manufacturer'] =~ /CESSNA/i
+    end
+    
+    def is_attributed_to_fokker?(row)
+      row['Manufacturer'] =~ /FOKKER/i
+    end
+    
     def is_not_attributed_to_aerospatiale?(row)
       not row['Manufacturer'] =~ /AEROSPATIALE/i
     end
