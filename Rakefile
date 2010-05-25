@@ -10,7 +10,7 @@ begin
     gem.email = "seamus@abshere.net"
     gem.homepage = "http://github.com/seamusabshere/data_miner"
     gem.authors = ["Seamus Abshere", "Andy Rossmeissl"]
-    gem.add_dependency 'remote_table', '>=0.2.25'
+    gem.add_dependency 'remote_table', '>=0.2.26'
     gem.add_dependency 'escape', '>=0.0.4'
     gem.add_dependency 'activerecord', '>=2.3.4'
     gem.add_dependency 'activesupport', '>=2.3.4'
@@ -20,16 +20,20 @@ begin
     gem.add_dependency 'log4r', '>=1.1.7'
     gem.add_dependency 'errata', '>=0.2.1'
     gem.add_dependency 'taps', '>=0.3.5'
-    gem.add_development_dependency "loose_tight_dictionary", ">=0.0.5"
-    gem.require_path = "lib"
-    gem.files.include %w(lib/data_miner) unless gem.files.empty? # seems to fail once it's in the wild
+    ## sabshere 5/25/10 i was told not to do this
+    # gem.add_development_dependency "loose_tight_dictionary", ">=0.0.5"
+    ## sabshere 5/25/10 i don't think i need this
+    # gem.require_path = "lib"
+    # gem.files.include %w(lib/data_miner) unless gem.files.empty? # seems to fail once it's in the wild
     gem.rdoc_options << '--line-numbers' << '--inline-source'
-    gem.rubyforge_project = "dataminer"
+    ## sabshere 5/25/10 obsolete
+    # gem.rubyforge_project = "dataminer"
   end
   Jeweler::GemcutterTasks.new
-  Jeweler::RubyforgeTasks.new do |rubyforge|
-    rubyforge.doc_task = "rdoc"
-  end
+  ## sabshere 5/25/10 obsolete
+  # Jeweler::RubyforgeTasks.new do |rubyforge|
+  #   rubyforge.doc_task = "rdoc"
+  # end
 rescue LoadError
   puts "Jeweler (or a dependency) not available. Install it with: sudo gem install jeweler"
 end
