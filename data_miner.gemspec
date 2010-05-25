@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{data_miner}
-  s.version = "0.4.38"
+  s.version = "0.4.39"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Seamus Abshere", "Andy Rossmeissl"]
-  s.date = %q{2010-05-24}
+  s.date = %q{2010-05-25}
   s.description = %q{Mine remote data into your ActiveRecord models. You can also perform associations and convert units.}
   s.email = %q{seamus@abshere.net}
   s.extra_rdoc_files = [
@@ -27,7 +27,7 @@ Gem::Specification.new do |s|
      "data_miner.gemspec",
      "lib/data_miner.rb",
      "lib/data_miner/attribute.rb",
-     "lib/data_miner/configuration.rb",
+     "lib/data_miner/base.rb",
      "lib/data_miner/dictionary.rb",
      "lib/data_miner/import.rb",
      "lib/data_miner/process.rb",
@@ -40,7 +40,6 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://github.com/seamusabshere/data_miner}
   s.rdoc_options = ["--charset=UTF-8", "--line-numbers", "--inline-source"]
   s.require_paths = ["lib"]
-  s.rubyforge_project = %q{dataminer}
   s.rubygems_version = %q{1.3.6}
   s.summary = %q{Mine remote data into your ActiveRecord models.}
   s.test_files = [
@@ -53,7 +52,7 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<remote_table>, [">= 0.2.25"])
+      s.add_runtime_dependency(%q<remote_table>, [">= 0.2.26"])
       s.add_runtime_dependency(%q<escape>, [">= 0.0.4"])
       s.add_runtime_dependency(%q<activerecord>, [">= 2.3.4"])
       s.add_runtime_dependency(%q<activesupport>, [">= 2.3.4"])
@@ -63,9 +62,8 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<log4r>, [">= 1.1.7"])
       s.add_runtime_dependency(%q<errata>, [">= 0.2.1"])
       s.add_runtime_dependency(%q<taps>, [">= 0.3.5"])
-      s.add_development_dependency(%q<loose_tight_dictionary>, [">= 0.0.5"])
     else
-      s.add_dependency(%q<remote_table>, [">= 0.2.25"])
+      s.add_dependency(%q<remote_table>, [">= 0.2.26"])
       s.add_dependency(%q<escape>, [">= 0.0.4"])
       s.add_dependency(%q<activerecord>, [">= 2.3.4"])
       s.add_dependency(%q<activesupport>, [">= 2.3.4"])
@@ -75,10 +73,9 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<log4r>, [">= 1.1.7"])
       s.add_dependency(%q<errata>, [">= 0.2.1"])
       s.add_dependency(%q<taps>, [">= 0.3.5"])
-      s.add_dependency(%q<loose_tight_dictionary>, [">= 0.0.5"])
     end
   else
-    s.add_dependency(%q<remote_table>, [">= 0.2.25"])
+    s.add_dependency(%q<remote_table>, [">= 0.2.26"])
     s.add_dependency(%q<escape>, [">= 0.0.4"])
     s.add_dependency(%q<activerecord>, [">= 2.3.4"])
     s.add_dependency(%q<activesupport>, [">= 2.3.4"])
@@ -88,7 +85,6 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<log4r>, [">= 1.1.7"])
     s.add_dependency(%q<errata>, [">= 0.2.1"])
     s.add_dependency(%q<taps>, [">= 0.3.5"])
-    s.add_dependency(%q<loose_tight_dictionary>, [">= 0.0.5"])
   end
 end
 
