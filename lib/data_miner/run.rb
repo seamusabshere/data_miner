@@ -19,7 +19,7 @@ module DataMiner
           t.datetime 'created_at'
           t.datetime 'updated_at'
         end
-        reset_column_information!
+        reset_column_information
       end
     end
   end
