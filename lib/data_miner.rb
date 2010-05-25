@@ -31,7 +31,8 @@ require 'data_miner/schema'
 
 module DataMiner
   class MissingHashColumn < StandardError; end
-  class Stop < StandardError; end
+  class Finish < StandardError; end
+  class Skip < StandardError; end
   
   mattr_accessor :logger
   

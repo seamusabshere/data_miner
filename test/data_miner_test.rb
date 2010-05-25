@@ -1116,8 +1116,12 @@ class AutomobileMakeFleetYear < ActiveRecord::Base
       datetime "updated_at"
     end
     
-    process "stop if i tell you to" do
-      raise DataMiner::Stop if $stop_stop
+    process "finish if i tell you to" do
+      raise DataMiner::Finish if $force_finish
+    end
+    
+    process "skip if i tell you to" do
+      raise DataMiner::Skip if $force_skip
     end
 
     # CAFE data privately emailed to Andy from Terry Anderson at the DOT/NHTSA
@@ -1166,15 +1170,28 @@ class DataMinerTest < Test::Unit::TestCase
   end
     
   if ENV['ALL'] == 'true' or ENV['FAST'] == 'true'
-    should "stop and finish if it gets a DataMiner::Stop" do
+    should "stop and finish if it gets a DataMiner::Finish" do
       AutomobileMakeFleetYear.delete_all
       AutomobileMakeFleetYear.data_miner_runs.delete_all
-      $stop_stop = true
+      $force_finish = true
       AutomobileMakeFleetYear.run_data_miner!
       assert_equal 0, AutomobileMakeFleetYear.count
       assert_equal true, (AutomobileMakeFleetYear.data_miner_runs.count > 0)
-      assert_equal true, AutomobileMakeFleetYear.data_miner_runs.all? { |run| run.finished? }
-      $stop_stop = false
+      assert_equal true, AutomobileMakeFleetYear.data_miner_runs.all? { |run| run.finished? and not run.skipped and not run.killed? }
+      $force_finish = false
+      AutomobileMakeFleetYear.run_data_miner!
+      assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')
+    end
+    
+    should "stop and register skipped if it gets a DataMiner::Skip" do
+      AutomobileMakeFleetYear.delete_all
+      AutomobileMakeFleetYear.data_miner_runs.delete_all
+      $force_skip = true
+      AutomobileMakeFleetYear.run_data_miner!
+      assert_equal 0, AutomobileMakeFleetYear.count
+      assert_equal true, (AutomobileMakeFleetYear.data_miner_runs.count > 0)
+      assert_equal true, AutomobileMakeFleetYear.data_miner_runs.all? { |run| run.skipped? and not run.finished? and not run.killed? }
+      $force_skip = false
       AutomobileMakeFleetYear.run_data_miner!
       assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')
     end
@@ -1311,10 +1328,10 @@ class DataMinerTest < Test::Unit::TestCase
     should "keep a log when it does a run" do
       approx_started_at = Time.now
       DataMiner.run :resource_names => %w{ Country }
-      approx_ended_at = Time.now
+      approx_terminated_at = Time.now
       last_run = DataMiner::Run.first(:conditions => { :resource_name => 'Country' }, :order => 'id DESC')
       assert (last_run.started_at - approx_started_at).abs < 5 # seconds
-      assert (last_run.ended_at - approx_ended_at).abs < 5 # seconds
+      assert (last_run.terminated_at - approx_terminated_at).abs < 5 # seconds
     end
   
     should "request a re-import from scratch" do

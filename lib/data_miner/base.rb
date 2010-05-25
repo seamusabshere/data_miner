@@ -50,8 +50,9 @@ module DataMiner
       DataMiner::Base.call_stack.push resource.name
       
       finished = false
+      skipped = false
       if DataMiner::Run.table_exists?
-        run = DataMiner::Run.create! :started_at => Time.now, :resource_name => resource.name if DataMiner::Run.table_exists?
+        run = DataMiner::Run.create! :started_at => Time.now, :resource_name => resource.name, :killed => true
       else
         run = nil
         DataMiner.log_info "Not logging individual runs. Please run DataMiner::Run.create_tables if you want to enable this."
@@ -63,10 +64,14 @@ module DataMiner
           resource.reset_column_information
         end
         finished = true
-      rescue DataMiner::Stop
+      rescue DataMiner::Finish
         finished = true
+      rescue DataMiner::Skip
+        skipped = true
       ensure
-        run.update_attributes! :ended_at => Time.now, :finished => finished if DataMiner::Run.table_exists?
+        if DataMiner::Run.table_exists?
+          run.update_attributes! :terminated_at => Time.now, :finished => finished, :skipped => skipped, :killed => false
+        end
         DataMiner::Base.call_stack.clear if DataMiner::Base.call_stack.first == resource.name
       end
       nil
