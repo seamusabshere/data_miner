@@ -204,8 +204,10 @@ module DataMiner
           _create_table
         end
         place_column ideal_primary_key_name
-        DataMiner.log_debug "ADDING PRIMARY KEY #{ideal_primary_key_name}"
-        connection.execute "ALTER TABLE `#{table_name}` ADD PRIMARY KEY (`#{ideal_primary_key_name}`)"
+        unless ideal.type.to_s == 'primary_key'
+          DataMiner.log_debug "SETTING #{ideal_primary_key_name} AS PRIMARY KEY"
+          connection.execute "ALTER TABLE `#{table_name}` ADD PRIMARY KEY (`#{ideal_primary_key_name}`)"
+        end
       end
       resource.reset_column_information
     end
