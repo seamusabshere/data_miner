@@ -1282,29 +1282,29 @@ class DataMinerTest < Test::Unit::TestCase
     end
     
     should "be idempotent" do
-      Country.data_miner_config.run
+      Country.data_miner_base.run
       a = Country.count
-      Country.data_miner_config.run
+      Country.data_miner_base.run
       b = Country.count
       assert_equal a, b
     
-      CensusRegion.data_miner_config.run
+      CensusRegion.data_miner_base.run
       a = CensusRegion.count
-      CensusRegion.data_miner_config.run
+      CensusRegion.data_miner_base.run
       b = CensusRegion.count
       assert_equal a, b
     end
       
     should "hash things" do
-      AutomobileVariant.data_miner_config.steps[0].run(nil)
+      AutomobileVariant.data_miner_base.steps[0].run(nil)
       assert AutomobileVariant.first.row_hash.present?
     end
   
     should "process a callback block instead of a method" do
       AutomobileVariant.delete_all
-      AutomobileVariant.data_miner_config.steps[0].run(nil)
+      AutomobileVariant.data_miner_base.steps[0].run(nil)
       assert !AutomobileVariant.first.fuel_efficiency_city.present?
-      AutomobileVariant.data_miner_config.steps.last.run(nil)
+      AutomobileVariant.data_miner_base.steps.last.run(nil)
       assert AutomobileVariant.first.fuel_efficiency_city.present?
     end
   

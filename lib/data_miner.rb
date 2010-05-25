@@ -21,7 +21,7 @@ require 'tmpdir'
 require 'zlib'
 
 require 'data_miner/attribute'
-require 'data_miner/configuration'
+require 'data_miner/base'
 require 'data_miner/dictionary'
 require 'data_miner/import'
 require 'data_miner/tap'
@@ -71,11 +71,11 @@ module DataMiner
   end
   
   def self.run(options = {})
-    DataMiner::Configuration.run options
+    DataMiner::Base.run options
   end
   
   def self.resource_names
-    DataMiner::Configuration.resource_names
+    DataMiner::Base.resource_names
   end
   
     # TODO this should probably live somewhere else
@@ -113,18 +113,18 @@ ActiveRecord::Base.class_eval do
 
     # this is class_eval'ed here so that each ActiveRecord descendant has its own copy, or none at all
     class_eval do
-      cattr_accessor :data_miner_config
+      cattr_accessor :data_miner_base
       def self.data_miner_runs
         DataMiner::Run.scoped :conditions => { :resource_name => name }
       end
       def self.run_data_miner!(options = {})
-        data_miner_config.run options
+        data_miner_base.run options
       end
     end
-    self.data_miner_config = DataMiner::Configuration.new self
+    self.data_miner_base = DataMiner::Base.new self
 
-    Blockenspiel.invoke block, data_miner_config
+    Blockenspiel.invoke block, data_miner_base
     
-    data_miner_config.after_invoke
+    data_miner_base.after_invoke
   end
 end

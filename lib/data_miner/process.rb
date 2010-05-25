@@ -1,12 +1,12 @@
 module DataMiner
   class Process
-    attr_accessor :configuration, :position_in_run
+    attr_accessor :base, :position_in_run
     attr_accessor :method_name
     attr_accessor :block_description, :block
-    delegate :resource, :to => :configuration
+    delegate :resource, :to => :base
 
-    def initialize(configuration, position_in_run, method_name_or_block_description, &block)
-      @configuration = configuration
+    def initialize(base, position_in_run, method_name_or_block_description, &block)
+      @base = base
       @position_in_run = position_in_run
       if block_given?
         @block_description = method_name_or_block_description

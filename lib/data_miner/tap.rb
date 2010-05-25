@@ -1,17 +1,17 @@
 
 module DataMiner
   class Tap
-    attr_reader :configuration
+    attr_reader :base
     attr_reader :position_in_run
     attr_reader :description
     attr_reader :source
     attr_reader :options
-    delegate :resource, :to => :configuration
+    delegate :resource, :to => :base
 
-    def initialize(configuration, position_in_run, description, source, options = {})
+    def initialize(base, position_in_run, description, source, options = {})
       options.symbolize_keys!
       DataMiner.log_or_raise "Tap has to be the first step." unless position_in_run == 0
-      @configuration = configuration
+      @base = base
       @position_in_run = position_in_run
       @description = description
       @source = source

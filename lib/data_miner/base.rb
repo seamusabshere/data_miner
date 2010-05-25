@@ -1,5 +1,5 @@
 module DataMiner
-  class Configuration
+  class Base
     include Blockenspiel::DSL
     
     attr_accessor :resource, :steps, :step_counter, :attributes
@@ -46,8 +46,8 @@ module DataMiner
     def run(options = {})
       options.symbolize_keys!
       
-      return if DataMiner::Configuration.call_stack.include? resource.name
-      DataMiner::Configuration.call_stack.push resource.name
+      return if DataMiner::Base.call_stack.include? resource.name
+      DataMiner::Base.call_stack.push resource.name
       
       finished = false
       if DataMiner::Run.table_exists?
@@ -67,7 +67,7 @@ module DataMiner
         finished = true
       ensure
         run.update_attributes! :ended_at => Time.now, :finished => finished if DataMiner::Run.table_exists?
-        DataMiner::Configuration.call_stack.clear if DataMiner::Configuration.call_stack.first == resource.name
+        DataMiner::Base.call_stack.clear if DataMiner::Base.call_stack.first == resource.name
       end
       nil
     end
@@ -178,7 +178,7 @@ On the other hand, if you're working directly with create_table, this might be h
         
         resource_names.each do |resource_name|
           if options[:resource_names].blank? or options[:resource_names].include?(resource_name)
-            resource_name.constantize.data_miner_config.run options
+            resource_name.constantize.data_miner_base.run options
           end
         end
       end

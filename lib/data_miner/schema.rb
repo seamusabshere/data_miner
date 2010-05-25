@@ -2,13 +2,13 @@ module DataMiner
   class Schema
     include Blockenspiel::DSL
     
-    attr_reader :configuration
+    attr_reader :base
     attr_reader :position_in_run
     attr_reader :create_table_options
-    delegate :resource, :to => :configuration
+    delegate :resource, :to => :base
 
-    def initialize(configuration, position_in_run, create_table_options)
-      @configuration = configuration
+    def initialize(base, position_in_run, create_table_options)
+      @base = base
       @position_in_run = position_in_run
       @create_table_options = create_table_options
       @create_table_options.symbolize_keys!

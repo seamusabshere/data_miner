@@ -3,15 +3,15 @@ module DataMiner
     include Blockenspiel::DSL
     
     attr_reader :attributes
-    attr_accessor :configuration, :position_in_run, :table
+    attr_accessor :base, :position_in_run, :table
     attr_accessor :description
-    delegate :resource, :to => :configuration
+    delegate :resource, :to => :base
     
-    def initialize(configuration, position_in_run, description, table_options = {})
+    def initialize(base, position_in_run, description, table_options = {})
       table_options.symbolize_keys!
 
       @attributes = ActiveSupport::OrderedHash.new
-      @configuration = configuration
+      @base = base
       @position_in_run = position_in_run
       @description = description
       
