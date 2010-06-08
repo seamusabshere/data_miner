@@ -72,7 +72,7 @@ module DataMiner
         if DataMiner::Run.table_exists?
           run.update_attributes! :terminated_at => Time.now, :finished => finished, :skipped => skipped, :killed => false
         end
-        DataMiner::Base.call_stack.clear if DataMiner::Base.call_stack.first == resource.name
+        DataMiner::Base.call_stack.clear if DataMiner::Base.call_stack.first == resource.name and !options[:preserve_call_stack_between_runs]
       end
       nil
     end

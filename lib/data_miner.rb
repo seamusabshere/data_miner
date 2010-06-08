@@ -72,7 +72,8 @@ module DataMiner
   end
   
   def self.run(options = {})
-    DataMiner::Base.run options
+    DataMiner::Base.run options.merge(:preserve_call_stack_between_runs => true)
+    DataMiner::Base.call_stack.clear
   end
   
   def self.resource_names
