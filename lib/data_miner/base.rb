@@ -186,6 +186,8 @@ On the other hand, if you're working directly with create_table, this might be h
             resource_name.constantize.data_miner_base.run options
           end
         end
+      ensure
+        RemoteTable.cleanup
       end
     end
   end
