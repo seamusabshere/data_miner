@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{data_miner}
-  s.version = "0.4.43"
+  s.version = "0.4.44"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Seamus Abshere", "Andy Rossmeissl", "Derek Kastner"]
@@ -17,14 +17,8 @@ Gem::Specification.new do |s|
      "README.rdoc"
   ]
   s.files = [
-    ".document",
-     ".gitignore",
-     "CHANGELOG",
-     "LICENSE",
+    "LICENSE",
      "README.rdoc",
-     "Rakefile",
-     "VERSION",
-     "data_miner.gemspec",
      "lib/data_miner.rb",
      "lib/data_miner/attribute.rb",
      "lib/data_miner/base.rb",
@@ -33,9 +27,7 @@ Gem::Specification.new do |s|
      "lib/data_miner/process.rb",
      "lib/data_miner/run.rb",
      "lib/data_miner/schema.rb",
-     "lib/data_miner/tap.rb",
-     "test/data_miner_test.rb",
-     "test/test_helper.rb"
+     "lib/data_miner/tap.rb"
   ]
   s.homepage = %q{http://github.com/seamusabshere/data_miner}
   s.rdoc_options = ["--charset=UTF-8", "--line-numbers", "--inline-source"]
