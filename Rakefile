@@ -9,7 +9,8 @@ begin
     gem.description = %Q{Mine remote data into your ActiveRecord models. You can also perform associations and convert units.}
     gem.email = "seamus@abshere.net"
     gem.homepage = "http://github.com/seamusabshere/data_miner"
-    gem.authors = ["Seamus Abshere", "Andy Rossmeissl"]
+    gem.authors = ["Seamus Abshere", "Andy Rossmeissl", 'Derek Kastner']
+
     gem.add_dependency 'remote_table', '>=0.2.27'
     gem.add_dependency 'escape', '>=0.0.4'
     gem.add_dependency 'activerecord', '>=2.3.4'
@@ -19,21 +20,20 @@ begin
     gem.add_dependency 'blockenspiel', '>=0.3.2'
     gem.add_dependency 'log4r', '>=1.1.7'
     gem.add_dependency 'errata', '>=0.2.1'
-    gem.add_dependency 'taps', '>=0.3.5'
-    ## sabshere 5/25/10 i was told not to do this
-    # gem.add_development_dependency "loose_tight_dictionary", ">=0.0.5"
-    ## sabshere 5/25/10 i don't think i need this
-    # gem.require_path = "lib"
-    # gem.files.include %w(lib/data_miner) unless gem.files.empty? # seems to fail once it's in the wild
+    gem.add_dependency 'dkastner-taps', '=0.3.11'
+
+    gem.add_development_dependency 'loose_tight_dictionary', ">=0.0.5"
+    gem.add_development_dependency 'jeweler'
+    gem.add_development_dependency 'rcov'
+    gem.add_development_dependency 'rake'
+    gem.add_development_dependency 'shoulda'
+    gem.add_development_dependency 'mysql'
+
+    gem.require_path = "lib"
+    gem.files = Dir['lib/**/*.rb'] + ['LICENSE', 'README.rdoc']
     gem.rdoc_options << '--line-numbers' << '--inline-source'
-    ## sabshere 5/25/10 obsolete
-    # gem.rubyforge_project = "dataminer"
   end
   Jeweler::GemcutterTasks.new
-  ## sabshere 5/25/10 obsolete
-  # Jeweler::RubyforgeTasks.new do |rubyforge|
-  #   rubyforge.doc_task = "rdoc"
-  # end
 rescue LoadError
   puts "Jeweler (or a dependency) not available. Install it with: sudo gem install jeweler"
 end
