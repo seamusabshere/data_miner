@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.version = "0.4.43"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Seamus Abshere", "Andy Rossmeissl"]
-  s.date = %q{2010-06-30}
+  s.authors = ["Seamus Abshere", "Andy Rossmeissl", "Derek Kastner"]
+  s.date = %q{2010-07-12}
   s.description = %q{Mine remote data into your ActiveRecord models. You can also perform associations and convert units.}
   s.email = %q{seamus@abshere.net}
   s.extra_rdoc_files = [
@@ -61,7 +61,13 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<blockenspiel>, [">= 0.3.2"])
       s.add_runtime_dependency(%q<log4r>, [">= 1.1.7"])
       s.add_runtime_dependency(%q<errata>, [">= 0.2.1"])
-      s.add_runtime_dependency(%q<taps>, [">= 0.3.5"])
+      s.add_runtime_dependency(%q<dkastner-taps>, ["= 0.3.11"])
+      s.add_development_dependency(%q<loose_tight_dictionary>, [">= 0.0.5"])
+      s.add_development_dependency(%q<jeweler>, [">= 0"])
+      s.add_development_dependency(%q<rcov>, [">= 0"])
+      s.add_development_dependency(%q<rake>, [">= 0"])
+      s.add_development_dependency(%q<shoulda>, [">= 0"])
+      s.add_development_dependency(%q<mysql>, [">= 0"])
     else
       s.add_dependency(%q<remote_table>, [">= 0.2.27"])
       s.add_dependency(%q<escape>, [">= 0.0.4"])
@@ -72,7 +78,13 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<blockenspiel>, [">= 0.3.2"])
       s.add_dependency(%q<log4r>, [">= 1.1.7"])
       s.add_dependency(%q<errata>, [">= 0.2.1"])
-      s.add_dependency(%q<taps>, [">= 0.3.5"])
+      s.add_dependency(%q<dkastner-taps>, ["= 0.3.11"])
+      s.add_dependency(%q<loose_tight_dictionary>, [">= 0.0.5"])
+      s.add_dependency(%q<jeweler>, [">= 0"])
+      s.add_dependency(%q<rcov>, [">= 0"])
+      s.add_dependency(%q<rake>, [">= 0"])
+      s.add_dependency(%q<shoulda>, [">= 0"])
+      s.add_dependency(%q<mysql>, [">= 0"])
     end
   else
     s.add_dependency(%q<remote_table>, [">= 0.2.27"])
@@ -84,7 +96,13 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<blockenspiel>, [">= 0.3.2"])
     s.add_dependency(%q<log4r>, [">= 1.1.7"])
     s.add_dependency(%q<errata>, [">= 0.2.1"])
-    s.add_dependency(%q<taps>, [">= 0.3.5"])
+    s.add_dependency(%q<dkastner-taps>, ["= 0.3.11"])
+    s.add_dependency(%q<loose_tight_dictionary>, [">= 0.0.5"])
+    s.add_dependency(%q<jeweler>, [">= 0"])
+    s.add_dependency(%q<rcov>, [">= 0"])
+    s.add_dependency(%q<rake>, [">= 0"])
+    s.add_dependency(%q<shoulda>, [">= 0"])
+    s.add_dependency(%q<mysql>, [">= 0"])
   end
 end
 
