@@ -1167,6 +1167,19 @@ end
 # todo: have somebody properly organize these
 class DataMinerTest < Test::Unit::TestCase
   if ENV['ALL'] == 'true' or ENV['NEW'] == 'true'
+    should 'override an existing data_miner configuration' do
+      AutomobileFuelType.class_eval do
+        data_miner do
+          import 'example', :url => 'http://example.com' do
+            key 'code'
+            store 'name'
+          end
+        end
+      end
+      assert_kind_of DataMiner::Import, AutomobileFuelType.data_miner_base.steps.first
+      assert_equal 'http://example.com', AutomobileFuelType.data_miner_base.steps.first.table.package.url
+      assert_equal 1, AutomobileFuelType.data_miner_base.step_counter
+    end
   end
     
   if ENV['ALL'] == 'true' or ENV['FAST'] == 'true'
