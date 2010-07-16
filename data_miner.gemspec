@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{data_miner}
-  s.version = "0.4.44"
+  s.version = "0.5.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Seamus Abshere", "Andy Rossmeissl", "Derek Kastner"]
-  s.date = %q{2010-07-12}
+  s.date = %q{2010-07-16}
   s.description = %q{Mine remote data into your ActiveRecord models. You can also perform associations and convert units.}
   s.email = %q{seamus@abshere.net}
   s.extra_rdoc_files = [
@@ -50,7 +50,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<activesupport>, [">= 2.3.4"])
       s.add_runtime_dependency(%q<andand>, [">= 1.3.1"])
       s.add_runtime_dependency(%q<conversions>, [">= 1.4.4"])
-      s.add_runtime_dependency(%q<blockenspiel>, [">= 0.3.2"])
+      s.add_runtime_dependency(%q<blockenspiel>, ["= 0.3.2"])
       s.add_runtime_dependency(%q<log4r>, [">= 1.1.7"])
       s.add_runtime_dependency(%q<errata>, [">= 0.2.1"])
       s.add_runtime_dependency(%q<dkastner-taps>, ["= 0.3.11"])
@@ -67,7 +67,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<activesupport>, [">= 2.3.4"])
       s.add_dependency(%q<andand>, [">= 1.3.1"])
       s.add_dependency(%q<conversions>, [">= 1.4.4"])
-      s.add_dependency(%q<blockenspiel>, [">= 0.3.2"])
+      s.add_dependency(%q<blockenspiel>, ["= 0.3.2"])
       s.add_dependency(%q<log4r>, [">= 1.1.7"])
       s.add_dependency(%q<errata>, [">= 0.2.1"])
       s.add_dependency(%q<dkastner-taps>, ["= 0.3.11"])
@@ -85,7 +85,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<activesupport>, [">= 2.3.4"])
     s.add_dependency(%q<andand>, [">= 1.3.1"])
     s.add_dependency(%q<conversions>, [">= 1.4.4"])
-    s.add_dependency(%q<blockenspiel>, [">= 0.3.2"])
+    s.add_dependency(%q<blockenspiel>, ["= 0.3.2"])
     s.add_dependency(%q<log4r>, [">= 1.1.7"])
     s.add_dependency(%q<errata>, [">= 0.2.1"])
     s.add_dependency(%q<dkastner-taps>, ["= 0.3.11"])
