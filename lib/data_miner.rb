@@ -122,6 +122,10 @@ ActiveRecord::Base.class_eval do
       def self.run_data_miner!(options = {})
         data_miner_base.run options
       end
+      def self.execute_schema
+        schema = data_miner_base.steps.find { |s| s.instance_of?(DataMiner::Schema) }
+        schema.run(nil) if schema
+      end
     end
     self.data_miner_base = DataMiner::Base.new self
 

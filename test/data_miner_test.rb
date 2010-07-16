@@ -1167,6 +1167,16 @@ end
 # todo: have somebody properly organize these
 class DataMinerTest < Test::Unit::TestCase
   if ENV['ALL'] == 'true' or ENV['NEW'] == 'true'
+    should 'directly create a table for the model' do
+      if AutomobileMakeFleetYear.table_exists?
+        ActiveRecord::Base.connection.execute 'DROP TABLE automobile_make_fleet_years;'
+      end
+      AutomobileMakeFleetYear.execute_schema
+      assert AutomobileMakeFleetYear.table_exists?
+    end
+  end
+    
+  if ENV['ALL'] == 'true' or ENV['FAST'] == 'true'
     should 'override an existing data_miner configuration' do
       AutomobileFuelType.class_eval do
         data_miner do
@@ -1180,9 +1190,6 @@ class DataMinerTest < Test::Unit::TestCase
       assert_equal 'http://example.com', AutomobileFuelType.data_miner_base.steps.first.table.package.url
       assert_equal 1, AutomobileFuelType.data_miner_base.step_counter
     end
-  end
-    
-  if ENV['ALL'] == 'true' or ENV['FAST'] == 'true'
     should "stop and finish if it gets a DataMiner::Finish" do
       AutomobileMakeFleetYear.delete_all
       AutomobileMakeFleetYear.data_miner_runs.delete_all
