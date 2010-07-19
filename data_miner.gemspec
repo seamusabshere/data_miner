@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{data_miner}
-  s.version = "0.5.0"
+  s.version = "0.5.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Seamus Abshere", "Andy Rossmeissl", "Derek Kastner"]
-  s.date = %q{2010-07-16}
+  s.date = %q{2010-07-19}
   s.description = %q{Mine remote data into your ActiveRecord models. You can also perform associations and convert units.}
   s.email = %q{seamus@abshere.net}
   s.extra_rdoc_files = [
