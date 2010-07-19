@@ -206,7 +206,11 @@ module DataMiner
         place_column ideal_primary_key_name
         unless ideal.type.to_s == 'primary_key'
           DataMiner.log_debug "SETTING #{ideal_primary_key_name} AS PRIMARY KEY"
-          connection.execute "ALTER TABLE `#{table_name}` ADD PRIMARY KEY (`#{ideal_primary_key_name}`)"
+          if ActiveRecord::Base.connection.adapter_name.downcase == 'sqlite'
+            connection.execute "CREATE UNIQUE INDEX IDX_#{table_name}_#{ideal_primary_key_name} ON #{table_name} (#{ideal_primary_key_name} ASC)"
+          else
+            connection.execute "ALTER TABLE `#{table_name}` ADD PRIMARY KEY (`#{ideal_primary_key_name}`)"
+          end
         end
       end
       resource.reset_column_information
