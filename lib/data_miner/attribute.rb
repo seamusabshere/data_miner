@@ -99,7 +99,7 @@ module DataMiner
       
       what_it_is = record.send name
       if what_it_is.nil? and !what_it_should_be.nil?
-        DataMiner.log_info "ActiveRecord didn't like trying to set #{resource}.#{name} = #{what_it_should_be} (it came out as nil)"
+        DataMiner.log_debug "ActiveRecord didn't like trying to set #{resource}.#{name} = #{what_it_should_be} (it came out as nil)"
         nil
       elsif what_it_is == what_it_was
         false

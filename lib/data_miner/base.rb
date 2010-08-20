@@ -137,7 +137,7 @@ You need to supply one of #{COMPLETE_UNIT_DEFINITIONS.map(&:inspect).to_sentence
       end
       missing_columns.uniq!
       if missing_columns.any?
-        DataMiner.log_info %{
+        DataMiner.log_debug %{
 
 ================================
 

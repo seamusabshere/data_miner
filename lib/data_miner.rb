@@ -103,13 +103,13 @@ ActiveRecord::Base.class_eval do
   def self.x_data_miner(&block)
     DataMiner.start_logging
     
-    DataMiner.log_info "Skipping data_miner block in #{self.name} because called as x_data_miner"
+    DataMiner.log_debug "Skipping data_miner block in #{self.name} because called as x_data_miner"
   end
   
   def self.data_miner(&block)
     DataMiner.start_logging
     
-    DataMiner.log_info "Database table `#{table_name}` doesn't exist. It might be created in the data_miner block, but if it's not, DataMiner probably won't work properly until you run a migration or otherwise fix the schema." unless table_exists?
+    DataMiner.log_debug "Database table `#{table_name}` doesn't exist. It might be created in the data_miner block, but if it's not, DataMiner probably won't work properly until you run a migration or otherwise fix the schema." unless table_exists?
     
     DataMiner.resource_names.push self.name unless DataMiner.resource_names.include? self.name
 
