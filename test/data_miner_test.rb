@@ -628,7 +628,19 @@ end
 
 # todo: have somebody properly organize these
 class DataMinerTest < Test::Unit::TestCase
-  if ENV['ALL'] == 'true' or ENV['NEW'] == 'true'
+  if ENV['WIP']
+    context 'with nullify option' do
+      should 'treat blank fields as null values' do
+        Aircraft.delete_all
+        Aircraft.data_miner_runs.delete_all
+        Aircraft.run_data_miner!
+        assert_greater_than 0, Aircraft.count
+        assert_false Aircraft.where(:brighter_planet_aircraft_class_code => nil).empty?
+      end
+    end
+  end
+
+  if ENV['ALL'] == 'true'
     should 'directly create a table for the model' do
       if AutomobileMakeFleetYear.table_exists?
         ActiveRecord::Base.connection.execute 'DROP TABLE automobile_make_fleet_years;'

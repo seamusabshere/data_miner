@@ -6,6 +6,8 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'data_miner'
 
+ENV['WIP'] = true if ENV['ALL'] == 'true'
+
 ActiveRecord::Base.establish_connection(
   'adapter' => 'mysql',
   'database' => 'data_miner_test',
