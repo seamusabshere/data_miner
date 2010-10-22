@@ -84,6 +84,7 @@ module DataMiner
       return value if value.is_a? ActiveRecord::Base # carry through trapdoor
       value = value_in_dictionary value if wants_dictionary?
       value = synthesize.call(row) if wants_synthesize?
+      value = nil if value.blank? and wants_nullification?
       value
     end
         
@@ -150,7 +151,7 @@ module DataMiner
       options.has_key? :static
     end
     def wants_nullification?
-      nullify != false
+      nullify == true
     end
     def wants_chars?
       chars.present?
