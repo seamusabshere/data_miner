@@ -13,11 +13,12 @@ ActiveRecord::Base.establish_connection(
   'password' => 'password'
 )
 
-ActiveSupport::Inflector.inflections do |inflect|
-  inflect.uncountable %w{ aircraft aircraft_deux census_division_deux census_division_trois }
+Dir.glob(File.expand_path('support/*.rb', File.dirname(__FILE__))).each do |lib|
+  require lib
 end
 
-class Test::Unit::TestCase
+ActiveSupport::Inflector.inflections do |inflect|
+  inflect.uncountable %w{ aircraft aircraft_deux census_division_deux census_division_trois }
 end
 
 ActiveRecord::Schema.define(:version => 20090819143429) do
