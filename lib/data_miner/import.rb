@@ -3,28 +3,36 @@ module DataMiner
     include Blockenspiel::DSL
     
     attr_reader :attributes
-    attr_accessor :base, :position_in_run, :table
+    attr_accessor :base
+    attr_accessor :position_in_run
+    attr_accessor :table_options
     attr_accessor :description
     delegate :resource, :to => :base
     
     def initialize(base, position_in_run, description, table_options = {})
-      table_options.symbolize_keys!
+      @table_options = table_options
+      @table_options.symbolize_keys!
 
       @attributes = ActiveSupport::OrderedHash.new
       @base = base
       @position_in_run = position_in_run
       @description = description
       
-      if table_options[:errata].is_a?(String)
-        table_options[:errata] = Errata.new :url => table_options[:errata], :responder => resource
+      if @table_options[:errata].is_a?(String)
+        @table_options[:errata] = Errata.new :url => @table_options[:errata], :responder => resource
       end
         
-      if table_options[:table].present?
-        DataMiner.log_or_raise "You should specify :table or :url, but not both" if table_options[:url].present?
-        @table = table_options[:table]
-      else
-        @table = RemoteTable.new table_options
+      if @table_options[:table] and @table_options[:url].present?
+        DataMiner.log_or_raise "You should specify :table or :url, but not both"
       end
+    end
+    
+    def table
+      @table ||= (table_options[:table] || RemoteTable.new(table_options))
+    end
+    
+    def clear_table
+      @table = nil
     end
 
     def inspect
@@ -65,6 +73,8 @@ OUT: #{attributes.inject(Hash.new) { |memo, v| attr_name, attr = v; memo[attr_na
         record.save! if record.send(primary_key).present?
       end
       DataMiner.log_info "performed #{inspect}"
+      clear_table
+      nil
     end
   end
 end
