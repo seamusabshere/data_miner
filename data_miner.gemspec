@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{data_miner}
-  s.version = "0.5.6"
+  s.version = "0.5.7"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Seamus Abshere", "Andy Rossmeissl", "Derek Kastner"]
-  s.date = %q{2010-11-01}
+  s.date = %q{2010-11-16}
   s.description = %q{Mine remote data into your ActiveRecord models. You can also perform associations and convert units.}
   s.email = %q{seamus@abshere.net}
   s.extra_rdoc_files = [
@@ -27,7 +27,8 @@ Gem::Specification.new do |s|
      "lib/data_miner/process.rb",
      "lib/data_miner/run.rb",
      "lib/data_miner/schema.rb",
-     "lib/data_miner/tap.rb"
+     "lib/data_miner/tap.rb",
+     "lib/data_miner/verify.rb"
   ]
   s.homepage = %q{http://github.com/seamusabshere/data_miner}
   s.rdoc_options = ["--charset=UTF-8", "--line-numbers", "--inline-source"]
@@ -36,6 +37,7 @@ Gem::Specification.new do |s|
   s.summary = %q{Mine remote data into your ActiveRecord models.}
   s.test_files = [
     "test/data_miner/attribute_test.rb",
+     "test/data_miner/verify_test.rb",
      "test/support/airport.rb",
      "test/support/country.rb",
      "test/support/automobile_fuel_type.rb",
