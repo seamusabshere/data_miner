@@ -42,6 +42,14 @@ module DataMiner
       self.step_counter += 1
     end
 
+    def verify(*args, &block)
+      description = args.shift or '(no description)'
+
+      step = DataMiner::Verify.new self, step_counter, description, block
+      steps << step
+      self.step_counter += 1
+    end
+
     # Mine data for this class.
     def run(options = {})
       options.symbolize_keys!
@@ -67,6 +75,8 @@ module DataMiner
       rescue DataMiner::Finish
         finished = true
       rescue DataMiner::Skip
+        skipped = true
+      rescue DataMiner::Verify::VerificationFailed
         skipped = true
       ensure
         if DataMiner::Run.table_exists?

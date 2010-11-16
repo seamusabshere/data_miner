@@ -28,6 +28,7 @@ require 'data_miner/tap'
 require 'data_miner/process'
 require 'data_miner/run'
 require 'data_miner/schema'
+require 'data_miner/verify'
 
 module DataMiner
   class MissingHashColumn < StandardError; end

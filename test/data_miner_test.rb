@@ -870,4 +870,15 @@ class DataMinerTest < Test::Unit::TestCase
       assert ResidentialEnergyConsumptionSurveyResponse.find(6).residence_class.start_with?('Single-family detached house')
     end
   end
+  should "mark the run as skipped if verification fails" do
+    AutomobileFuelType.data_miner_base.instance_eval do
+      verify "failure" do
+        false
+      end
+    end
+
+    DataMiner::Run.delete_all
+    AutomobileFuelType.run_data_miner! :from_scratch => true
+    assert DataMiner::Run.first.skipped
+  end
 end
