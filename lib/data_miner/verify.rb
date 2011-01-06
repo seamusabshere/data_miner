@@ -1,7 +1,5 @@
 module DataMiner
   class Verify
-    class VerificationFailed < RuntimeError; end
-
     attr_accessor :base, :position_in_run, :check, :description
     delegate :resource, :to => :base
     
@@ -17,17 +15,8 @@ module DataMiner
     end
 
     def run(run)
-      begin
-        verification = check.call
-      rescue Exception => e  # need this to catch Test::Unit assertions
-        raise VerificationFailed,
-          "#{e.inspect}: #{e.backtrace.join("\n")}"
-      rescue => e
-        raise VerificationFailed,
-          "#{e.inspect}: #{e.backtrace.join("\n")}"
-      end
-      unless verification
-        raise VerificationFailed, "Result of check was false" 
+      unless check.call
+        raise VerificationFailed, "FAILED VERIFICATION: #{inspect}"
       end
       DataMiner.log_info "performed #{inspect}"
     end

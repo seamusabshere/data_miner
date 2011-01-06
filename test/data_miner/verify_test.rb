@@ -14,13 +14,13 @@ class DataMiner::VerifyTest < Test::Unit::TestCase
       @verify.check = lambda do
         assert false
       end
-      assert_raise(DataMiner::Verify::VerificationFailed) { @verify.run @run }
+      assert_raise(DataMiner::VerificationFailed) { @verify.run @run }
     end
     should 'raise an exception if the result of the verification block is false' do
       @verify.check = lambda do
         false
       end
-      assert_raise(DataMiner::Verify::VerificationFailed) { @verify.run @run }
+      assert_raise(DataMiner::VerificationFailed) { @verify.run @run }
     end
     should 'return true if the verification block succeeds' do
       assert @verify.run(@run)

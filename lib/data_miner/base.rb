@@ -76,8 +76,6 @@ module DataMiner
         finished = true
       rescue DataMiner::Skip
         skipped = true
-      rescue DataMiner::Verify::VerificationFailed
-        skipped = true
       ensure
         if DataMiner::Run.table_exists?
           run.update_attributes! :terminated_at => Time.now, :finished => finished, :skipped => skipped, :killed => false

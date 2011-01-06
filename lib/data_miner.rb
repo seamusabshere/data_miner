@@ -34,6 +34,7 @@ module DataMiner
   class MissingHashColumn < StandardError; end
   class Finish < StandardError; end
   class Skip < StandardError; end
+  class VerificationFailed < StandardError; end
   
   mattr_accessor :logger
   
