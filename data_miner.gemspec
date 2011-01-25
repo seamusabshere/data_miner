@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Seamus Abshere", "Andy Rossmeissl", "Derek Kastner"]
-  s.date = %q{2010-11-16}
+  s.date = %q{2011-01-25}
   s.description = %q{Mine remote data into your ActiveRecord models. You can also perform associations and convert units.}
   s.email = %q{seamus@abshere.net}
   s.extra_rdoc_files = [
@@ -38,12 +38,12 @@ Gem::Specification.new do |s|
   s.test_files = [
     "test/data_miner/attribute_test.rb",
      "test/data_miner/verify_test.rb",
-     "test/support/airport.rb",
-     "test/support/country.rb",
-     "test/support/automobile_fuel_type.rb",
-     "test/support/aircraft.rb",
-     "test/support/automobile_variant.rb",
      "test/data_miner_test.rb",
+     "test/support/aircraft.rb",
+     "test/support/airport.rb",
+     "test/support/automobile_fuel_type.rb",
+     "test/support/automobile_variant.rb",
+     "test/support/country.rb",
      "test/test_helper.rb"
   ]
 
@@ -52,7 +52,7 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<remote_table>, ["~> 0.2.32"])
+      s.add_runtime_dependency(%q<remote_table>, ["~> 1"])
       s.add_runtime_dependency(%q<escape>, [">= 0.0.4"])
       s.add_runtime_dependency(%q<activerecord>, [">= 2.3.4"])
       s.add_runtime_dependency(%q<activesupport>, [">= 2.3.4"])
@@ -69,7 +69,7 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<shoulda>, [">= 0"])
       s.add_development_dependency(%q<mysql>, [">= 0"])
     else
-      s.add_dependency(%q<remote_table>, ["~> 0.2.32"])
+      s.add_dependency(%q<remote_table>, ["~> 1"])
       s.add_dependency(%q<escape>, [">= 0.0.4"])
       s.add_dependency(%q<activerecord>, [">= 2.3.4"])
       s.add_dependency(%q<activesupport>, [">= 2.3.4"])
@@ -87,7 +87,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<mysql>, [">= 0"])
     end
   else
-    s.add_dependency(%q<remote_table>, ["~> 0.2.32"])
+    s.add_dependency(%q<remote_table>, ["~> 1"])
     s.add_dependency(%q<escape>, [">= 0.0.4"])
     s.add_dependency(%q<activerecord>, [">= 2.3.4"])
     s.add_dependency(%q<activesupport>, [">= 2.3.4"])

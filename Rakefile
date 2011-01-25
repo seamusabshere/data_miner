@@ -11,7 +11,7 @@ begin
     gem.homepage = "http://github.com/seamusabshere/data_miner"
     gem.authors = ["Seamus Abshere", "Andy Rossmeissl", 'Derek Kastner']
 
-    gem.add_dependency 'remote_table', '~>0.2.32'
+    gem.add_dependency 'remote_table', '~>1'
     gem.add_dependency 'escape', '>=0.0.4'
     gem.add_dependency 'activerecord', '>=2.3.4'
     gem.add_dependency 'activesupport', '>=2.3.4'
