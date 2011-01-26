@@ -1,3 +1,4 @@
+require 'remote_table'
 class DataMiner
   class Dictionary
     attr_reader :options
