@@ -1,6 +1,6 @@
-require 'test_helper'
+require 'helper'
 
-class AttributeTest < Test::Unit::TestCase
+class TestAttribute < Test::Unit::TestCase
   context '#value_from_row' do
     setup do
       @airport = Airport.new

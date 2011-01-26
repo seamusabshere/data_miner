@@ -1,4 +1,4 @@
-require 'test_helper'
+require 'helper'
 
 class TappedAirport < ActiveRecord::Base
   set_primary_key :iata_code
@@ -609,7 +609,7 @@ class CensusDivisionTrois < ActiveRecord::Base
       string   'census_region_name'
       integer  'census_region_number'
       index    'census_region_name', :name => 'homefry'
-      index   ['number_code', 'name', 'census_region_name', 'census_region_number', 'updated_at', 'created_at']
+      index   ['number_code', 'name', 'census_region_name', 'census_region_number']
     end
   end
 end
@@ -627,7 +627,7 @@ class CensusDivisionFour < ActiveRecord::Base
 end
 
 # todo: have somebody properly organize these
-class DataMinerTest < Test::Unit::TestCase
+class TestOldSyntax < Test::Unit::TestCase
   if ENV['WIP']
     context 'with nullify option' do
       should 'treat blank fields as null values' do
@@ -660,9 +660,9 @@ class DataMinerTest < Test::Unit::TestCase
           end
         end
       end
-      assert_kind_of DataMiner::Import, AutomobileFuelType.data_miner_base.steps.first
-      assert_equal 'http://example.com', AutomobileFuelType.data_miner_base.steps.first.table.package.url
-      assert_equal 1, AutomobileFuelType.data_miner_base.step_counter
+      assert_kind_of DataMiner::Import, AutomobileFuelType.data_miner_config.steps.first
+      assert_equal 'http://example.com', AutomobileFuelType.data_miner_config.steps.first.table.package.url
+      assert_equal 1, AutomobileFuelType.data_miner_config.step_counter
     end
     should "stop and finish if it gets a DataMiner::Finish" do
       AutomobileMakeFleetYear.delete_all
@@ -670,8 +670,8 @@ class DataMinerTest < Test::Unit::TestCase
       $force_finish = true
       AutomobileMakeFleetYear.run_data_miner!
       assert_equal 0, AutomobileMakeFleetYear.count
-      assert_equal true, (AutomobileMakeFleetYear.data_miner_runs.count > 0)
-      assert_equal true, AutomobileMakeFleetYear.data_miner_runs.all? { |run| run.finished? and not run.skipped and not run.killed? }
+      assert (AutomobileMakeFleetYear.data_miner_runs.count > 0)
+      assert AutomobileMakeFleetYear.data_miner_runs.all? { |run| run.finished? and not run.skipped and not run.killed? }
       $force_finish = false
       AutomobileMakeFleetYear.run_data_miner!
       assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')
@@ -683,8 +683,8 @@ class DataMinerTest < Test::Unit::TestCase
       $force_skip = true
       AutomobileMakeFleetYear.run_data_miner!
       assert_equal 0, AutomobileMakeFleetYear.count
-      assert_equal true, (AutomobileMakeFleetYear.data_miner_runs.count > 0)
-      assert_equal true, AutomobileMakeFleetYear.data_miner_runs.all? { |run| run.skipped? and not run.finished? and not run.killed? }
+      assert (AutomobileMakeFleetYear.data_miner_runs.count > 0)
+      assert AutomobileMakeFleetYear.data_miner_runs.all? { |run| run.skipped? and not run.finished? and not run.killed? }
       $force_skip = false
       AutomobileMakeFleetYear.run_data_miner!
       assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')
@@ -693,27 +693,25 @@ class DataMinerTest < Test::Unit::TestCase
     should "eagerly enforce a schema" do
       ActiveRecord::Base.connection.create_table 'census_division_trois', :force => true, :options => 'ENGINE=InnoDB default charset=utf8' do |t|
         t.string   'name'
-        # t.datetime 'updated_at'
-        # t.datetime 'created_at'
         t.string   'census_region_name'
         # t.integer  'census_region_number'
       end
       ActiveRecord::Base.connection.execute 'ALTER TABLE census_division_trois ADD INDEX (census_region_name)'
       CensusDivisionTrois.reset_column_information
-      missing_columns = %w{ updated_at created_at census_region_number }
+      missing_columns = %w{ census_region_number }
 
       # sanity check
       missing_columns.each do |column|
-        assert_equal false, CensusDivisionTrois.column_names.include?(column)
+        assert_false CensusDivisionTrois.column_names.include?(column)
       end
-      assert_equal false, ActiveRecord::Base.connection.indexes(CensusDivisionTrois.table_name).any? { |index| index.name == 'homefry' }
+      assert_false ActiveRecord::Base.connection.indexes(CensusDivisionTrois.table_name).any? { |index| index.name == 'homefry' }
       
       3.times do
         CensusDivisionTrois.run_data_miner!
         missing_columns.each do |column|
-          assert_equal true, CensusDivisionTrois.column_names.include?(column)
+          assert CensusDivisionTrois.column_names.include?(column)
         end
-        assert_equal true, ActiveRecord::Base.connection.indexes(CensusDivisionTrois.table_name).any? { |index| index.name == 'homefry' }
+        assert ActiveRecord::Base.connection.indexes(CensusDivisionTrois.table_name).any? { |index| index.name == 'homefry' }
         assert_equal :string, CensusDivisionTrois.columns_hash[CensusDivisionTrois.primary_key].type
       end
     end
@@ -721,27 +719,25 @@ class DataMinerTest < Test::Unit::TestCase
     should "let schemas work with default id primary keys" do
       ActiveRecord::Base.connection.create_table 'census_division_fours', :force => true, :options => 'ENGINE=InnoDB default charset=utf8' do |t|
         t.string   'name'
-        # t.datetime 'updated_at'
-        # t.datetime 'created_at'
         t.string   'census_region_name'
         # t.integer  'census_region_number'
       end
       ActiveRecord::Base.connection.execute 'ALTER TABLE census_division_fours ADD INDEX (census_region_name)'
       CensusDivisionFour.reset_column_information
-      missing_columns = %w{ updated_at created_at census_region_number }
+      missing_columns = %w{ census_region_number }
     
       # sanity check
       missing_columns.each do |column|
-        assert_equal false, CensusDivisionFour.column_names.include?(column)
+        assert_false CensusDivisionFour.column_names.include?(column)
       end
-      assert_equal false, ActiveRecord::Base.connection.indexes(CensusDivisionFour.table_name).any? { |index| index.name == 'homefry' }
+      assert_false ActiveRecord::Base.connection.indexes(CensusDivisionFour.table_name).any? { |index| index.name == 'homefry' }
       
       3.times do
         CensusDivisionFour.run_data_miner!
         missing_columns.each do |column|
-          assert_equal true, CensusDivisionFour.column_names.include?(column)
+          assert CensusDivisionFour.column_names.include?(column)
         end
-        assert_equal true, ActiveRecord::Base.connection.indexes(CensusDivisionFour.table_name).any? { |index| index.name == 'homefry' }
+        assert ActiveRecord::Base.connection.indexes(CensusDivisionFour.table_name).any? { |index| index.name == 'homefry' }
         assert_equal :integer, CensusDivisionFour.columns_hash[CensusDivisionFour.primary_key].type
       end
     end
@@ -793,29 +789,29 @@ class DataMinerTest < Test::Unit::TestCase
     end
     
     should "be idempotent" do
-      Country.data_miner_base.run
+      Country.data_miner_config.run
       a = Country.count
-      Country.data_miner_base.run
+      Country.data_miner_config.run
       b = Country.count
       assert_equal a, b
     
-      CensusRegion.data_miner_base.run
+      CensusRegion.data_miner_config.run
       a = CensusRegion.count
-      CensusRegion.data_miner_base.run
+      CensusRegion.data_miner_config.run
       b = CensusRegion.count
       assert_equal a, b
     end
       
     should "hash things" do
-      AutomobileVariant.data_miner_base.steps[0].run(nil)
+      AutomobileVariant.data_miner_config.steps[0].run
       assert AutomobileVariant.first.row_hash.present?
     end
   
     should "process a callback block instead of a method" do
       AutomobileVariant.delete_all
-      AutomobileVariant.data_miner_base.steps[0].run(nil)
+      AutomobileVariant.data_miner_config.steps[0].run
       assert !AutomobileVariant.first.fuel_efficiency_city.present?
-      AutomobileVariant.data_miner_base.steps.last.run(nil)
+      AutomobileVariant.data_miner_config.steps.last.run
       assert AutomobileVariant.first.fuel_efficiency_city.present?
     end
   
@@ -871,7 +867,7 @@ class DataMinerTest < Test::Unit::TestCase
     end
   end
   should "mark the run as skipped if verification fails" do
-    AutomobileFuelType.data_miner_base.instance_eval do
+    AutomobileFuelType.data_miner_config.instance_eval do
       verify "failure" do
         false
       end

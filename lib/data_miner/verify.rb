@@ -1,24 +1,28 @@
-module DataMiner
+class DataMiner
   class Verify
-    attr_accessor :base, :position_in_run, :check, :description
-    delegate :resource, :to => :base
+    attr_reader :config
+    attr_reader :description
+    attr_reader :blk
     
-    def initialize(base, position_in_run, description, check)
-      self.base = base
-      self.position_in_run = position_in_run
-      self.description = description
-      self.check = check
+    def initialize(config, description, &blk)
+      @config = config
+      @description = description
+      @blk = blk
+    end
+    
+    def resource
+      config.resource
     end
 
     def inspect
-      "Verify(#{resource}) position #{position_in_run} (#{description})"
+      %{#<DataMiner::Verify(#{resource})  (#{description})>}
     end
 
-    def run(run)
-      unless check.call
+    def run
+      unless blk.call
         raise VerificationFailed, "FAILED VERIFICATION: #{inspect}"
       end
-      DataMiner.log_info "performed #{inspect}"
+      nil
     end
   end
 end

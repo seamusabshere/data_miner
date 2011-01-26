@@ -1,5 +1,5 @@
-module DataMiner
-  class Run < ActiveRecord::Base
+class DataMiner
+  class Run < ::ActiveRecord::Base
     set_table_name 'data_miner_runs'
     
     def resource
@@ -8,7 +8,7 @@ module DataMiner
         
     class << self
       def create_tables
-        return if table_exists? and column_names.include?('skipped') # force a drop
+        return if table_exists?
         connection.create_table 'data_miner_runs', :force => true do |t|
           t.string 'resource_name'
           t.boolean 'killed'

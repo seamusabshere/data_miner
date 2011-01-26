@@ -1,52 +1,52 @@
-
-module DataMiner
+require 'escape'
+class DataMiner
   class Tap
-    attr_reader :base
-    attr_reader :position_in_run
+    attr_reader :config
     attr_reader :description
     attr_reader :source
     attr_reader :options
-    delegate :resource, :to => :base
 
-    def initialize(base, position_in_run, description, source, options = {})
-      options.symbolize_keys!
-      DataMiner.log_or_raise "Tap has to be the first step." unless position_in_run == 0
-      @base = base
-      @position_in_run = position_in_run
+    def initialize(config, description, source, options = {})
+      @config = config
+      @options = options.dup
+      @options.stringify_keys!
       @description = description
       @source = source
-      @options = options
+    end
+    
+    def resource
+      config.resource
     end
     
     def inspect
-      "Tap(#{resource}): #{description} (#{source})"
+      %{#<DataMiner::Tap(#{resource}): #{description} (#{source})>}
     end
     
-    def run(run)
+    def run
       [ source_table_name, resource.table_name ].each do |possible_obstacle|
-        if connection.table_exists?(possible_obstacle)
+        if connection.table_exists? possible_obstacle
           connection.drop_table possible_obstacle
         end
       end
-      DataMiner.backtick_with_reporting taps_pull_cmd
+      ::DataMiner.backtick_with_reporting taps_pull_cmd
       if needs_table_rename?
         connection.rename_table source_table_name, resource.table_name
       end
-      DataMiner.log_info "ran #{inspect}"
+      nil
     end
     
-    private
-    
+    # sabshere 1/25/11 what if there were multiple connections
+    # blockenspiel doesn't like to delegate this to #resource
     def connection
-      ActiveRecord::Base.connection
+      ::ActiveRecord::Base.connection
     end
     
     def db_config
-      @_db_config ||= connection.instance_variable_get(:@config).dup.merge(options.except(:source_table_name))
+      @db_config ||= connection.instance_variable_get(:@config).stringify_keys.merge(options.except('source_table_name'))
     end
     
     def source_table_name
-      options[:source_table_name] || resource.table_name
+      options['source_table_name'] || resource.table_name
     end
     
     def needs_table_rename?
@@ -66,7 +66,7 @@ module DataMiner
 
     # never optional
     def database
-      db_config[:database]
+      db_config['database']
     end
     
     DEFAULT_PORTS = {
@@ -88,7 +88,7 @@ module DataMiner
     %w{ username password port host }.each do |x|
       module_eval %{
         def #{x}
-          db_config[:#{x}] || DEFAULT_#{x.upcase}S[adapter]
+          db_config['#{x}'] || DEFAULT_#{x.upcase}S[adapter]
         end
       }
     end
@@ -104,7 +104,7 @@ module DataMiner
     
     # taps pull mysql://root:password@localhost/taps_test http://foo:bar@data.brighterplanet.com:5000 --tables aircraft
     def taps_pull_cmd
-      Escape.shell_command [
+      ::Escape.shell_command [
         'taps',
         'pull',
         "#{adapter}://#{db_locator}",

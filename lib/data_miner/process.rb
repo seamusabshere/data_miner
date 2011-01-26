@@ -1,37 +1,42 @@
-module DataMiner
+class DataMiner
   class Process
-    attr_accessor :base, :position_in_run
-    attr_accessor :method_name
-    attr_accessor :block_description, :block
-    delegate :resource, :to => :base
+    attr_reader :config
+    attr_reader :method_id
+    attr_reader :block_description
+    attr_reader :blk
 
-    def initialize(base, position_in_run, method_name_or_block_description, &block)
-      @base = base
-      @position_in_run = position_in_run
+    def initialize(config, method_id_or_block_description, &blk)
+      @config = config
       if block_given?
-        @block_description = method_name_or_block_description
-        @block = block
+        @block_description = method_id_or_block_description
+        @blk = blk
       else
-        @method_name = method_name_or_block_description
+        @method_id = method_id_or_block_description
       end
+    end
+    
+    def resource
+      config.resource
     end
     
     def inspect
-      str = "Process(#{resource}) position #{position_in_run}"
+      str = %{<#Process(#{resource})}
       if block
-        str << " ran block (#{block_description})"
+        str << %{ called block "#{block_description}"}
       else
-        str << " called :#{method_name}"
+        str << %{ called method :#{method_id}}
       end
+      str << ">"
+      str
     end
     
-    def run(run)
-      if block
-        block.call
+    def run
+      if blk
+        blk.call
       else
-        resource.send method_name
+        resource.send method_id
       end
-      DataMiner.log_info "ran #{inspect}"
+      nil
     end
   end
 end

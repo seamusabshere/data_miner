@@ -1,6 +1,6 @@
-require 'test_helper'
+require 'helper'
 
-class DataMiner::VerifyTest < Test::Unit::TestCase
+class TestVerify < Test::Unit::TestCase
   context '#run' do
     setup do
       @run = Object.new

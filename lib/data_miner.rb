@@ -6,83 +6,37 @@ require 'active_support/version'
   active_support/core_ext/string/multibyte
 }.each do |active_support_3_requirement|
   require active_support_3_requirement
-end if ActiveSupport::VERSION::MAJOR == 3
+end if ::ActiveSupport::VERSION::MAJOR == 3
 
-require 'active_record'
-require 'blockenspiel'
-require 'conversions'
-require 'errata'
-require 'remote_table'
-require 'escape'
-require 'andand'
-require 'log4r'
-require 'fileutils'
-require 'tmpdir'
-require 'zlib'
+require 'singleton'
 
-require 'data_miner/attribute'
-require 'data_miner/base'
-require 'data_miner/dictionary'
-require 'data_miner/import'
-require 'data_miner/tap'
-require 'data_miner/process'
-require 'data_miner/run'
-require 'data_miner/schema'
-require 'data_miner/verify'
-
-module DataMiner
+class DataMiner
+  include ::Singleton
+  
   class MissingHashColumn < StandardError; end
   class Finish < StandardError; end
   class Skip < StandardError; end
   class VerificationFailed < StandardError; end
   
-  mattr_accessor :logger
+  autoload :ActiveRecordExtensions, 'data_miner/active_record_extensions'
+  autoload :Attribute, 'data_miner/attribute'
+  autoload :Config, 'data_miner/config'
+  autoload :Dictionary, 'data_miner/dictionary'
+  autoload :Import, 'data_miner/import'
+  autoload :Tap, 'data_miner/tap'
+  autoload :Process, 'data_miner/process'
+  autoload :Run, 'data_miner/run'
+  autoload :Schema, 'data_miner/schema'
+  autoload :Verify, 'data_miner/verify'
   
-  def self.start_logging
-    return if logger
-
-    if defined? Rails
-      self.logger = Rails.logger
-    else
-      class_eval { include Log4r }
-      info_outputter = FileOutputter.new 'f1', :filename => 'data_miner.log'
-      error_outputter = Outputter.stderr
-      info_outputter.only_at DEBUG, INFO
-      error_outputter.only_at WARN, ERROR, FATAL
-      
-      self.logger = Logger.new 'data_miner'
-      logger.add info_outputter, error_outputter
-      ActiveRecord::Base.logger = logger
-    end
+  class << self
+    delegate :logger, :to => :instance
+    delegate :logger=, :to => :instance
+    delegate :run, :to => :instance
+    delegate :resource_names, :to => :instance
   end
   
-  def self.log_or_raise(message)
-    message = "[data_miner gem] #{message}"
-    if ENV['RAILS_ENV'] == 'production' or ENV['DONT_RAISE'] == 'true'
-      logger.error message
-    else
-      raise message
-    end
-  end
-  
-  def self.log_info(message)
-    logger.info "[data_miner gem] #{message}"
-  end
-  
-  def self.log_debug(message)
-    logger.debug "[data_miner gem] #{message}"
-  end
-  
-  def self.run(options = {})
-    DataMiner::Base.run options.merge(:preserve_call_stack_between_runs => true)
-    DataMiner::Base.call_stack.clear
-  end
-  
-  def self.resource_names
-    DataMiner::Base.resource_names
-  end
-  
-    # TODO this should probably live somewhere else
+  # TODO this should probably live somewhere else
   def self.backtick_with_reporting(cmd)
     cmd = cmd.gsub /[ ]*\n[ ]*/m, ' '
     output = `#{cmd}`
@@ -98,41 +52,45 @@ Output:
 }
     end
   end
+  
+  attr_accessor :logger
 
-end
+  def resource_names
+    @resource_names ||= []
+  end
 
-ActiveRecord::Base.class_eval do
-  def self.x_data_miner(&block)
-    DataMiner.start_logging
-    
-    DataMiner.log_debug "Skipping data_miner block in #{self.name} because called as x_data_miner"
+  def call_stack
+    @call_stack ||= []
   end
   
-  def self.data_miner(&block)
-    DataMiner.start_logging
-    
-    DataMiner.log_debug "Database table `#{table_name}` doesn't exist. It might be created in the data_miner block, but if it's not, DataMiner probably won't work properly until you run a migration or otherwise fix the schema." unless table_exists?
-    
-    DataMiner.resource_names.push self.name unless DataMiner.resource_names.include? self.name
-
-    # this is class_eval'ed here so that each ActiveRecord descendant has its own copy, or none at all
-    class_eval do
-      cattr_accessor :data_miner_base
-      def self.data_miner_runs
-        DataMiner::Run.scoped :conditions => { :resource_name => name }
-      end
-      def self.run_data_miner!(options = {})
-        data_miner_base.run options
-      end
-      def self.execute_schema
-        schema = data_miner_base.steps.find { |s| s.instance_of?(DataMiner::Schema) }
-        schema.run(nil) if schema
+  def start_logging
+    if logger.nil?
+      if defined? ::Rails
+        @logger = ::Rails.logger
+      else
+        @logger = ::Logger.new $stdout
       end
     end
-    self.data_miner_base = DataMiner::Base.new self
-
-    Blockenspiel.invoke block, data_miner_base
+    ::ActiveRecord::Base.logger = logger
+  end
     
-    data_miner_base.after_invoke
+  # Mine data. Defaults to all resource_names touched by DataMiner.
+  #
+  # Options
+  # * <tt>:resource_names</tt>: array of resource (class) names to mine
+  def run(options = {})
+    options = options.dup
+    options.stringify_keys!
+    options['preserve_call_stack_between_runs'] = true
+    resource_names.each do |resource_name|
+      if options['resource_names'].blank? or options['resource_names'].include?(resource_name)
+        resource_name.constantize.data_miner_config.run options
+      end
+    end
+    call_stack.clear
+    # RemoteTable.cleanup
   end
 end
+
+require 'active_record'
+::ActiveRecord::Base.extend ::DataMiner::ActiveRecordExtensions

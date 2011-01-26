@@ -1,79 +1,88 @@
-module DataMiner
+require 'blockenspiel'
+class DataMiner
   class Import
-    include Blockenspiel::DSL
+    include ::Blockenspiel::DSL
     
     attr_reader :attributes
-    attr_accessor :base
-    attr_accessor :position_in_run
-    attr_accessor :table_options
-    attr_accessor :description
-    delegate :resource, :to => :base
+    attr_reader :config
+    attr_reader :options
+    attr_reader :description
     
-    def initialize(base, position_in_run, description, table_options = {})
-      @table_options = table_options
-      @table_options.symbolize_keys!
-
-      @attributes = ActiveSupport::OrderedHash.new
-      @base = base
-      @position_in_run = position_in_run
+    def initialize(config, description, options = {})
+      @config = config
       @description = description
-      
-      if @table_options[:errata].is_a?(String)
-        @table_options[:errata] = Errata.new :url => @table_options[:errata], :responder => resource
+      @options = options.dup
+      @options.stringify_keys!
+      # legacy
+      if @options.has_key? 'table'
+        ::DataMiner.logger.info "Warning: 'table' is no longer an allowed option, taking the url from it and ignoring the rest"
+        table_instance = @options.delete 'table'
+        @options['url'] = table_instance.url
       end
+      # legacy
+      if @options.has_key?('errata') and not @options['errata'].is_a?(::Hash)
+        ::DataMiner.logger.info "Warning: 'errata' must be a hash of Errata options. taking the URL from the Errata instance you provided and ignoring everything else"
+        errata_instance = @options.delete 'errata'
+        @options['errata'] = { 'url' => errata_instance.options['url'] }
+      end
+    end
         
-      if @table_options[:table] and @table_options[:url].present?
-        DataMiner.log_or_raise "You should specify :table or :url, but not both"
-      end
+    def attributes
+      @attributes ||= ::ActiveSupport::OrderedHash.new
     end
     
-    def table
-      @table ||= (table_options[:table] || RemoteTable.new(table_options))
-    end
-    
-    def clear_table
-      @table = nil
+    def resource
+      config.resource
     end
 
     def inspect
-      "Import(#{resource}) position #{position_in_run} (#{description})"
-    end
-
-    def stores?(attr_name)
-      attributes.has_key? attr_name
+      %{#<DataMiner::Import(#{resource}) (#{description})>}
     end
     
     def store(attr_name, attr_options = {})
-      DataMiner.log_or_raise "You should only call store or key once for #{resource.name}##{attr_name}" if attributes.has_key? attr_name
+      raise "You should only call store or key once for #{resource.name}##{attr_name}" if attributes.has_key? attr_name
       attributes[attr_name] = Attribute.new self, attr_name, attr_options
     end
     
     def key(attr_name, attr_options = {})
-      DataMiner.log_or_raise "You should only call store or key once for #{resource.name}##{attr_name}" if attributes.has_key? attr_name
-      @key = attr_name
+      raise "You should only call store or key once for #{resource.name}##{attr_name}" if attributes.has_key? attr_name
+      @_key = attr_name
       store attr_name, attr_options
     end
 
-    def run(run)
-      primary_key = resource.primary_key
-      test_counter = 0
+    def primary_key
+      resource.primary_key
+    end
 
-      table.each_row do |row|
-        if ENV['DUMP'] == 'true'
-          raise "[data_miner gem] Stopping after 5 rows because TEST=true" if test_counter > 5
-          test_counter += 1
-          DataMiner.log_info %{Row #{test_counter}
-IN:  #{row.inspect}
-OUT: #{attributes.inject(Hash.new) { |memo, v| attr_name, attr = v; memo[attr_name] = attr.value_from_row(row); memo }.inspect}
-          }
-        end
-      
-        record = resource.send "find_or_initialize_by_#{@key}", attributes[@key].value_from_row(row)
-        attributes.each { |_, attr| attr.set_record_from_row record, row }
-        record.save! if record.send(primary_key).present?
+    def table
+      return @table if @table.is_a? ::RemoteTable
+      # don't mess with the originals
+      options = @options.dup
+      if options['errata']
+        errata_options = options['errata'].dup
+        errata_options.stringify_keys!
+        errata_options['responder'] ||= resource
+        options['errata'] = errata_options
       end
-      DataMiner.log_info "performed #{inspect}"
-      clear_table
+      @table = ::RemoteTable.new options
+    end
+
+    def expire_remote_data
+      @table = nil
+      attributes.each { |_, attr| attr.instance_variable_set :@dictionary, nil }
+    end
+
+    def run
+      expire_remote_data
+      table.each do |row|
+        record = resource.send "find_or_initialize_by_#{@_key}", attributes[@_key].value_from_row(row)
+        attributes.each { |_, attr| attr.set_record_from_row record, row }
+        if record.send(primary_key).present?
+          record.save!
+        else
+          ::DataMiner.logger.debug "Skipping #{row} because there's no primary key"
+        end
+      end
       nil
     end
   end

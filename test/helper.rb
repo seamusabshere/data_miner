@@ -1,12 +1,29 @@
 require 'rubygems'
+require 'bundler'
+unless RUBY_VERSION >= '1.9'
+  gem 'fastercsv'
+  require 'fastercsv'
+end
+Bundler.setup
 require 'test/unit'
 require 'shoulda'
-
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+unless RUBY_VERSION >= '1.9'
+  require 'ruby-debug'
+end
 $LOAD_PATH.unshift(File.dirname(__FILE__))
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'data_miner'
+class Test::Unit::TestCase
+end
 
-ENV['WIP'] = true if ENV['ALL'] == 'true'
+test_log = File.open('test.log', 'w')
+test_log.sync = true
+DataMiner.logger = Logger.new test_log
+
+# because some of the test files reference it
+require 'errata'
+
+ENV['WIP'] = 'true' if ENV['ALL'] == 'true'
 
 ActiveRecord::Base.establish_connection(
   'adapter' => 'mysql',
