@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
   
-  s.add_dependency 'remote_table', '>=1.0.2'
+  s.add_dependency 'remote_table', '>=1.0.3'
   s.add_dependency 'escape', '>=0.0.4'
   s.add_dependency 'activerecord', '>=2.3.4'
   s.add_dependency 'activesupport', '>=2.3.4'
