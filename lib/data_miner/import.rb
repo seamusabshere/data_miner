@@ -1,4 +1,5 @@
 require 'blockenspiel'
+require 'errata'
 require 'remote_table'
 class DataMiner
   class Import
