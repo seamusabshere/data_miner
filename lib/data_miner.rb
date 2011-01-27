@@ -65,14 +65,14 @@ Output:
   
   def start_logging
     if logger.nil?
-      if defined? Rails
-        self.logger = Rails.logger
+      if defined? ::Rails
+        self.logger = ::Rails.logger
       else
         require 'logger'
-        self.logger = Logger.new $stdout
+        self.logger = ::Logger.new $stdout
       end
     end
-    ActiveRecord::Base.logger = logger
+    ::ActiveRecord::Base.logger = logger
   end
     
   # Mine data. Defaults to all resource_names touched by DataMiner.

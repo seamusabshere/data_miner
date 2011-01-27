@@ -1,6 +1,8 @@
 class DataMiner
   class Verify
-    attr_accessor :config, :description, :blk
+    attr_reader :config
+    attr_reader :description
+    attr_reader :blk
     
     def initialize(config, description, &blk)
       @config = config
