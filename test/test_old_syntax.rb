@@ -874,7 +874,8 @@ class TestOldSyntax < Test::Unit::TestCase
     end
 
     DataMiner::Run.delete_all
-    AutomobileFuelType.run_data_miner! :from_scratch => true
-    assert DataMiner::Run.first.skipped
+    assert_raise do
+      AutomobileFuelType.run_data_miner! :from_scratch => true
+    end
   end
 end

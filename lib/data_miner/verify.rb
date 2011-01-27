@@ -1,8 +1,6 @@
 class DataMiner
   class Verify
-    attr_reader :config
-    attr_reader :description
-    attr_reader :blk
+    attr_accessor :config, :description, :blk
     
     def initialize(config, description, &blk)
       @config = config
@@ -19,7 +17,12 @@ class DataMiner
     end
 
     def run
-      unless blk.call
+      successful = begin
+        blk.call
+      rescue => e
+        false
+      end
+      unless successful
         raise VerificationFailed, "FAILED VERIFICATION: #{inspect}"
       end
       nil
