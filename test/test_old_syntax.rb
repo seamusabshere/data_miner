@@ -548,7 +548,7 @@ class AircraftDeux < ActiveRecord::Base
       import("ICAO codes starting with letter #{letter} used by the FAA",
               :url => "http://www.faa.gov/air_traffic/publications/atpubs/CNT/5-2-#{letter}.htm",
               :encoding => 'windows-1252',
-              :errata => 'http://spreadsheets.google.com/pub?key=tObVAGyqOkCBtGid0tJUZrw',
+              :errata => { :url => 'http://spreadsheets.google.com/pub?key=tObVAGyqOkCBtGid0tJUZrw' },
               :row_xpath => '//table/tr[2]/td/table/tr',
               :column_xpath => 'td') do
         key 'icao_code', :field_name => 'Designator'
@@ -588,7 +588,7 @@ class AutomobileMakeFleetYear < ActiveRecord::Base
 
     # CAFE data privately emailed to Andy from Terry Anderson at the DOT/NHTSA
     import :url => 'http://static.brighterplanet.com/science/data/transport/automobiles/make_fleet_years/make_fleet_years.csv',
-           :errata => 'http://static.brighterplanet.com/science/data/transport/automobiles/make_fleet_years/errata.csv',
+           :errata => { :url => 'http://static.brighterplanet.com/science/data/transport/automobiles/make_fleet_years/errata.csv' },
            :select => lambda { |row| row['volume'].to_i > 0 } do
       key   'name', :synthesize => lambda { |row| [ row['manufacturer_name'], row['fleet'][2,2], row['year_content'] ].join ' ' }
       store 'make_name', :field_name => 'manufacturer_name'
@@ -661,7 +661,7 @@ class TestOldSyntax < Test::Unit::TestCase
         end
       end
       assert_kind_of DataMiner::Import, AutomobileFuelType.data_miner_config.steps.first
-      assert_equal 'http://example.com', AutomobileFuelType.data_miner_config.steps.first.table.package.url
+      assert_equal 'http://example.com', AutomobileFuelType.data_miner_config.steps.first.table.url
       assert_equal 1, AutomobileFuelType.data_miner_config.step_counter
     end
     should "stop and finish if it gets a DataMiner::Finish" do

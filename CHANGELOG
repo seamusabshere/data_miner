@@ -1,3 +1,9 @@
+1.1.0
+* fixed dependency issues
+1.0.0
+* bundler and gemspec instead of jeweler
+* clear up memory leaks and destructive argument borking
+* mostly backwards compatible (but no add_hints! in remote_table transforms, for example)
 0.2.6
 * Upgrade to remote_table 0.1.6 to handle UTF-8 CSVs and long urls.
 0.3.0

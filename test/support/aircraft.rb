@@ -33,6 +33,10 @@ class Aircraft < ActiveRecord::Base
       row['Manufacturer'] =~ /BOEING/i
     end
     
+    def is_not_attributed_to_airbus?(row)
+      row['Manufacturer'] =~ /AIRBUS/i
+    end
+    
     def is_attributed_to_cessna?(row)
       row['Manufacturer'] =~ /CESSNA/i
     end
@@ -77,8 +81,7 @@ class Aircraft < ActiveRecord::Base
       import("ICAO codes starting with letter #{letter} used by the FAA",
               :url => "http://www.faa.gov/air_traffic/publications/atpubs/CNT/5-2-#{letter}.htm",
               :encoding => 'US-ASCII',
-              :errata => Errata.new(:url => 'http://spreadsheets.google.com/pub?key=tObVAGyqOkCBtGid0tJUZrw',
-                                    :responder => Aircraft::Guru.new),
+              :errata => { :url => 'http://spreadsheets.google.com/pub?key=tObVAGyqOkCBtGid0tJUZrw', :responder => 'Aircraft::Guru' },
               :row_xpath => '//table/tr[2]/td/table/tr',
               :column_xpath => 'td') do
         key 'icao_code', :field_name => 'Designator'
