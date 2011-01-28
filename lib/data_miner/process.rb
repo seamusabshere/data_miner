@@ -21,7 +21,7 @@ class DataMiner
     
     def inspect
       str = %{<#Process(#{resource})}
-      if block
+      if block_description
         str << %{ called block "#{block_description}"}
       else
         str << %{ called method :#{method_id}}
