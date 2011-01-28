@@ -1,6 +1,6 @@
 require 'helper'
 
-class TestAttribute < Test::Unit::TestCase
+class TestDataMinerAttribute < Test::Unit::TestCase
   context '#value_from_row' do
     setup do
       @airport = Airport.new

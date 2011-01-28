@@ -1,6 +1,6 @@
 require File.expand_path('helper', File.dirname(__FILE__))
 
-class TestVerify < Test::Unit::TestCase
+class TestDataMinerVerify < Test::Unit::TestCase
   context '#run' do
     should 'raise an exception if the verification block fails through exception' do
       raising_check = lambda { raise "boom" }
