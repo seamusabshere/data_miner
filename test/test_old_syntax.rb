@@ -1,4 +1,7 @@
+$:.push File.dirname(__FILE__)
 require 'helper'
+
+TestDatabase.load_models
 
 class TappedAirport < ActiveRecord::Base
   set_primary_key :iata_code

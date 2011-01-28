@@ -1,4 +1,7 @@
+$:.push File.dirname(__FILE__)
 require 'helper'
+
+TestDatabase.load_models
 
 class TestDataMinerAttribute < Test::Unit::TestCase
   context '#value_from_row' do
