@@ -32,8 +32,7 @@ class DataMiner
     }
 
     def initialize(step, name, options = {})
-      @options = options.dup
-      @options.stringify_keys!
+      @options = ::DataMiner.recursively_stringify_keys options
 
       @step = step
       @name = name

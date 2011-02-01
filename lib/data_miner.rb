@@ -53,6 +53,22 @@ Output:
     end
   end
   
+  # http://avdi.org/devblog/2009/07/14/recursively-symbolize-keys/
+  def self.recursively_stringify_keys(hash)
+    hash.inject(::Hash.new) do |result, (key, value)|
+      new_key   = case key
+                  when ::Symbol then key.to_s
+                  else key
+                  end
+      new_value = case value
+                  when ::Hash then ::DataMiner.recursively_stringify_keys(value)
+                  else value
+                  end
+      result[new_key] = new_value
+      result
+    end
+  end
+  
   attr_accessor :logger
 
   def resource_names
