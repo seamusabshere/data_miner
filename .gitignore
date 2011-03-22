@@ -6,3 +6,5 @@ pkg
 test/test.sqlite3
 data_miner.log
 Gemfile.lock
+*.gem
+test.log
