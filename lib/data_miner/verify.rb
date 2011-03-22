@@ -15,7 +15,7 @@ class DataMiner
     end
 
     def inspect
-      %{#<DataMiner::Verify(#{resource})  (#{description})>}
+      %{#<DataMiner::Verify(#{resource}) #{description}>}
     end
 
     def run

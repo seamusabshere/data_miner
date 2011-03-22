@@ -38,7 +38,7 @@ class DataMiner
     end
 
     def inspect
-      %{#<DataMiner::Import(#{resource}) (#{description})>}
+      %{#<DataMiner::Import(#{resource}) #{description}>}
     end
     
     def store(attr_name, attr_options = {})

@@ -20,14 +20,7 @@ class DataMiner
     end
     
     def inspect
-      str = %{<#Process(#{resource})}
-      if block_description
-        str << %{ called block "#{block_description}"}
-      else
-        str << %{ called method :#{method_id}}
-      end
-      str << ">"
-      str
+      %{#<DataMiner::Process(#{resource}) #{block_description || method_id}>}
     end
     
     def run

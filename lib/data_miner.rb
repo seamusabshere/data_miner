@@ -85,7 +85,7 @@ Output:
         self.logger = ::Rails.logger
       else
         require 'logger'
-        self.logger = ::Logger.new $stdout
+        self.logger = ::Logger.new $stderr
       end
     end
     ::ActiveRecord::Base.logger = logger

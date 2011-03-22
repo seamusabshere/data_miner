@@ -8,11 +8,11 @@ class TestDataMinerProcess < Test::Unit::TestCase
     end
     should 'describe a block' do
       process = DataMiner::Process.new(@config, 'something cool') { }
-      assert_match /block/, process.inspect
+      assert_match /something cool/, process.inspect
     end
     should 'describe a method' do
       process = DataMiner::Process.new @config, :something_cool
-      assert_match /method/, process.inspect
+      assert_match /something_cool/, process.inspect
     end
   end
 end

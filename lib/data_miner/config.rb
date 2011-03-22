@@ -1,4 +1,5 @@
 require 'blockenspiel'
+require 'benchmark'
 
 class DataMiner
   class Config
@@ -71,8 +72,9 @@ class DataMiner
       resource.delete_all if options['from_scratch']
       begin
         steps.each do |step|
-          step.run# run
+          time = ::Benchmark.realtime { step.run }
           resource.reset_column_information
+          ::DataMiner.logger.info %{Ran #{step.inspect} in #{time.to_i}}
         end
         finished = true
       rescue Finish

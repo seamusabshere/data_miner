@@ -665,7 +665,6 @@ class TestOldSyntax < Test::Unit::TestCase
       end
       assert_kind_of DataMiner::Import, AutomobileFuelType.data_miner_config.steps.first
       assert_equal 'http://example.com', AutomobileFuelType.data_miner_config.steps.first.table.url
-      assert_equal 1, AutomobileFuelType.data_miner_config.step_counter
     end
     should "stop and finish if it gets a DataMiner::Finish" do
       AutomobileMakeFleetYear.delete_all
