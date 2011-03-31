@@ -22,6 +22,11 @@ class DataMiner
     def table
       @table ||= ::RemoteTable.new options['url']
     end
+    
+    def free
+      @table.free if @table.is_a?(::RemoteTable)
+      @table = nil
+    end
 
     def lookup(key)
       find key_name, key, value_name, 'sprintf' => sprintf

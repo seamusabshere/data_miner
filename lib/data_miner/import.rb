@@ -69,13 +69,13 @@ class DataMiner
       @table = ::RemoteTable.new options
     end
 
-    def expire_remote_data
+    def free
+      attributes.each { |_, attr| attr.free }
+      @table.free if @table.is_a?(::RemoteTable)
       @table = nil
-      attributes.each { |_, attr| attr.instance_variable_set :@dictionary, nil }
     end
-
+    
     def run
-      expire_remote_data
       table.each do |row|
         record = resource.send "find_or_initialize_by_#{@_key}", attributes[@_key].value_from_row(row)
         attributes.each { |_, attr| attr.set_record_from_row record, row }
@@ -85,6 +85,7 @@ class DataMiner
           ::DataMiner.logger.debug "Skipping #{row} because there's no primary key"
         end
       end
+      free
       nil
     end
   end

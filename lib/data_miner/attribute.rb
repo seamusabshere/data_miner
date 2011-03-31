@@ -234,5 +234,10 @@ class DataMiner
     def matcher
       @matcher ||= (options['matcher'].is_a?(::String) ? options['matcher'].constantize.new : options['matcher'])
     end
+    
+    def free
+      @dictionary.free if @dictionary.is_a?(Dictionary)
+      @dictionary = nil
+    end
   end
 end
