@@ -654,6 +654,25 @@ class TestOldSyntax < Test::Unit::TestCase
   end
     
   if ENV['ALL'] == 'true' or ENV['FAST'] == 'true'
+    should 'append to an existing config' do
+      AutomobileFuelType.class_eval do
+        data_miner :append => true do
+          import 'example1', :url => 'http://example1.com' do
+            key 'code'
+            store 'name'
+          end
+        end
+        data_miner :append => true do
+          import 'example2', :url => 'http://example2.com' do
+            key 'code'
+            store 'name'
+          end
+        end
+      end
+      assert_equal 'http://example1.com', AutomobileFuelType.data_miner_config.steps[-2].table.url
+      assert_equal 'http://example2.com', AutomobileFuelType.data_miner_config.steps[-1].table.url
+    end
+    
     should 'override an existing data_miner configuration' do
       AutomobileFuelType.class_eval do
         data_miner do

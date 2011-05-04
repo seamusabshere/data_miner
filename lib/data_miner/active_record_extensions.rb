@@ -3,7 +3,7 @@ require 'blockenspiel'
 
 class DataMiner
   module ActiveRecordExtensions
-    def data_miner(&blk)
+    def data_miner(options = {}, &blk)
       ::DataMiner.instance.start_logging
 
       ::DataMiner.logger.debug "Database table `#{table_name}` doesn't exist. It might be created in the data_miner block, but if it's not, DataMiner probably won't work properly until you run a migration or otherwise fix the schema." unless table_exists?
@@ -26,7 +26,11 @@ class DataMiner
         end
       end
 
-      self.data_miner_config = ::DataMiner::Config.new self
+      if options[:append]
+        self.data_miner_config ||= ::DataMiner::Config.new self
+      else
+        self.data_miner_config = ::DataMiner::Config.new self
+      end
 
       ::Blockenspiel.invoke blk, data_miner_config
 
