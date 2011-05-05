@@ -50,16 +50,18 @@ class DataMiner
     end
     
     def value_in_source(row)
-      if wants_static?
-        value = static
+      value = if wants_static?
+        static
       elsif field_number
         if field_number.is_a?(::Range)
-          value = field_number.map { |n| row[n] }.join(delimiter)
+          field_number.map { |n| row[n] }.join(delimiter)
         else
-          value = row[field_number]
+          row[field_number]
         end
+      elsif field_name == 'row_hash'
+        row.row_hash
       else
-        value = row[field_name]
+        row[field_name]
       end
       return nil if value.nil?
       return value if value.is_a?(::ActiveRecord::Base) # escape valve for parsers that look up associations directly
@@ -91,25 +93,10 @@ class DataMiner
       value
     end
         
-    # this will overwrite nils, even if wants_overwriting? is false
-    # returns true if an attr was changed, otherwise false
     def set_record_from_row(record, row)
       return false if !wants_overwriting? and !record.send(name).nil?
-      what_it_was = record.send name
-      what_it_should_be = value_from_row row
-
-      record.send "#{name}=", what_it_should_be
+      record.send "#{name}=", value_from_row(row)
       record.send "#{name}_units=", (to_units || unit_from_source(row)).to_s if wants_units?
-      
-      what_it_is = record.send name
-      if what_it_is.nil? and !what_it_should_be.nil?
-        ::DataMiner.logger.debug "ActiveRecord didn't like trying to set #{resource}.#{name} = #{what_it_should_be} (it came out as nil)"
-        nil
-      elsif what_it_is == what_it_was
-        false
-      else
-        true
-      end
     end
 
     def unit_from_source(row)

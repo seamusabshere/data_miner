@@ -60,6 +60,7 @@ class DataMiner
       return @table if @table.is_a? ::RemoteTable
       # don't mess with the originals
       options = @options.dup
+      options['streaming'] = true
       if options['errata']
         errata_options = options['errata'].dup
         errata_options.stringify_keys!

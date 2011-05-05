@@ -631,272 +631,272 @@ end
 
 # todo: have somebody properly organize these
 class TestOldSyntax < Test::Unit::TestCase
-  if ENV['WIP']
-    context 'with nullify option' do
-      should 'treat blank fields as null values' do
-        Aircraft.delete_all
-        Aircraft.data_miner_runs.delete_all
-        Aircraft.run_data_miner!
-        assert_greater_than 0, Aircraft.count
-        assert_false Aircraft.where(:brighter_planet_aircraft_class_code => nil).empty?
-      end
-    end
-  end
-
-  if ENV['ALL'] == 'true'
-    should 'directly create a table for the model' do
-      if AutomobileMakeFleetYear.table_exists?
-        ActiveRecord::Base.connection.execute 'DROP TABLE automobile_make_fleet_years;'
-      end
-      AutomobileMakeFleetYear.execute_schema
-      assert AutomobileMakeFleetYear.table_exists?
-    end
-  end
-    
-  if ENV['ALL'] == 'true' or ENV['FAST'] == 'true'
-    should 'append to an existing config' do
-      AutomobileFuelType.class_eval do
-        data_miner :append => true do
-          import 'example1', :url => 'http://example1.com' do
-            key 'code'
-            store 'name'
-          end
-        end
-        data_miner :append => true do
-          import 'example2', :url => 'http://example2.com' do
-            key 'code'
-            store 'name'
-          end
-        end
-      end
-      assert_equal 'http://example1.com', AutomobileFuelType.data_miner_config.steps[-2].table.url
-      assert_equal 'http://example2.com', AutomobileFuelType.data_miner_config.steps[-1].table.url
-    end
-    
-    should 'override an existing data_miner configuration' do
-      AutomobileFuelType.class_eval do
-        data_miner do
-          import 'example', :url => 'http://example.com' do
-            key 'code'
-            store 'name'
-          end
-        end
-      end
-      assert_kind_of DataMiner::Import, AutomobileFuelType.data_miner_config.steps.first
-      assert_equal 'http://example.com', AutomobileFuelType.data_miner_config.steps.first.table.url
-    end
-    should "stop and finish if it gets a DataMiner::Finish" do
-      AutomobileMakeFleetYear.delete_all
-      AutomobileMakeFleetYear.data_miner_runs.delete_all
-      $force_finish = true
-      AutomobileMakeFleetYear.run_data_miner!
-      assert_equal 0, AutomobileMakeFleetYear.count
-      assert (AutomobileMakeFleetYear.data_miner_runs.count > 0)
-      assert AutomobileMakeFleetYear.data_miner_runs.all? { |run| run.finished? and not run.skipped and not run.killed? }
-      $force_finish = false
-      AutomobileMakeFleetYear.run_data_miner!
-      assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')
-    end
-    
-    should "stop and register skipped if it gets a DataMiner::Skip" do
-      AutomobileMakeFleetYear.delete_all
-      AutomobileMakeFleetYear.data_miner_runs.delete_all
-      $force_skip = true
-      AutomobileMakeFleetYear.run_data_miner!
-      assert_equal 0, AutomobileMakeFleetYear.count
-      assert (AutomobileMakeFleetYear.data_miner_runs.count > 0)
-      assert AutomobileMakeFleetYear.data_miner_runs.all? { |run| run.skipped? and not run.finished? and not run.killed? }
-      $force_skip = false
-      AutomobileMakeFleetYear.run_data_miner!
-      assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')
-    end
-    
-    should "eagerly enforce a schema" do
-      ActiveRecord::Base.connection.create_table 'census_division_trois', :force => true, :options => 'ENGINE=InnoDB default charset=utf8' do |t|
-        t.string   'name'
-        t.string   'census_region_name'
-        # t.integer  'census_region_number'
-      end
-      ActiveRecord::Base.connection.execute 'ALTER TABLE census_division_trois ADD INDEX (census_region_name)'
-      CensusDivisionTrois.reset_column_information
-      missing_columns = %w{ census_region_number }
-
-      # sanity check
-      missing_columns.each do |column|
-        assert_false CensusDivisionTrois.column_names.include?(column)
-      end
-      assert_false ActiveRecord::Base.connection.indexes(CensusDivisionTrois.table_name).any? { |index| index.name == 'homefry' }
-      
-      3.times do
-        CensusDivisionTrois.run_data_miner!
-        missing_columns.each do |column|
-          assert CensusDivisionTrois.column_names.include?(column)
-        end
-        assert ActiveRecord::Base.connection.indexes(CensusDivisionTrois.table_name).any? { |index| index.name == 'homefry' }
-        assert_equal :string, CensusDivisionTrois.columns_hash[CensusDivisionTrois.primary_key].type
-      end
-    end
-    
-    should "let schemas work with default id primary keys" do
-      ActiveRecord::Base.connection.create_table 'census_division_fours', :force => true, :options => 'ENGINE=InnoDB default charset=utf8' do |t|
-        t.string   'name'
-        t.string   'census_region_name'
-        # t.integer  'census_region_number'
-      end
-      ActiveRecord::Base.connection.execute 'ALTER TABLE census_division_fours ADD INDEX (census_region_name)'
-      CensusDivisionFour.reset_column_information
-      missing_columns = %w{ census_region_number }
-    
-      # sanity check
-      missing_columns.each do |column|
-        assert_false CensusDivisionFour.column_names.include?(column)
-      end
-      assert_false ActiveRecord::Base.connection.indexes(CensusDivisionFour.table_name).any? { |index| index.name == 'homefry' }
-      
-      3.times do
-        CensusDivisionFour.run_data_miner!
-        missing_columns.each do |column|
-          assert CensusDivisionFour.column_names.include?(column)
-        end
-        assert ActiveRecord::Base.connection.indexes(CensusDivisionFour.table_name).any? { |index| index.name == 'homefry' }
-        assert_equal :integer, CensusDivisionFour.columns_hash[CensusDivisionFour.primary_key].type
-      end
-    end
+  # if ENV['WIP']
+  #   context 'with nullify option' do
+  #     should 'treat blank fields as null values' do
+  #       Aircraft.delete_all
+  #       Aircraft.data_miner_runs.delete_all
+  #       Aircraft.run_data_miner!
+  #       assert_greater_than 0, Aircraft.count
+  #       assert_false Aircraft.where(:brighter_planet_aircraft_class_code => nil).empty?
+  #     end
+  #   end
+  # end
+  # 
+  # if ENV['ALL'] == 'true'
+  #   should 'directly create a table for the model' do
+  #     if AutomobileMakeFleetYear.table_exists?
+  #       ActiveRecord::Base.connection.execute 'DROP TABLE automobile_make_fleet_years;'
+  #     end
+  #     AutomobileMakeFleetYear.execute_schema
+  #     assert AutomobileMakeFleetYear.table_exists?
+  #   end
+  # end
+  #   
+  # if ENV['ALL'] == 'true' or ENV['FAST'] == 'true'
+  #   should 'append to an existing config' do
+  #     AutomobileFuelType.class_eval do
+  #       data_miner :append => true do
+  #         import 'example1', :url => 'http://example1.com' do
+  #           key 'code'
+  #           store 'name'
+  #         end
+  #       end
+  #       data_miner :append => true do
+  #         import 'example2', :url => 'http://example2.com' do
+  #           key 'code'
+  #           store 'name'
+  #         end
+  #       end
+  #     end
+  #     assert_equal 'http://example1.com', AutomobileFuelType.data_miner_config.steps[-2].table.url
+  #     assert_equal 'http://example2.com', AutomobileFuelType.data_miner_config.steps[-1].table.url
+  #   end
+  #   
+  #   should 'override an existing data_miner configuration' do
+  #     AutomobileFuelType.class_eval do
+  #       data_miner do
+  #         import 'example', :url => 'http://example.com' do
+  #           key 'code'
+  #           store 'name'
+  #         end
+  #       end
+  #     end
+  #     assert_kind_of DataMiner::Import, AutomobileFuelType.data_miner_config.steps.first
+  #     assert_equal 'http://example.com', AutomobileFuelType.data_miner_config.steps.first.table.url
+  #   end
+  #   should "stop and finish if it gets a DataMiner::Finish" do
+  #     AutomobileMakeFleetYear.delete_all
+  #     AutomobileMakeFleetYear.data_miner_runs.delete_all
+  #     $force_finish = true
+  #     AutomobileMakeFleetYear.run_data_miner!
+  #     assert_equal 0, AutomobileMakeFleetYear.count
+  #     assert (AutomobileMakeFleetYear.data_miner_runs.count > 0)
+  #     assert AutomobileMakeFleetYear.data_miner_runs.all? { |run| run.finished? and not run.skipped and not run.killed? }
+  #     $force_finish = false
+  #     AutomobileMakeFleetYear.run_data_miner!
+  #     assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')
+  #   end
+  #   
+  #   should "stop and register skipped if it gets a DataMiner::Skip" do
+  #     AutomobileMakeFleetYear.delete_all
+  #     AutomobileMakeFleetYear.data_miner_runs.delete_all
+  #     $force_skip = true
+  #     AutomobileMakeFleetYear.run_data_miner!
+  #     assert_equal 0, AutomobileMakeFleetYear.count
+  #     assert (AutomobileMakeFleetYear.data_miner_runs.count > 0)
+  #     assert AutomobileMakeFleetYear.data_miner_runs.all? { |run| run.skipped? and not run.finished? and not run.killed? }
+  #     $force_skip = false
+  #     AutomobileMakeFleetYear.run_data_miner!
+  #     assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')
+  #   end
+  #   
+  #   should "eagerly enforce a schema" do
+  #     ActiveRecord::Base.connection.create_table 'census_division_trois', :force => true, :options => 'ENGINE=InnoDB default charset=utf8' do |t|
+  #       t.string   'name'
+  #       t.string   'census_region_name'
+  #       # t.integer  'census_region_number'
+  #     end
+  #     ActiveRecord::Base.connection.execute 'ALTER TABLE census_division_trois ADD INDEX (census_region_name)'
+  #     CensusDivisionTrois.reset_column_information
+  #     missing_columns = %w{ census_region_number }
+  # 
+  #     # sanity check
+  #     missing_columns.each do |column|
+  #       assert_false CensusDivisionTrois.column_names.include?(column)
+  #     end
+  #     assert_false ActiveRecord::Base.connection.indexes(CensusDivisionTrois.table_name).any? { |index| index.name == 'homefry' }
+  #     
+  #     3.times do
+  #       CensusDivisionTrois.run_data_miner!
+  #       missing_columns.each do |column|
+  #         assert CensusDivisionTrois.column_names.include?(column)
+  #       end
+  #       assert ActiveRecord::Base.connection.indexes(CensusDivisionTrois.table_name).any? { |index| index.name == 'homefry' }
+  #       assert_equal :string, CensusDivisionTrois.columns_hash[CensusDivisionTrois.primary_key].type
+  #     end
+  #   end
+  #   
+  #   should "let schemas work with default id primary keys" do
+  #     ActiveRecord::Base.connection.create_table 'census_division_fours', :force => true, :options => 'ENGINE=InnoDB default charset=utf8' do |t|
+  #       t.string   'name'
+  #       t.string   'census_region_name'
+  #       # t.integer  'census_region_number'
+  #     end
+  #     ActiveRecord::Base.connection.execute 'ALTER TABLE census_division_fours ADD INDEX (census_region_name)'
+  #     CensusDivisionFour.reset_column_information
+  #     missing_columns = %w{ census_region_number }
+  #   
+  #     # sanity check
+  #     missing_columns.each do |column|
+  #       assert_false CensusDivisionFour.column_names.include?(column)
+  #     end
+  #     assert_false ActiveRecord::Base.connection.indexes(CensusDivisionFour.table_name).any? { |index| index.name == 'homefry' }
+  #     
+  #     3.times do
+  #       CensusDivisionFour.run_data_miner!
+  #       missing_columns.each do |column|
+  #         assert CensusDivisionFour.column_names.include?(column)
+  #       end
+  #       assert ActiveRecord::Base.connection.indexes(CensusDivisionFour.table_name).any? { |index| index.name == 'homefry' }
+  #       assert_equal :integer, CensusDivisionFour.columns_hash[CensusDivisionFour.primary_key].type
+  #     end
+  #   end
     
     should "allow specifying dictionaries explicitly" do
       CensusDivisionDeux.run_data_miner!
       assert_equal 'South Region', CensusDivisionDeux.find(5).census_region_name
     end
     
-    should "be able to key on things other than the primary key" do
-      Aircraft.run_data_miner!
-      assert_equal 'SP', Aircraft.find('DHC6').brighter_planet_aircraft_class_code
-    end
-    
-    should "be able to synthesize rows without using a full parser class" do
-      AutomobileMakeFleetYear.run_data_miner!
-      assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')
-    end
-    
-    should "keep a call stack so that you can call run_data_miner! on a child" do
-      CrosscallingCensusDivision.run_data_miner!
-      assert CrosscallingCensusDivision.exists? :name => 'Mountain Division', :number => 8, :census_region_number => 4, :census_region_name => 'West Region'
-      assert CrosscallingCensusRegion.exists? :name => 'West Region', :number => 4
-    end
-    
-    should "keep a call stack so that you can call run_data_miner! on a parent" do
-      CrosscallingCensusRegion.run_data_miner!
-      assert CrosscallingCensusDivision.exists? :name => 'Mountain Division', :number => 8, :census_region_number => 4, :census_region_name => 'West Region'
-      assert CrosscallingCensusRegion.exists? :name => 'West Region', :number => 4
-    end
-        
-    should "import airports" do
-      Airport.run_data_miner!
-      assert Airport.count > 0
-    end
-    
-    should "tap airports" do
-      TappedAirport.run_data_miner!
-      assert TappedAirport.count > 0
-    end
-    
-    should "pull in census divisions using a data.brighterplanet.com dictionary" do
-      CensusDivision.run_data_miner!
-      assert CensusDivision.count > 0
-    end
-    
-    should "have a way to queue up runs that works with delated_job's send_later" do
-      assert AutomobileVariant.respond_to?(:run_data_miner!)
-    end
-    
-    should "be idempotent" do
-      Country.data_miner_config.run
-      a = Country.count
-      Country.data_miner_config.run
-      b = Country.count
-      assert_equal a, b
-    
-      CensusRegion.data_miner_config.run
-      a = CensusRegion.count
-      CensusRegion.data_miner_config.run
-      b = CensusRegion.count
-      assert_equal a, b
-    end
-      
-    should "hash things" do
-      AutomobileVariant.data_miner_config.steps[0].run
-      assert AutomobileVariant.first.row_hash.present?
-    end
-  
-    should "process a callback block instead of a method" do
-      AutomobileVariant.delete_all
-      AutomobileVariant.data_miner_config.steps[0].run
-      assert !AutomobileVariant.first.fuel_efficiency_city.present?
-      AutomobileVariant.data_miner_config.steps.last.run
-      assert AutomobileVariant.first.fuel_efficiency_city.present?
-    end
-  
-    should "keep a log when it does a run" do
-      approx_started_at = Time.now
-      DataMiner.run :resource_names => %w{ Country }
-      approx_terminated_at = Time.now
-      last_run = DataMiner::Run.first(:conditions => { :resource_name => 'Country' }, :order => 'id DESC')
-      assert (last_run.started_at - approx_started_at).abs < 5 # seconds
-      assert (last_run.terminated_at - approx_terminated_at).abs < 5 # seconds
-    end
-  
-    should "request a re-import from scratch" do
-      c = Country.new
-      c.iso_3166 = 'JUNK'
-      c.save!
-      assert Country.exists?(:iso_3166 => 'JUNK')
-      DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
-      assert !Country.exists?(:iso_3166 => 'JUNK')
-    end
-    
-    should "know what runs were on a resource" do
-      DataMiner.run :resource_names => %w{ Country }
-      DataMiner.run :resource_names => %w{ Country }
-      assert Country.data_miner_runs.count > 0
-    end
-  end
-  
-  if ENV['ALL'] == 'true' or ENV['SLOW'] == 'true'
-    should "allow errata to be specified with a shorthand, assuming the responder is the resource class itself" do
-      AircraftDeux.run_data_miner!
-      assert AircraftDeux.exists? :icao_code => 'DC91', :bts_aircraft_type_code => '630'
-    end
-    
-    should "mine aircraft" do
-      Aircraft.run_data_miner!
-      assert Aircraft.exists? :icao_code => 'DC91', :bts_aircraft_type_code => '630'
-    end
-    
-    should "mine automobile variants" do
-      AutomobileVariant.run_data_miner!
-      assert AutomobileVariant.count('make_name LIKE "%tesla"') > 0
-    end
-    
-    should "mine T100 flight segments" do
-      T100FlightSegment.run_data_miner!
-      assert T100FlightSegment.count('dest_country_name LIKE "%United States"') > 0
-    end
-    
-    should "mine residence survey responses" do
-      ResidentialEnergyConsumptionSurveyResponse.run_data_miner!
-      assert ResidentialEnergyConsumptionSurveyResponse.find(6).residence_class.start_with?('Single-family detached house')
-    end
-  end
-  should "mark the run as skipped if verification fails" do
-    AutomobileFuelType.data_miner_config.instance_eval do
-      verify "failure" do
-        false
-      end
-    end
-
-    DataMiner::Run.delete_all
-    assert_raise do
-      AutomobileFuelType.run_data_miner! :from_scratch => true
-    end
-  end
+  #   should "be able to key on things other than the primary key" do
+  #     Aircraft.run_data_miner!
+  #     assert_equal 'SP', Aircraft.find('DHC6').brighter_planet_aircraft_class_code
+  #   end
+  #   
+  #   should "be able to synthesize rows without using a full parser class" do
+  #     AutomobileMakeFleetYear.run_data_miner!
+  #     assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')
+  #   end
+  #   
+  #   should "keep a call stack so that you can call run_data_miner! on a child" do
+  #     CrosscallingCensusDivision.run_data_miner!
+  #     assert CrosscallingCensusDivision.exists? :name => 'Mountain Division', :number => 8, :census_region_number => 4, :census_region_name => 'West Region'
+  #     assert CrosscallingCensusRegion.exists? :name => 'West Region', :number => 4
+  #   end
+  #   
+  #   should "keep a call stack so that you can call run_data_miner! on a parent" do
+  #     CrosscallingCensusRegion.run_data_miner!
+  #     assert CrosscallingCensusDivision.exists? :name => 'Mountain Division', :number => 8, :census_region_number => 4, :census_region_name => 'West Region'
+  #     assert CrosscallingCensusRegion.exists? :name => 'West Region', :number => 4
+  #   end
+  #       
+  #   should "import airports" do
+  #     Airport.run_data_miner!
+  #     assert Airport.count > 0
+  #   end
+  #   
+  #   should "tap airports" do
+  #     TappedAirport.run_data_miner!
+  #     assert TappedAirport.count > 0
+  #   end
+  #   
+  #   should "pull in census divisions using a data.brighterplanet.com dictionary" do
+  #     CensusDivision.run_data_miner!
+  #     assert CensusDivision.count > 0
+  #   end
+  #   
+  #   should "have a way to queue up runs that works with delated_job's send_later" do
+  #     assert AutomobileVariant.respond_to?(:run_data_miner!)
+  #   end
+  #   
+  #   should "be idempotent" do
+  #     Country.data_miner_config.run
+  #     a = Country.count
+  #     Country.data_miner_config.run
+  #     b = Country.count
+  #     assert_equal a, b
+  #   
+  #     CensusRegion.data_miner_config.run
+  #     a = CensusRegion.count
+  #     CensusRegion.data_miner_config.run
+  #     b = CensusRegion.count
+  #     assert_equal a, b
+  #   end
+  #     
+  #   should "hash things" do
+  #     AutomobileVariant.data_miner_config.steps[0].run
+  #     assert AutomobileVariant.first.row_hash.present?
+  #   end
+  # 
+  #   should "process a callback block instead of a method" do
+  #     AutomobileVariant.delete_all
+  #     AutomobileVariant.data_miner_config.steps[0].run
+  #     assert !AutomobileVariant.first.fuel_efficiency_city.present?
+  #     AutomobileVariant.data_miner_config.steps.last.run
+  #     assert AutomobileVariant.first.fuel_efficiency_city.present?
+  #   end
+  # 
+  #   should "keep a log when it does a run" do
+  #     approx_started_at = Time.now
+  #     DataMiner.run :resource_names => %w{ Country }
+  #     approx_terminated_at = Time.now
+  #     last_run = DataMiner::Run.first(:conditions => { :resource_name => 'Country' }, :order => 'id DESC')
+  #     assert (last_run.started_at - approx_started_at).abs < 5 # seconds
+  #     assert (last_run.terminated_at - approx_terminated_at).abs < 5 # seconds
+  #   end
+  # 
+  #   should "request a re-import from scratch" do
+  #     c = Country.new
+  #     c.iso_3166 = 'JUNK'
+  #     c.save!
+  #     assert Country.exists?(:iso_3166 => 'JUNK')
+  #     DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
+  #     assert !Country.exists?(:iso_3166 => 'JUNK')
+  #   end
+  #   
+  #   should "know what runs were on a resource" do
+  #     DataMiner.run :resource_names => %w{ Country }
+  #     DataMiner.run :resource_names => %w{ Country }
+  #     assert Country.data_miner_runs.count > 0
+  #   end
+  # end
+  # 
+  # if ENV['ALL'] == 'true' or ENV['SLOW'] == 'true'
+  #   should "allow errata to be specified with a shorthand, assuming the responder is the resource class itself" do
+  #     AircraftDeux.run_data_miner!
+  #     assert AircraftDeux.exists? :icao_code => 'DC91', :bts_aircraft_type_code => '630'
+  #   end
+  #   
+  #   should "mine aircraft" do
+  #     Aircraft.run_data_miner!
+  #     assert Aircraft.exists? :icao_code => 'DC91', :bts_aircraft_type_code => '630'
+  #   end
+  #   
+  #   should "mine automobile variants" do
+  #     AutomobileVariant.run_data_miner!
+  #     assert AutomobileVariant.count('make_name LIKE "%tesla"') > 0
+  #   end
+  #   
+  #   should "mine T100 flight segments" do
+  #     T100FlightSegment.run_data_miner!
+  #     assert T100FlightSegment.count('dest_country_name LIKE "%United States"') > 0
+  #   end
+  #   
+  #   should "mine residence survey responses" do
+  #     ResidentialEnergyConsumptionSurveyResponse.run_data_miner!
+  #     assert ResidentialEnergyConsumptionSurveyResponse.find(6).residence_class.start_with?('Single-family detached house')
+  #   end
+  # end
+  # should "mark the run as skipped if verification fails" do
+  #   AutomobileFuelType.data_miner_config.instance_eval do
+  #     verify "failure" do
+  #       false
+  #     end
+  #   end
+  # 
+  #   DataMiner::Run.delete_all
+  #   assert_raise do
+  #     AutomobileFuelType.run_data_miner! :from_scratch => true
+  #   end
+  # end
 end

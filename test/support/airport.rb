@@ -2,7 +2,9 @@ class Airport < ActiveRecord::Base
   set_primary_key :iata_code
   
   data_miner do
-    import :url => 'http://openflights.svn.sourceforge.net/viewvc/openflights/openflights/data/airports.dat', :headers => false, :select => lambda { |row| row[4].present? } do
+    import :url => 'https://openflights.svn.sourceforge.net/svnroot/openflights/openflights/data/airports.dat',
+           :headers => false,
+           :select => lambda { |row| row[4].present? } do
       key 'iata_code', :field_number => 4
       store 'name', :field_number => 1
       store 'city', :field_number => 2

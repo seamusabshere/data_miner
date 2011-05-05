@@ -105,7 +105,6 @@ Output:
       end
     end
     call_stack.clear
-    # RemoteTable.cleanup
   end
 end
 

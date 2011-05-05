@@ -20,7 +20,7 @@ class DataMiner
     end
     
     def table
-      @table ||= ::RemoteTable.new options['url']
+      @table ||= ::RemoteTable.new(options['url']).to_a # convert to Array immediately
     end
     
     def free
