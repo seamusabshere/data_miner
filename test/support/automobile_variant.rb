@@ -42,8 +42,8 @@ class AutomobileVariant < ActiveRecord::Base
     }
 
     class ParserB
-      require 'slither'
-      ::Slither.define :fuel_economy_guide_b do |d|
+      require 'fixed_width'
+      ::FixedWidth.define :fuel_economy_guide_b do |d|
         d.rows do |row|
           row.trap { true } # there's only one section
           row.column 'active_year'      , 4,    :type => :integer  #   ACTIVE YEAR
