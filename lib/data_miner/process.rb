@@ -5,6 +5,8 @@ class DataMiner
     attr_reader :block_description
     attr_reader :blk
 
+    alias :description :block_description
+
     def initialize(config, method_id_or_block_description, &blk)
       @config = config
       if block_given?
