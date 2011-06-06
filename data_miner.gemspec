@@ -27,13 +27,14 @@ Gem::Specification.new do |s|
   s.add_dependency 'blockenspiel', '>=0.3.2'
   s.add_dependency 'taps', '>=0.3.11'
   s.add_dependency 'errata', '>=1.0.1'
+  s.add_development_dependency 'create_table', '>=0.0.2'
   s.add_development_dependency 'loose_tight_dictionary', ">=0.0.5"
   s.add_development_dependency 'test-unit'
   s.add_development_dependency 'shoulda'
   s.add_development_dependency 'mysql'
-  if RUBY_VERSION >= '1.9'
-    s.add_development_dependency 'ruby-debug19'
-  else
-    s.add_development_dependency 'ruby-debug'
-  end
+  # if RUBY_VERSION >= '1.9'
+  #   s.add_development_dependency 'ruby-debug19'
+  # else
+  #   s.add_development_dependency 'ruby-debug'
+  # end
 end

@@ -18,13 +18,7 @@ class DataMiner
     # def attributes
     #   @attributes ||= {}
     # end
-    
-    def schema(create_table_options = {}, &blk)
-      step = Schema.new self, create_table_options
-      ::Blockenspiel.invoke blk, step
-      steps.push step
-    end
-    
+        
     def process(method_id_or_block_description, &blk)
       step = Process.new self, method_id_or_block_description, &blk
       steps.push step

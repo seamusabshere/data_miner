@@ -11,12 +11,7 @@ You define <tt>data_miner</tt> blocks in your ActiveRecord models. For example, 
   class Country < ActiveRecord::Base
     set_primary_key :iso_3166_code
   
-    data_miner do
-      schema do
-        string   'iso_3166_code'
-        string   'name'
-      end
-    
+    data_miner do    
       import 'the official ISO country list',
              :url => 'http://www.iso.org/iso/list-en1-semic-3.txt',
              :skip => 2,
@@ -34,6 +29,36 @@ Now you can run:
   irb(main):001:0> Country.run_data_miner!
   => nil
 
+== Creating tables from scratch (changed in 1.2)
+
+We recommend using the <tt>create_table</tt> gem (https://github.com/seamusabshere/create_table)
+
+This replaces the <tt>schema</tt> method that was available before. It didn't make sense for <tt>data_miner</tt> to provide this natively.
+
+class Car < ActiveRecord::Base
+
+  # THE NEW WAY - depends on create_table gem, which is not required by default
+  # see the process step in the data_miner block where we actually call create_table!
+  create_table do
+    string :make
+    string :model
+  end
+  
+  data_miner do
+    # DEPRECATED - see above
+    # schema do
+    #   string :make
+    #   string :model
+    # end
+  
+    process "create the table, adding and removing columns as necessary" do
+      create_table!
+    end
+    
+    # [... other data mining steps]
+  end
+end
+
 ==Advanced usage
 
 This is how we linked together (http://data.brighterplanet.com/aircraft) the FAA's list of aircraft with the US Department of Transportations list of aircraft:
@@ -43,6 +68,36 @@ This is how we linked together (http://data.brighterplanet.com/aircraft) the FAA
     # This makes it easier to repeatedly truncate and re-import this
     # table without breaking associations.
     set_primary_key :icao_code
+  
+    # Use the create_table gem to define the database schema in-line.
+    # It will destructively and automatically add/remove columns.
+    # This is "OK" because you can always just re-run the import script to get the data back.
+    # PS. If you're using DataMapper, you don't need this
+    create_table do
+      string   'icao_code'
+      string   'manufacturer_name'
+      string   'name'
+      string   'bts_name'
+      string   'bts_aircraft_type_code'
+      string   'brighter_planet_aircraft_class_code'
+      string   'fuel_use_aircraft_name'
+      float    'm3'
+      string   'm3_units'
+      float    'm2'
+      string   'm2_units'
+      float    'm1'
+      string   'm1_units'
+      float    'endpoint_fuel'
+      string   'endpoint_fuel_units'
+      float    'seats'
+      float    'distance'
+      string   'distance_units'
+      float    'load_factor'
+      float    'freight_share'
+      float    'payload'
+      float    'weighting'
+      index    'bts_aircraft_type_code'
+    end
   
     # A dictionary between BTS aircraft type codes and ICAO aircraft
     # codes that uses string similarity instead of exact matching.
@@ -154,36 +209,6 @@ This is how we linked together (http://data.brighterplanet.com/aircraft) the FAA
         raise DataMiner::Skip unless DataMiner::Run.allowed? Aircraft
       end
     
-      # Define the database schema in-line.
-      # It will destructively and automatically add/remove columns.
-      # This is "OK" because you can always just re-run the import script to get the data back.
-      # PS. if we were using DataMapper, we wouldn't need this.
-      schema :options => 'ENGINE=InnoDB default charset=utf8' do
-        string   'icao_code'
-        string   'manufacturer_name'
-        string   'name'
-        string   'bts_name'
-        string   'bts_aircraft_type_code'
-        string   'brighter_planet_aircraft_class_code'
-        string   'fuel_use_aircraft_name'
-        float    'm3'
-        string   'm3_units'
-        float    'm2'
-        string   'm2_units'
-        float    'm1'
-        string   'm1_units'
-        float    'endpoint_fuel'
-        string   'endpoint_fuel_units'
-        float    'seats'
-        float    'distance'
-        string   'distance_units'
-        float    'load_factor'
-        float    'freight_share'
-        float    'payload'
-        float    'weighting'
-        index    'bts_aircraft_type_code'
-      end
-
       # The FAA publishes a document to help people identify aircraft by different names.
       ('A'..'Z').each do |letter|
         import( "ICAO aircraft codes starting with the letter #{letter} used by the FAA",

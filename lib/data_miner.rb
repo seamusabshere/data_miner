@@ -26,7 +26,6 @@ class DataMiner
   autoload :Tap, 'data_miner/tap'
   autoload :Process, 'data_miner/process'
   autoload :Run, 'data_miner/run'
-  autoload :Schema, 'data_miner/schema'
   autoload :Verify, 'data_miner/verify'
   
   class << self

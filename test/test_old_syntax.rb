@@ -567,18 +567,22 @@ end
 class AutomobileMakeFleetYear < ActiveRecord::Base
   set_primary_key :name
 
+  create_table do
+    string "name"
+    string   "make_name"
+    string   "fleet"
+    integer   "year"
+    float    "fuel_efficiency"
+    string "fuel_efficiency_units"
+    integer  "volume"
+    string  "make_year_name"
+    datetime "created_at"
+    datetime "updated_at"
+  end
+
   data_miner do
-    schema :id => false do
-      string "name"
-      string   "make_name"
-      string   "fleet"
-      integer   "year"
-      float    "fuel_efficiency"
-      string "fuel_efficiency_units"
-      integer  "volume"
-      string  "make_year_name"
-      datetime "created_at"
-      datetime "updated_at"
+    process "create table" do
+      create_table!
     end
     
     process "finish if i tell you to" do
@@ -605,26 +609,35 @@ end
 
 class CensusDivisionTrois < ActiveRecord::Base
   set_primary_key :number_code
+  
+  create_table do
+    string  'number_code'
+    string   'name'
+    string   'census_region_name'
+    integer  'census_region_number'
+    index    'census_region_name', :name => 'homefry'
+    index   ['number_code', 'name', 'census_region_name', 'census_region_number']
+  end
+  
   data_miner do
-    schema :options => 'ENGINE=InnoDB default charset=utf8' do
-      string  'number_code'
-      string   'name'
-      string   'census_region_name'
-      integer  'census_region_number'
-      index    'census_region_name', :name => 'homefry'
-      index   ['number_code', 'name', 'census_region_name', 'census_region_number']
+    process "create table" do
+      create_table!
     end
   end
 end
 
 class CensusDivisionFour < ActiveRecord::Base
+  create_table do
+    string  'number_code'
+    string   'name'
+    string   'census_region_name'
+    integer  'census_region_number'
+    index    'census_region_name', :name => 'homefry'
+  end
+
   data_miner do
-    schema do
-      string  'number_code'
-      string   'name'
-      string   'census_region_name'
-      integer  'census_region_number'
-      index    'census_region_name', :name => 'homefry'
+    process "create table" do
+      create_table!
     end
   end
 end
@@ -648,7 +661,7 @@ class TestOldSyntax < Test::Unit::TestCase
       if AutomobileMakeFleetYear.table_exists?
         ActiveRecord::Base.connection.execute 'DROP TABLE automobile_make_fleet_years;'
       end
-      AutomobileMakeFleetYear.execute_schema
+      AutomobileMakeFleetYear.create_table!
       assert AutomobileMakeFleetYear.table_exists?
     end
   end
