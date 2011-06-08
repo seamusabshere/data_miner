@@ -32,6 +32,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'test-unit'
   s.add_development_dependency 'shoulda'
   s.add_development_dependency 'mysql'
+  s.add_development_dependency 'rake'
   # if RUBY_VERSION >= '1.9'
   #   s.add_development_dependency 'ruby-debug19'
   # else
