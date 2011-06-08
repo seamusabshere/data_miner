@@ -152,25 +152,7 @@ You need to supply one of #{COMPLETE_UNIT_DEFINITIONS.map(&:inspect).to_sentence
 
 On #{resource}, it looks like you're missing some columns...
 
-Please run this...
-
-  ./script/generate migration AddMissingColumnsTo#{resource.name}
-
-and **replace** the resulting file with this:
-
-  class AddMissingColumnsTo#{resource.name} < ActiveRecord::Migration
-    def self.up
-#{missing_columns.map { |column_name| "      add_column :#{resource.table_name}, :#{column_name}, :#{column_name.end_with?('_units') ? 'string' : 'FIXME_WHAT_COLUMN_TYPE_AM_I' }" }.join("\n") }
-    end
-    
-    def self.down
-#{missing_columns.map { |column_name| "      remove_column :#{resource.table_name}, :#{column_name}" }.join("\n") }
-    end
-  end
-
-On the other hand, if you're working directly with create_table, this might be helpful:
-
-#{missing_columns.map { |column_name| "t.#{column_name.end_with?('_units') ? 'string' : 'FIXME_WHAT_COLUMN_TYPE_AM_I' } '#{column_name}'" }.join("\n") }
+#{missing_columns.map { |column_name| "#{column_name.end_with?('_units') ? 'string' : 'FIXME_WHAT_COLUMN_TYPE_AM_I' } '#{column_name}'" }.join("\n") }
 
 ================================
         }
