@@ -19,8 +19,8 @@ class DataMiner
     #   @attributes ||= {}
     # end
         
-    def process(method_id_or_block_description, &blk)
-      step = Process.new self, method_id_or_block_description, &blk
+    def process(method_id_or_description, &blk)
+      step = Process.new self, method_id_or_description, &blk
       steps.push step
     end
 

@@ -2,18 +2,19 @@ class DataMiner
   class Process
     attr_reader :config
     attr_reader :method_id
-    attr_reader :block_description
+    attr_reader :description
     attr_reader :blk
 
-    alias :description :block_description
+    alias :block_description :description
 
-    def initialize(config, method_id_or_block_description, &blk)
+    def initialize(config, method_id_or_description, &blk)
       @config = config
       if block_given?
-        @block_description = method_id_or_block_description
+        @description = method_id_or_description
         @blk = blk
       else
-        @method_id = method_id_or_block_description
+        @description = method_id_or_description
+        @method_id = method_id_or_description
       end
     end
     
@@ -22,7 +23,7 @@ class DataMiner
     end
     
     def inspect
-      %{#<DataMiner::Process(#{resource}) #{block_description || method_id}>}
+      %{#<DataMiner::Process(#{resource}) #{description}>}
     end
     
     def run
