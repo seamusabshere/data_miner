@@ -3,7 +3,7 @@ require 'bundler'
 Bundler.setup
 require 'test/unit'
 require 'shoulda'
-require 'create_table'
+require 'force_schema'
 # require 'ruby-debug'
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))

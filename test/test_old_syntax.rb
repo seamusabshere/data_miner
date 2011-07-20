@@ -567,7 +567,7 @@ end
 class AutomobileMakeFleetYear < ActiveRecord::Base
   set_primary_key :name
 
-  create_table do
+  force_schema do
     string "name"
     string   "make_name"
     string   "fleet"
@@ -582,7 +582,7 @@ class AutomobileMakeFleetYear < ActiveRecord::Base
 
   data_miner do
     process "create table" do
-      create_table!
+      force_schema!
     end
     
     process "finish if i tell you to" do
@@ -610,7 +610,7 @@ end
 class CensusDivisionTrois < ActiveRecord::Base
   set_primary_key :number_code
   
-  create_table do
+  force_schema do
     string  'number_code'
     string   'name'
     string   'census_region_name'
@@ -621,13 +621,13 @@ class CensusDivisionTrois < ActiveRecord::Base
   
   data_miner do
     process "create table" do
-      create_table!
+      force_schema!
     end
   end
 end
 
 class CensusDivisionFour < ActiveRecord::Base
-  create_table do
+  force_schema do
     string  'number_code'
     string   'name'
     string   'census_region_name'
@@ -637,7 +637,7 @@ class CensusDivisionFour < ActiveRecord::Base
 
   data_miner do
     process "create table" do
-      create_table!
+      force_schema!
     end
   end
 end
@@ -661,7 +661,7 @@ class TestOldSyntax < Test::Unit::TestCase
       if AutomobileMakeFleetYear.table_exists?
         ActiveRecord::Base.connection.execute 'DROP TABLE automobile_make_fleet_years;'
       end
-      AutomobileMakeFleetYear.create_table!
+      AutomobileMakeFleetYear.force_schema!
       assert AutomobileMakeFleetYear.table_exists?
     end
   end

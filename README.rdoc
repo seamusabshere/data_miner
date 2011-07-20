@@ -31,15 +31,15 @@ Now you can run:
 
 == Creating tables from scratch (changed in 1.2)
 
-We recommend using the <tt>create_table</tt> gem (https://github.com/seamusabshere/create_table)
+We recommend using the <tt>force_schema</tt> gem (https://github.com/seamusabshere/force_schema)
 
 This replaces the <tt>schema</tt> method that was available before. It didn't make sense for <tt>data_miner</tt> to provide this natively.
 
 class Car < ActiveRecord::Base
 
-  # THE NEW WAY - depends on create_table gem, which is not required by default
-  # see the process step in the data_miner block where we actually call create_table!
-  create_table do
+  # THE NEW WAY - depends on force_schema gem, which is not required by default
+  # see the process step in the data_miner block where we actually call force_schema!
+  force_schema do
     string :make
     string :model
   end
@@ -52,7 +52,7 @@ class Car < ActiveRecord::Base
     # end
   
     process "create the table, adding and removing columns as necessary" do
-      create_table!
+      force_schema!
     end
     
     # [... other data mining steps]
@@ -69,11 +69,11 @@ This is how we linked together (http://data.brighterplanet.com/aircraft) the FAA
     # table without breaking associations.
     set_primary_key :icao_code
   
-    # Use the create_table gem to define the database schema in-line.
+    # Use the force_schema gem to define the database schema in-line.
     # It will destructively and automatically add/remove columns.
     # This is "OK" because you can always just re-run the import script to get the data back.
     # PS. If you're using DataMapper, you don't need this
-    create_table do
+    force_schema do
       string   'icao_code'
       string   'manufacturer_name'
       string   'name'
