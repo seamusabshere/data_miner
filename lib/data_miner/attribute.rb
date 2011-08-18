@@ -68,10 +68,7 @@ class DataMiner
       value = value.to_s
       value = value[chars] if wants_chars?
       value = do_split(value) if wants_split?
-      # taken from old errata... maybe we want to do this here
       value.gsub! /[ ]+/, ' '
-      # text.gsub!('- ', '-')
-      value.gsub! /([^\\])~/, '\1 '
       value.strip!
       value.upcase! if wants_upcase?
       value = do_convert row, value if wants_conversion?
