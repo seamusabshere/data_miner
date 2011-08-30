@@ -60,7 +60,7 @@ class DataMiner
         end
       elsif field_name == 'row_hash'
         row.row_hash
-      else
+      elsif row.is_a?(::Hash) or row.is_a?(::ActiveSupport::OrderedHash)
         row[field_name]
       end
       return nil if value.nil?
