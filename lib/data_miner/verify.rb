@@ -19,13 +19,8 @@ class DataMiner
     end
 
     def run
-      successful = begin
-        blk.call
-      rescue => e
-        false
-      end
-      unless successful
-        raise VerificationFailed, "FAILED VERIFICATION: #{inspect}"
+      unless blk.call
+        raise "FAILED VERIFICATION: #{inspect}"
       end
       nil
     end
