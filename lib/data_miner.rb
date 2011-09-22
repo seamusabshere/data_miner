@@ -25,7 +25,6 @@ class DataMiner
   autoload :Tap, 'data_miner/tap'
   autoload :Process, 'data_miner/process'
   autoload :Run, 'data_miner/run'
-  autoload :Verify, 'data_miner/verify'
   
   class << self
     delegate :logger, :to => :instance

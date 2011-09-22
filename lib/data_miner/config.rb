@@ -42,11 +42,6 @@ class DataMiner
       steps.push step
     end
 
-    def verify(description = '(no description)', &blk)
-      step = Verify.new self, description, &blk
-      steps.push step
-    end
-
     # Mine data for this class.
     def run(options = {})
       options = options.dup

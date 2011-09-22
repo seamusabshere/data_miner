@@ -96,10 +96,6 @@ class Aircraft < ActiveRecord::Base
         key   'bts_aircraft_type_code', :field_name => 'bts_aircraft_type'
         store 'brighter_planet_aircraft_class_code', :nullify => true
       end
-
-      verify 'all aircraft have a manufcaturer name specified' do
-        assert Aircraft.scoped.where(:manufacturer_name => nil).empty?
-      end
     end
   end
 end
