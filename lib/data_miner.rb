@@ -16,7 +16,6 @@ class DataMiner
   class MissingHashColumn < StandardError; end
   class Finish < StandardError; end
   class Skip < StandardError; end
-  class VerificationFailed < StandardError; end
   
   autoload :ActiveRecordExtensions, 'data_miner/active_record_extensions'
   autoload :Attribute, 'data_miner/attribute'
@@ -26,7 +25,6 @@ class DataMiner
   autoload :Tap, 'data_miner/tap'
   autoload :Process, 'data_miner/process'
   autoload :Run, 'data_miner/run'
-  autoload :Verify, 'data_miner/verify'
   
   class << self
     delegate :logger, :to => :instance

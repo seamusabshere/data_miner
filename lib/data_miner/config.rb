@@ -42,11 +42,6 @@ class DataMiner
       steps.push step
     end
 
-    def verify(description = '(no description)', &blk)
-      step = Verify.new self, description, &blk
-      steps.push step
-    end
-
     # Mine data for this class.
     def run(options = {})
       options = options.dup
@@ -57,11 +52,8 @@ class DataMiner
       
       finished = false
       skipped = false
-      if Run.table_exists?
-        run = Run.create! :started_at => ::Time.now, :resource_name => resource.name, :killed => true
-      else
-        run = nil
-        ::DataMiner.logger.info "Not logging individual runs. Please run DataMiner::Run.create_tables if you want to enable this."
+      run = if Run.table_exists?
+        Run.create! :started_at => ::Time.now, :resource_name => resource.name, :killed => true
       end
       resource.delete_all if options['from_scratch']
       begin
