@@ -25,7 +25,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'activesupport', '>=2.3.4'
   s.add_dependency 'conversions', '>=1.4.4'
   s.add_dependency 'blockenspiel', '>=0.3.2'
-  s.add_dependency 'taps', '>=0.3.11'
   s.add_dependency 'errata', '>=1.0.1'
   s.add_development_dependency 'force_schema', '>=0.0.2'
   s.add_development_dependency 'loose_tight_dictionary', ">=0.0.5"
