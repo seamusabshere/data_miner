@@ -181,7 +181,9 @@ module TestDatabase
         t.datetime "created_at"
         t.datetime "updated_at"
         t.float    "emission_factor"
+        t.string   "emission_factor_units"
         t.float    "annual_distance"
+        t.string   "annual_distance_units"
         t.string   "code"
       end
       execute "ALTER TABLE automobile_fuel_types ADD PRIMARY KEY (code);"
