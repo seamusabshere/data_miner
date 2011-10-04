@@ -5,7 +5,7 @@ TestDatabase.load_models
 
 class TappedAirport < ActiveRecord::Base
   set_primary_key :iata_code
-  
+
   data_miner do
     tap "Brighter Planet's sanitized airports table", "http://carbon:neutral@data.brighterplanet.com:5001", :source_table_name => 'airports'
     # tap "Brighter Planet's sanitized airports table", "http://carbon:neutral@localhost:5000", :source_table_name => 'airports'
@@ -14,13 +14,13 @@ end
 
 class CensusRegion < ActiveRecord::Base
   set_primary_key :number
-  
+
   data_miner do
     import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Region'].to_i > 0 and row['Division'].to_s.strip == 'X'} do
       key 'number', :field_name => 'Region'
       store 'name', :field_name => 'Name'
     end
-    
+
     # pretend this is a different data source
     # fake! just for testing purposes
     import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Region'].to_i > 0 and row['Division'].to_s.strip == 'X'} do
@@ -33,7 +33,7 @@ end
 # smaller than a region
 class CensusDivision < ActiveRecord::Base
   set_primary_key :number
-  
+
   data_miner do
     import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Division'].to_s.strip != 'X' and row['FIPS CODE STATE'].to_s.strip == 'X'} do
       key 'number', :field_name => 'Division'
@@ -46,7 +46,7 @@ end
 
 class CensusDivisionDeux < ActiveRecord::Base
   set_primary_key :number
-  
+
   data_miner do
     import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Division'].to_s.strip != 'X' and row['FIPS CODE STATE'].to_s.strip == 'X'} do
       key 'number', :field_name => 'Division'
@@ -59,9 +59,9 @@ end
 
 class CrosscallingCensusRegion < ActiveRecord::Base
   set_primary_key :number
-  
+
   has_many :crosscalling_census_divisions
-  
+
   data_miner do
     process "derive ourselves from the census divisions table (i.e., cross call census divisions)" do
       CrosscallingCensusDivision.run_data_miner!
@@ -80,9 +80,9 @@ end
 
 class CrosscallingCensusDivision < ActiveRecord::Base
   set_primary_key :number
-  
+
   belongs_to :crosscalling_census_regions, :foreign_key => 'census_region_number'
-  
+
   data_miner do
     import "get a list of census divisions and their regions", :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Division'].to_s.strip != 'X' and row['FIPS CODE STATE'].to_s.strip == 'X'} do
       key 'number', :field_name => 'Division'
@@ -90,7 +90,7 @@ class CrosscallingCensusDivision < ActiveRecord::Base
       store 'census_region_number', :field_name => 'Region'
       store 'census_region_name', :field_name => 'Region', :dictionary => { :input => 'number', :output => 'name', :url => 'http://data.brighterplanet.com/census_regions.csv' }
     end
-    
+
     process "make sure my parent object is set up (i.e., cross-call it)" do
       CrosscallingCensusRegion.run_data_miner!
     end
@@ -99,18 +99,18 @@ end
 
 class ResidentialEnergyConsumptionSurveyResponse < ActiveRecord::Base
   set_primary_key :department_of_energy_identifier
-  
+
   data_miner do
     process 'Define some unit conversions' do
       Conversions.register :kbtus, :joules, 1_000.0 * 1_055.05585
       Conversions.register :square_feet, :square_metres, 0.09290304
     end
-    
+
     # conversions are NOT performed here, since we first have to zero out legitimate skips
     # otherwise you will get values like "999 pounds = 453.138778 kilograms" (where 999 is really a legit skip)
     import 'RECs 2005 (but not converting units to metric just yet)', :url => 'http://www.eia.doe.gov/emeu/recs/recspubuse05/datafiles/RECS05alldata.csv' do
       key 'department_of_energy_identifier', :field_name => 'DOEID'
-      
+
       store 'residence_class', :field_name => 'TYPEHUQ', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/typehuq/typehuq.csv' }
       store 'construction_year', :field_name => 'YEARMADE', :dictionary => { :input => 'Code', :sprintf => '%02d', :output => 'Date in the middle (synthetic)', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/yearmade/yearmade.csv' }
       store 'construction_period', :field_name => 'YEARMADE', :dictionary => { :input => 'Code', :sprintf => '%02d', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/yearmade/yearmade.csv' }
@@ -120,12 +120,12 @@ class ResidentialEnergyConsumptionSurveyResponse < ActiveRecord::Base
       store 'window_ac_use', :field_name => 'USEWWAC', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/usewwac/usewwac.csv' }
       store 'clothes_washer_use', :field_name => 'WASHLOAD', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/washload/washload.csv' }
       store 'clothes_dryer_use', :field_name => 'DRYRUSE', :dictionary => { :input => 'Code', :output => 'Description', :url => 'http://github.com/brighterplanet/manually_curated_data/raw/master/dryruse/dryruse.csv' }
-      
+
       store 'census_division_number', :field_name => 'DIVISION'
       store 'census_division_name', :field_name => 'DIVISION', :dictionary => { :input => 'number', :output => 'name', :url => 'http://data.brighterplanet.com/census_divisions.csv' }
       store 'census_region_number', :field_name => 'DIVISION', :dictionary => { :input => 'number', :output => 'census_region_number', :url => 'http://data.brighterplanet.com/census_divisions.csv' }
       store 'census_region_name', :field_name => 'DIVISION', :dictionary => { :input => 'number', :output => 'census_region_name', :url => 'http://data.brighterplanet.com/census_divisions.csv' }
-      
+
       store 'floorspace', :field_name => 'TOTSQFT'
       store 'residents', :field_name => 'NHSLDMEM'
       store 'ownership', :field_name => 'KOWNRENT'
@@ -248,15 +248,15 @@ class ResidentialEnergyConsumptionSurveyResponse < ActiveRecord::Base
         update_all "#{attr_name} = #{attr_name} * #{Conversions::Unit.exchange_rate from_units, to_units}"
       end
     end
-      
+
     process 'Add a new field "rooms" that estimates how many rooms are in the house' do
       update_all 'rooms = total_rooms + bathrooms/2 + halfbaths/4 + heated_garage*(attached_1car_garage + detached_1car_garage + 2*(attached_2car_garage + detached_2car_garage) + 3*(attached_3car_garage + detached_3car_garage))'
     end
-    
+
     process 'Add a new field "lighting_use" that estimates how many hours light bulbs are turned on in the house' do
       update_all 'lighting_use = 2*(lights_on_1_to_4_hours + efficient_lights_on_1_to_4_hours) + 8*(lights_on_4_to_12_hours + efficient_lights_on_4_to_12_hours) + 16*(lights_on_over_12_hours + efficient_lights_on_over_12_hours) + 12*(outdoor_all_night_lights + outdoor_all_night_gas_lights)'
     end
-    
+
     process 'Add a new field "lighting_efficiency" that estimates what percentage of light bulbs in a house are energy-efficient' do
       update_all 'lighting_efficiency = (2*efficient_lights_on_1_to_4_hours + 8*efficient_lights_on_4_to_12_hours + 16*efficient_lights_on_over_12_hours) / lighting_use'
     end
@@ -494,7 +494,7 @@ class T100FlightSegment < ActiveRecord::Base
         store 'data_source', :field_name => 'DATA_SOURCE'
       end
     end
-    
+
     process 'Derive freight share as a fraction of payload' do
       update_all 'freight_share = (freight + mail) / payload', 'payload > 0'
     end
@@ -502,7 +502,7 @@ class T100FlightSegment < ActiveRecord::Base
     process 'Derive load factor, which is passengers divided by the total seats available' do
       update_all 'load_factor = passengers / seats', 'passengers <= seats'
     end
-    
+
     process 'Derive average seats per departure' do
       update_all 'seats_per_departure = seats / departures_performed', 'departures_performed > 0'
     end
@@ -512,38 +512,38 @@ end
 # note that this depends on stuff in Aircraft
 class AircraftDeux < ActiveRecord::Base
   set_primary_key :icao_code
-  
+
   # defined on the class because we defined the errata with a shorthand
   class << self
     def is_not_attributed_to_aerospatiale?(row)
       not row['Manufacturer'] =~ /AEROSPATIALE/i
     end
-    
+
     def is_not_attributed_to_cessna?(row)
       not row['Manufacturer'] =~ /CESSNA/i
     end
-    
+
     def is_not_attributed_to_learjet?(row)
       not row['Manufacturer'] =~ /LEAR/i
     end
-    
+
     def is_not_attributed_to_dehavilland?(row)
       not row['Manufacturer'] =~ /DE ?HAVILLAND/i
     end
-    
+
     def is_not_attributed_to_mcdonnell_douglas?(row)
       not row['Manufacturer'] =~ /MCDONNELL DOUGLAS/i
     end
-    
+
     def is_not_a_dc_plane?(row)
       not row['Model'] =~ /DC/i
     end
-    
+
     def is_a_crj_900?(row)
       row['Designator'].downcase == 'crj9'
     end
   end
-  
+
   data_miner do
     # ('A'..'Z').each do |letter|
     # Note: for the purposes of testing, only importing "D"
@@ -567,28 +567,24 @@ end
 class AutomobileMakeFleetYear < ActiveRecord::Base
   set_primary_key :name
 
-  force_schema do
-    string "name"
-    string   "make_name"
-    string   "fleet"
-    integer   "year"
-    float    "fuel_efficiency"
-    string "fuel_efficiency_units"
-    integer  "volume"
-    string  "make_year_name"
-    datetime "created_at"
-    datetime "updated_at"
-  end
+  col :name
+  col :make_name
+  col :fleet
+  col :year, :type => :integer
+  col :fuel_efficiency, :type => :float
+  col :fuel_efficiency_units
+  col :volume, :type => :integer
+  col :make_year_name
+  col :created_at, :type => :datetime
+  col :updated_at, :type => :datetime
 
   data_miner do
-    process "create table" do
-      force_schema!
-    end
-    
+    process :auto_upgrade!
+
     process "finish if i tell you to" do
       raise DataMiner::Finish if $force_finish
     end
-    
+
     process "skip if i tell you to" do
       raise DataMiner::Skip if $force_skip
     end
@@ -609,36 +605,28 @@ end
 
 class CensusDivisionTrois < ActiveRecord::Base
   set_primary_key :number_code
-  
-  force_schema do
-    string  'number_code'
-    string   'name'
-    string   'census_region_name'
-    integer  'census_region_number'
-    index    'census_region_name', :name => 'homefry'
-    index   ['number_code', 'name', 'census_region_name', 'census_region_number']
-  end
-  
+
+  col :number_code
+  col :name
+  col :census_region_name
+  col :census_region_number, :type => :integer
+  col :homefry, :type => :index    'census_region_name', :name =>
+  col :census_region_number, :type => :index   ['number_code', 'name', 'census_region_name',]
+
   data_miner do
-    process "create table" do
-      force_schema!
-    end
+    process :auto_upgrade!
   end
 end
 
 class CensusDivisionFour < ActiveRecord::Base
-  force_schema do
-    string  'number_code'
-    string   'name'
-    string   'census_region_name'
-    integer  'census_region_number'
-    index    'census_region_name', :name => 'homefry'
-  end
+col :number_code
+col :name
+col :census_region_name
+col :census_region_number, :type => :integer
+col :homefry, :type => :index    'census_region_name', :name =>
 
   data_miner do
-    process "create table" do
-      force_schema!
-    end
+    process :auto_upgrade!
   end
 end
 
@@ -661,11 +649,11 @@ class TestOldSyntax < Test::Unit::TestCase
       if AutomobileMakeFleetYear.table_exists?
         ActiveRecord::Base.connection.execute 'DROP TABLE automobile_make_fleet_years;'
       end
-      AutomobileMakeFleetYear.force_schema!
+      AutomobileMakeFleetYear.auto_upgrade!
       assert AutomobileMakeFleetYear.table_exists?
     end
   end
-    
+
   if ENV['ALL'] == 'true' or ENV['FAST'] == 'true'
     should 'append to an existing config' do
       AutomobileFuelType.class_eval do
@@ -685,7 +673,7 @@ class TestOldSyntax < Test::Unit::TestCase
       assert_equal 'http://example1.com', AutomobileFuelType.data_miner_config.steps[-2].table.url
       assert_equal 'http://example2.com', AutomobileFuelType.data_miner_config.steps[-1].table.url
     end
-    
+
     should 'override an existing data_miner configuration' do
       AutomobileFuelType.class_eval do
         data_miner do
@@ -710,7 +698,7 @@ class TestOldSyntax < Test::Unit::TestCase
       AutomobileMakeFleetYear.run_data_miner!
       assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')
     end
-    
+
     should "stop and register skipped if it gets a DataMiner::Skip" do
       AutomobileMakeFleetYear.delete_all
       AutomobileMakeFleetYear.data_miner_runs.delete_all
@@ -723,7 +711,7 @@ class TestOldSyntax < Test::Unit::TestCase
       AutomobileMakeFleetYear.run_data_miner!
       assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')
     end
-    
+
     should "eagerly enforce a schema" do
       ActiveRecord::Base.connection.create_table 'census_division_trois', :force => true, :options => 'ENGINE=InnoDB default charset=utf8' do |t|
         t.string   'name'
@@ -739,7 +727,7 @@ class TestOldSyntax < Test::Unit::TestCase
         assert_false CensusDivisionTrois.column_names.include?(column)
       end
       assert_false ActiveRecord::Base.connection.indexes(CensusDivisionTrois.table_name).any? { |index| index.name == 'homefry' }
-      
+
       3.times do
         CensusDivisionTrois.run_data_miner!
         missing_columns.each do |column|
@@ -749,7 +737,7 @@ class TestOldSyntax < Test::Unit::TestCase
         assert_equal :string, CensusDivisionTrois.columns_hash[CensusDivisionTrois.primary_key].type
       end
     end
-    
+
     should "let schemas work with default id primary keys" do
       ActiveRecord::Base.connection.create_table 'census_division_fours', :force => true, :options => 'ENGINE=InnoDB default charset=utf8' do |t|
         t.string   'name'
@@ -759,13 +747,13 @@ class TestOldSyntax < Test::Unit::TestCase
       ActiveRecord::Base.connection.execute 'ALTER TABLE census_division_fours ADD INDEX (census_region_name)'
       CensusDivisionFour.reset_column_information
       missing_columns = %w{ census_region_number }
-    
+
       # sanity check
       missing_columns.each do |column|
         assert_false CensusDivisionFour.column_names.include?(column)
       end
       assert_false ActiveRecord::Base.connection.indexes(CensusDivisionFour.table_name).any? { |index| index.name == 'homefry' }
-      
+
       3.times do
         CensusDivisionFour.run_data_miner!
         missing_columns.each do |column|
@@ -775,72 +763,72 @@ class TestOldSyntax < Test::Unit::TestCase
         assert_equal :integer, CensusDivisionFour.columns_hash[CensusDivisionFour.primary_key].type
       end
     end
-    
+
     should "allow specifying dictionaries explicitly" do
       CensusDivisionDeux.run_data_miner!
       assert_equal 'South Region', CensusDivisionDeux.find(5).census_region_name
     end
-    
+
     should "be able to key on things other than the primary key" do
       Aircraft.run_data_miner!
       assert_equal 'SP', Aircraft.find('DHC6').brighter_planet_aircraft_class_code
     end
-    
+
     should "be able to synthesize rows without using a full parser class" do
       AutomobileMakeFleetYear.run_data_miner!
       assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')
     end
-    
+
     should "keep a call stack so that you can call run_data_miner! on a child" do
       CrosscallingCensusDivision.run_data_miner!
       assert CrosscallingCensusDivision.exists? :name => 'Mountain Division', :number => 8, :census_region_number => 4, :census_region_name => 'West Region'
       assert CrosscallingCensusRegion.exists? :name => 'West Region', :number => 4
     end
-    
+
     should "keep a call stack so that you can call run_data_miner! on a parent" do
       CrosscallingCensusRegion.run_data_miner!
       assert CrosscallingCensusDivision.exists? :name => 'Mountain Division', :number => 8, :census_region_number => 4, :census_region_name => 'West Region'
       assert CrosscallingCensusRegion.exists? :name => 'West Region', :number => 4
     end
-        
+
     should "import airports" do
       Airport.run_data_miner!
       assert Airport.count > 0
     end
-    
+
     should "tap airports" do
       TappedAirport.run_data_miner!
       assert TappedAirport.count > 0
     end
-    
+
     should "pull in census divisions using a data.brighterplanet.com dictionary" do
       CensusDivision.run_data_miner!
       assert CensusDivision.count > 0
     end
-    
+
     should "have a way to queue up runs that works with delated_job's send_later" do
       assert AutomobileVariant.respond_to?(:run_data_miner!)
     end
-    
+
     should "be idempotent" do
       Country.data_miner_config.run
       a = Country.count
       Country.data_miner_config.run
       b = Country.count
       assert_equal a, b
-    
+
       CensusRegion.data_miner_config.run
       a = CensusRegion.count
       CensusRegion.data_miner_config.run
       b = CensusRegion.count
       assert_equal a, b
     end
-      
+
     should "hash things" do
       AutomobileVariant.data_miner_config.steps[0].run
       assert AutomobileVariant.first.row_hash.present?
     end
-  
+
     should "process a callback block instead of a method" do
       AutomobileVariant.delete_all
       AutomobileVariant.data_miner_config.steps[0].run
@@ -848,7 +836,7 @@ class TestOldSyntax < Test::Unit::TestCase
       AutomobileVariant.data_miner_config.steps.last.run
       assert AutomobileVariant.first.fuel_efficiency_city.present?
     end
-  
+
     should "keep a log when it does a run" do
       approx_started_at = Time.now
       DataMiner.run :resource_names => %w{ Country }
@@ -857,7 +845,7 @@ class TestOldSyntax < Test::Unit::TestCase
       assert (last_run.started_at - approx_started_at).abs < 5 # seconds
       assert (last_run.terminated_at - approx_terminated_at).abs < 5 # seconds
     end
-  
+
     should "request a re-import from scratch" do
       c = Country.new
       c.iso_3166 = 'JUNK'
@@ -866,35 +854,35 @@ class TestOldSyntax < Test::Unit::TestCase
       DataMiner.run :resource_names => %w{ Country }, :from_scratch => true
       assert !Country.exists?(:iso_3166 => 'JUNK')
     end
-    
+
     should "know what runs were on a resource" do
       DataMiner.run :resource_names => %w{ Country }
       DataMiner.run :resource_names => %w{ Country }
       assert Country.data_miner_runs.count > 0
     end
   end
-  
+
   if ENV['ALL'] == 'true' or ENV['SLOW'] == 'true'
     should "allow errata to be specified with a shorthand, assuming the responder is the resource class itself" do
       AircraftDeux.run_data_miner!
       assert AircraftDeux.exists? :icao_code => 'DC91', :bts_aircraft_type_code => '630'
     end
-    
+
     should "mine aircraft" do
       Aircraft.run_data_miner!
       assert Aircraft.exists? :icao_code => 'DC91', :bts_aircraft_type_code => '630'
     end
-    
+
     should "mine automobile variants" do
       AutomobileVariant.run_data_miner!
       assert AutomobileVariant.count('make_name LIKE "%tesla"') > 0
     end
-    
+
     should "mine T100 flight segments" do
       T100FlightSegment.run_data_miner!
       assert T100FlightSegment.count('dest_country_name LIKE "%United States"') > 0
     end
-    
+
     should "mine residence survey responses" do
       ResidentialEnergyConsumptionSurveyResponse.run_data_miner!
       assert ResidentialEnergyConsumptionSurveyResponse.find(6).residence_class.start_with?('Single-family detached house')
