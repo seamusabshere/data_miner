@@ -70,6 +70,7 @@ class DataMiner
       value = do_split(value) if wants_split?
       value.gsub! /[ ]+/, ' '
       value.strip!
+      return nil if value.blank? and wants_nullification?
       value.upcase! if wants_upcase?
       value = do_convert row, value if wants_conversion?
       value = do_sprintf value if wants_sprintf?
@@ -86,16 +87,19 @@ class DataMiner
       return value if value.is_a? ::ActiveRecord::Base # carry through trapdoor
       value = value_in_dictionary value if wants_dictionary?
       value = synthesize.call(row) if wants_synthesize?
-      value = nil if value.blank? and wants_nullification?
       value
     end
-        
+    
     def set_record_from_row(record, row)
       return false if !wants_overwriting? and !record.send(name).nil?
       record.send "#{name}=", value_from_row(row)
-      record.send "#{name}_units=", (to_units || unit_from_source(row)).to_s if wants_units?
+      if wants_units?
+        unit = (to_units || unit_from_source(row)).to_s
+        unit = nil if unit.blank? and wants_nullification?
+        record.send "#{name}_units=", unit
+      end
     end
-
+    
     def unit_from_source(row)
       row[units_field_name || units_field_number].to_s.strip.underscore.to_sym
     end
