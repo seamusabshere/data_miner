@@ -89,7 +89,6 @@ class DataMiner
     def after_invoke
       return unless resource.table_exists?
       make_sure_unit_definitions_make_sense
-      suggest_missing_column_migrations
     end
     
     COMPLETE_UNIT_DEFINITIONS = [
@@ -119,35 +118,6 @@ You need to supply one of #{COMPLETE_UNIT_DEFINITIONS.map(&:inspect).to_sentence
             }
           end
         end
-      end
-    end
-    
-    def suggest_missing_column_migrations
-      missing_columns = []
-      
-      import_steps.each do |step|
-        step.attributes.each do |_, attribute|
-          raise "You can't have an attribute column that ends in _units (reserved): #{resource.table_name}.#{attribute.name}" if attribute.name.end_with? '_units'
-          unless resource.column_names.include? attribute.name
-            missing_columns << attribute.name
-          end
-          if attribute.wants_units? and !resource.column_names.include?(units_column = "#{attribute.name}_units")
-            missing_columns << units_column
-          end
-        end
-      end
-      missing_columns.uniq!
-      if missing_columns.any?
-        ::DataMiner.logger.debug %{
-
-================================
-
-On #{resource}, it looks like you're missing some columns...
-
-#{missing_columns.map { |column_name| "#{column_name.end_with?('_units') ? 'string' : 'FIXME_WHAT_COLUMN_TYPE_AM_I' } '#{column_name}'" }.join("\n") }
-
-================================
-        }
       end
     end
   end
