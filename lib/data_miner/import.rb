@@ -80,11 +80,7 @@ class DataMiner
       table.each do |row|
         record = resource.send "find_or_initialize_by_#{@_key}", attributes[@_key].value_from_row(row)
         attributes.each { |_, attr| attr.set_record_from_row record, row }
-        if record.send(primary_key).present?
-          record.save!
-        else
-          ::DataMiner.logger.debug "Skipping #{row} because there's no primary key"
-        end
+        record.save!
       end
       free
       nil
