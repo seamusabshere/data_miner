@@ -80,7 +80,11 @@ class DataMiner
       table.each do |row|
         record = resource.send "find_or_initialize_by_#{@_key}", attributes[@_key].value_from_row(row)
         attributes.each { |_, attr| attr.set_record_from_row record, row }
-        record.save!
+        begin
+          record.save!
+        rescue
+          ::DataMiner.logger.warn "[data_miner] Got #{$!.inspect} when trying to save #{row}"
+        end
       end
       free
       nil
