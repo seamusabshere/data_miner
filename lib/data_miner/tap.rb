@@ -1,4 +1,4 @@
-require 'escape'
+require 'posix/spawn'
 class DataMiner
   class Tap
     attr_reader :config
@@ -28,7 +28,7 @@ class DataMiner
           connection.drop_table possible_obstacle
         end
       end
-      ::DataMiner.backtick_with_reporting taps_pull_cmd
+      taps_pull
       if needs_table_rename?
         connection.rename_table source_table_name, resource.table_name
       end
@@ -106,9 +106,8 @@ class DataMiner
       end
     end
     
-    # taps pull mysql://root:password@localhost/taps_test http://foo:bar@data.brighterplanet.com:5000 --tables aircraft
-    def taps_pull_cmd
-      ::Escape.shell_command [
+    def taps_pull
+      args = [
         'taps',
         'pull',
         "#{adapter}://#{db_locator}",
@@ -117,34 +116,10 @@ class DataMiner
         '--tables',
         source_table_name
       ]
-      # "taps pull  #{source} --indexes-first --tables #{source_table_name}"
+      child = ::POSIX::Spawn::Child.new *args
+      unless child.success?
+        raise %{[data_miner gem] Got "#{child.err}" back when tried to run "#{args.join(' ')}"}
+      end
     end
-    
-    # 2.3.5 mysql
-    # * <tt>:host</tt> - Defaults to "localhost".
-    # * <tt>:port</tt> - Defaults to 3306.
-    # * <tt>:socket</tt> - Defaults to "/tmp/mysql.sock".
-    # * <tt>:username</tt> - Defaults to "root"
-    # * <tt>:password</tt> - Defaults to nothing.
-    # * <tt>:database</tt> - The name of the database. No default, must be provided.
-    # * <tt>:encoding</tt> - (Optional) Sets the client encoding by executing "SET NAMES <encoding>" after connection.
-    # * <tt>:reconnect</tt> - Defaults to false (See MySQL documentation: http://dev.mysql.com/doc/refman/5.0/en/auto-reconnect.html).
-    # * <tt>:sslca</tt> - Necessary to use MySQL with an SSL connection.
-    # * <tt>:sslkey</tt> - Necessary to use MySQL with an SSL connection.
-    # * <tt>:sslcert</tt> - Necessary to use MySQL with an SSL connection.
-    # * <tt>:sslcapath</tt> - Necessary to use MySQL with an SSL connection.
-    # * <tt>:sslcipher</tt> - Necessary to use MySQL with an SSL connection.
-    # 2.3.5 mysql
-    # * <tt>:host</tt> - Defaults to "localhost".
-    # * <tt>:port</tt> - Defaults to 5432.
-    # * <tt>:username</tt> - Defaults to nothing.
-    # * <tt>:password</tt> - Defaults to nothing.
-    # * <tt>:database</tt> - The name of the database. No default, must be provided.
-    # * <tt>:schema_search_path</tt> - An optional schema search path for the connection given as a string of comma-separated schema names.  This is backward-compatible with the <tt>:schema_order</tt> option.
-    # * <tt>:encoding</tt> - An optional client encoding that is used in a <tt>SET client_encoding TO <encoding></tt> call on the connection.
-    # * <tt>:min_messages</tt> - An optional client min messages that is used in a <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
-    # * <tt>:allow_concurrency</tt> - If true, use async query methods so Ruby threads don't deadlock; otherwise, use blocking query methods.
-    # 2.3.5 sqlite[3]
-    # * <tt>:database</tt> - Path to the database file.
   end
 end

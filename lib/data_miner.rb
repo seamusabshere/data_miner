@@ -32,24 +32,7 @@ class DataMiner
     delegate :run, :to => :instance
     delegate :resource_names, :to => :instance
   end
-  
-  # TODO this should probably live somewhere else
-  def self.backtick_with_reporting(cmd)
-    cmd = cmd.gsub /[ ]*\n[ ]*/m, ' '
-    output = `#{cmd}`
-    if not $?.success?
-      raise %{
-From the data_miner gem...
-
-Command failed:
-#{cmd}
-
-Output:
-#{output}
-}
-    end
-  end
-  
+    
   # http://avdi.org/devblog/2009/07/14/recursively-symbolize-keys/
   def self.recursively_stringify_keys(hash)
     hash.inject(::Hash.new) do |result, (key, value)|
