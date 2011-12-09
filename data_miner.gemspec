@@ -19,13 +19,13 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
   
-  s.add_dependency 'remote_table', '>=1.2.2'
-  s.add_dependency 'escape', '>=0.0.4'
-  s.add_dependency 'activerecord', '>=2.3.4'
-  s.add_dependency 'activesupport', '>=2.3.4'
-  s.add_dependency 'conversions', '>=1.4.4'
-  s.add_dependency 'blockenspiel', '>=0.3.2'
-  s.add_dependency 'errata', '>=1.0.1'
+  s.add_runtime_dependency 'remote_table', '>=1.2.2'
+  s.add_runtime_dependency 'activerecord', '>=2.3.4'
+  s.add_runtime_dependency 'activesupport', '>=2.3.4'
+  s.add_runtime_dependency 'conversions', '>=1.4.4'
+  s.add_runtime_dependency 'blockenspiel', '>=0.3.2'
+  s.add_runtime_dependency 'errata', '>=1.0.1'
+  s.add_runtime_dependency 'posix-spawn'
   s.add_development_dependency 'mini_record-compat'
   s.add_development_dependency 'loose_tight_dictionary', ">=0.0.5"
   s.add_development_dependency 'test-unit'
