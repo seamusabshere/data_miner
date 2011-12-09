@@ -55,6 +55,8 @@ class DataMiner
     
     def adapter
       case connection.adapter_name
+      when /mysql2/i
+        'mysql2'
       when /mysql/i
         'mysql'
       when /postgres/i
@@ -71,11 +73,13 @@ class DataMiner
     
     DEFAULT_PORTS = {
       'mysql' => 3306,
+      'mysql2' => 3306,
       'postgres' => 5432
     }
     
     DEFAULT_USERNAMES = {
       'mysql' => 'root',
+      'mysql2' => 'root'
       'postgres' => ''
     }
     
@@ -95,10 +99,10 @@ class DataMiner
     
     def db_locator
       case adapter
-      when 'mysql', 'postgres'
-        "#{username}:#{password}@#{host}:#{port}/#{database}"
       when 'sqlite'
         database
+      else
+        "#{username}:#{password}@#{host}:#{port}/#{database}"
       end
     end
     
