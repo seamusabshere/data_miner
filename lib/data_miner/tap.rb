@@ -79,7 +79,7 @@ class DataMiner
     
     DEFAULT_USERNAMES = {
       'mysql' => 'root',
-      'mysql2' => 'root'
+      'mysql2' => 'root',
       'postgres' => ''
     }
     

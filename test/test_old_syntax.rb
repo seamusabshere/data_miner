@@ -610,8 +610,8 @@ class CensusDivisionTrois < ActiveRecord::Base
   col :name
   col :census_region_name
   col :census_region_number, :type => :integer
-  col :homefry, :type => :index    'census_region_name', :name =>
-  col :census_region_number, :type => :index   ['number_code', 'name', 'census_region_name',]
+  add_index 'census_region_name', :name => 'homefry'
+  add_index ['number_code', 'name', 'census_region_name', 'census_region_number']
 
   data_miner do
     process :auto_upgrade!
@@ -623,7 +623,7 @@ col :number_code
 col :name
 col :census_region_name
 col :census_region_number, :type => :integer
-col :homefry, :type => :index    'census_region_name', :name =>
+add_index 'census_region_name', :name => 'homefry'
 
   data_miner do
     process :auto_upgrade!
@@ -710,58 +710,6 @@ class TestOldSyntax < Test::Unit::TestCase
       $force_skip = false
       AutomobileMakeFleetYear.run_data_miner!
       assert AutomobileMakeFleetYear.exists?(:name => 'Alfa Romeo IP 1978')
-    end
-
-    should "eagerly enforce a schema" do
-      ActiveRecord::Base.connection.create_table 'census_division_trois', :force => true, :options => 'ENGINE=InnoDB default charset=utf8' do |t|
-        t.string   'name'
-        t.string   'census_region_name'
-        # t.integer  'census_region_number'
-      end
-      ActiveRecord::Base.connection.execute 'ALTER TABLE census_division_trois ADD INDEX (census_region_name)'
-      CensusDivisionTrois.reset_column_information
-      missing_columns = %w{ census_region_number }
-
-      # sanity check
-      missing_columns.each do |column|
-        assert_false CensusDivisionTrois.column_names.include?(column)
-      end
-      assert_false ActiveRecord::Base.connection.indexes(CensusDivisionTrois.table_name).any? { |index| index.name == 'homefry' }
-
-      3.times do
-        CensusDivisionTrois.run_data_miner!
-        missing_columns.each do |column|
-          assert CensusDivisionTrois.column_names.include?(column)
-        end
-        assert ActiveRecord::Base.connection.indexes(CensusDivisionTrois.table_name).any? { |index| index.name == 'homefry' }
-        assert_equal :string, CensusDivisionTrois.columns_hash[CensusDivisionTrois.primary_key].type
-      end
-    end
-
-    should "let schemas work with default id primary keys" do
-      ActiveRecord::Base.connection.create_table 'census_division_fours', :force => true, :options => 'ENGINE=InnoDB default charset=utf8' do |t|
-        t.string   'name'
-        t.string   'census_region_name'
-        # t.integer  'census_region_number'
-      end
-      ActiveRecord::Base.connection.execute 'ALTER TABLE census_division_fours ADD INDEX (census_region_name)'
-      CensusDivisionFour.reset_column_information
-      missing_columns = %w{ census_region_number }
-
-      # sanity check
-      missing_columns.each do |column|
-        assert_false CensusDivisionFour.column_names.include?(column)
-      end
-      assert_false ActiveRecord::Base.connection.indexes(CensusDivisionFour.table_name).any? { |index| index.name == 'homefry' }
-
-      3.times do
-        CensusDivisionFour.run_data_miner!
-        missing_columns.each do |column|
-          assert CensusDivisionFour.column_names.include?(column)
-        end
-        assert ActiveRecord::Base.connection.indexes(CensusDivisionFour.table_name).any? { |index| index.name == 'homefry' }
-        assert_equal :integer, CensusDivisionFour.columns_hash[CensusDivisionFour.primary_key].type
-      end
     end
 
     should "allow specifying dictionaries explicitly" do
