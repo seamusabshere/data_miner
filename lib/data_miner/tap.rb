@@ -118,7 +118,7 @@ class DataMiner
       ]
       child = ::POSIX::Spawn::Child.new *args
       unless child.success?
-        raise %{[data_miner gem] Got "#{child.err}" back when tried to run "#{args.join(' ')}"}
+        raise %{[data_miner gem] Got "#{child.err}" back when tried to run "#{args.join(' ')}". You may need to install taps manually.}
       end
     end
   end

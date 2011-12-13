@@ -26,7 +26,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'blockenspiel', '>=0.3.2'
   s.add_runtime_dependency 'errata', '>=1.0.1'
   s.add_runtime_dependency 'posix-spawn'
-  s.add_runtime_dependency 'taps'
   s.add_development_dependency 'mini_record-compat'
   s.add_development_dependency 'loose_tight_dictionary', ">=0.0.5"
   s.add_development_dependency 'test-unit'
