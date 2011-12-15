@@ -1,4 +1,5 @@
 require 'posix/spawn'
+require 'uri'
 class DataMiner
   class Tap
     attr_reader :config
@@ -97,12 +98,21 @@ class DataMiner
       }
     end
     
-    def db_locator
+    # "user:pass"
+    # "user"
+    # nil
+    def userinfo
+      if username.present?
+        [username, password].select(&:present?).join(':')
+      end
+    end
+    
+    def db_url
       case adapter
       when 'sqlite'
-        database
+        "sqlite:://#{database}"
       else
-        "#{username}:#{password}@#{host}:#{port}/#{database}"
+        ::URI::Generic.new(adapter, userinfo, host, port, nil, "/#{database}", nil, nil, nil).to_s
       end
     end
     
@@ -110,7 +120,7 @@ class DataMiner
       args = [
         'taps',
         'pull',
-        "#{adapter}://#{db_locator}",
+        db_url,
         source,
         '--indexes-first',
         '--tables',
