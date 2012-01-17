@@ -110,7 +110,7 @@ class DataMiner
       end
       final_from_units = (from_units || unit_from_source(row))
       final_to_units = (to_units || unit_from_source(row))
-      unless final_from_units.present? and final_to_units.present?
+      if final_from_units.blank? or final_to_units.blank?
         raise ::RuntimeError, "[data_miner] Missing units (from=#{final_from_units.inspect}, to=#{final_to_units.inspect}"
       end
       value.to_f.convert final_from_units, final_to_units
