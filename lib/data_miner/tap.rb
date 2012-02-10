@@ -1,6 +1,9 @@
 require 'posix/spawn'
 require 'uri'
 class DataMiner
+  # Note that you probably shouldn't put taps into your Gemfile, because it depends on sequel and other gems that may not compile on Heroku (etc.)
+  #
+  # This class automatically detects if you have Bundler installed, and if so, executes the `taps` binary with a "clean" environment (i.e. one that will not pay attention to the fact that taps is not in your Gemfile)
   class Tap
     attr_reader :config
     attr_reader :description
@@ -126,9 +129,19 @@ class DataMiner
         '--tables',
         source_table_name
       ]
-      child = ::POSIX::Spawn::Child.new *args
+      child = nil
+      
+      # https://github.com/carlhuda/bundler/issues/1579
+      if defined?(::Bundler)
+        ::Bundler.with_clean_env do
+          child = ::POSIX::Spawn::Child.new(*args)
+        end
+      else
+        child = ::POSIX::Spawn::Child.new(*args)
+      end
+      
       unless child.success?
-        raise %{[data_miner gem] Got "#{child.err}" back when tried to run "#{args.join(' ')}". You may need to install taps manually.}
+        raise %{[data_miner gem] Got "#{child.err}" when tried "#{args.join(' ')}". You need to have the taps binary in your PATH. Putting it in your Gemfile, however, is not recommended.}
       end
     end
   end
