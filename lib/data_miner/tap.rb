@@ -128,7 +128,6 @@ class DataMiner
         '--tables',
         source_table_name
       ]
-      child = nil
       
       # https://github.com/carlhuda/bundler/issues/1579
       if defined?(::Bundler)
