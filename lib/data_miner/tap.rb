@@ -113,7 +113,7 @@ class DataMiner
     def db_url
       case adapter
       when 'sqlite'
-        "sqlite:://#{database}"
+        "sqlite://#{database}"
       else
         ::URI::Generic.new(adapter, userinfo, host, port, nil, "/#{database}", nil, nil, nil).to_s
       end
