@@ -17,13 +17,13 @@ class DataMiner
       @options.stringify_keys!
       # legacy
       if @options.has_key? 'table'
-        ::DataMiner.logger.info "Warning: 'table' is no longer an allowed option, taking the url from it and ignoring the rest"
+        DataMiner.logger.warn "'table' is no longer an allowed option, taking the url from it and ignoring the rest"
         table_instance = @options.delete 'table'
         @options['url'] = table_instance.url
       end
       # legacy
       if @options.has_key?('errata') and not @options['errata'].is_a?(::Hash)
-        ::DataMiner.logger.info "Warning: 'errata' must be a hash of Errata options. taking the URL from the Errata instance you provided and ignoring everything else"
+        DataMiner.logger.warn "'errata' must be a hash of Errata options. taking the URL from the Errata instance you provided and ignoring everything else"
         errata_instance = @options.delete 'errata'
         @options['errata'] = { 'url' => errata_instance.options['url'] }
       end
@@ -83,7 +83,7 @@ class DataMiner
         begin
           record.save!
         rescue
-          ::DataMiner.logger.warn "[data_miner] Got #{$!.inspect} when trying to save #{row}"
+          DataMiner.logger.warn "[data_miner] Got #{$!.inspect} when trying to save #{row}"
         end
       end
       free

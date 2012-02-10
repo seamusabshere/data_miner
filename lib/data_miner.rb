@@ -49,7 +49,18 @@ class DataMiner
     end
   end
   
-  attr_accessor :logger
+  attr_writer :logger
+  def logger
+    return @logger if @logger
+    if defined?(::Rails)
+      @logger = ::Rails.logger
+    elsif defined?(::ActiveRecord) and active_record_logger = ::ActiveRecord::Base.logger
+      @logger = active_record_logger
+    else
+      require 'logger'
+      @logger = ::Logger.new $stderr
+    end
+  end
 
   def resource_names
     @resource_names ||= []
@@ -58,19 +69,7 @@ class DataMiner
   def call_stack
     @call_stack ||= []
   end
-  
-  def start_logging
-    if logger.nil?
-      if defined? ::Rails
-        self.logger = ::Rails.logger
-      else
-        require 'logger'
-        self.logger = ::Logger.new $stderr
-      end
-    end
-    ::ActiveRecord::Base.logger = logger
-  end
-    
+      
   # Mine data. Defaults to all resource_names touched by DataMiner.
   #
   # Options

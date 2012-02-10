@@ -60,7 +60,7 @@ class DataMiner
         steps.each do |step|
           time = ::Benchmark.realtime { step.run }
           resource.reset_column_information
-          ::DataMiner.logger.info %{Ran #{step.inspect} in #{time.to_i}}
+          DataMiner.logger.info %{Ran #{step.inspect} in #{time.to_i}}
         end
         finished = true
       rescue Finish

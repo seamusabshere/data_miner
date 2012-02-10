@@ -27,9 +27,7 @@ class DataMiner
     end
     
     def data_miner(options = {}, &blk)
-      ::DataMiner.instance.start_logging
-
-      ::DataMiner.instance.resource_names.push self.name unless ::DataMiner.instance.resource_names.include? self.name
+      ::DataMiner.instance.resource_names.push name unless ::DataMiner.instance.resource_names.include?(name)
 
       unless options[:append]
         self.data_miner_config = ::DataMiner::Config.new self
