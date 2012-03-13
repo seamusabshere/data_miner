@@ -9,7 +9,7 @@ Programmatically import useful data into your ActiveRecord models.
 You define <tt>data_miner</tt> blocks in your ActiveRecord models. For example, in <tt>app/models/country.rb</tt>:
 
     class Country < ActiveRecord::Base
-      set_primary_key :iso_3166_code
+      self.primary_key =  :iso_3166_code
   
       data_miner do    
         import 'the official ISO country list',
@@ -62,7 +62,7 @@ This is how we linked together (http://data.brighterplanet.com/aircraft) the FAA
     # Tell ActiveRecord that we want to use a string primary key.
     # This makes it easier to repeatedly truncate and re-import this
     # table without breaking associations.
-    set_primary_key :icao_code
+    self.primary_key =  :icao_code
   
     # Use the mini_record-compat gem to define the database schema in-line.
     # It will destructively and automatically add/remove columns.

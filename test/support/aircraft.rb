@@ -1,8 +1,8 @@
 require 'loose_tight_dictionary'
 
 class Aircraft < ActiveRecord::Base
-  set_primary_key :icao_code
-  set_table_name 'aircraft'
+  self.primary_key =  :icao_code
+  self.table_name = 'aircraft'
 
   def self.bts_dictionary
     @_dictionary ||= LooseTightDictionary.new RemoteTable.new(:url => 'http://www.bts.gov/programs/airline_information/accounting_and_reporting_directives/csv/number_260.csv', :select => lambda { |record| record['Aircraft Type'].to_i.between?(1, 998) and record['Manufacturer'].present? }),

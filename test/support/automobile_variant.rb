@@ -1,5 +1,5 @@
 class AutomobileVariant < ActiveRecord::Base
-  set_primary_key :row_hash
+  self.primary_key =  :row_hash
 
   module FuelEconomyGuide
     TRANSMISSIONS = {
