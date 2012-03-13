@@ -7,15 +7,21 @@ class CensusRegion < ActiveRecord::Base
   self.primary_key =  :number
 
   data_miner do
-    import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Region'].to_i > 0 and row['Division'].to_s.strip == 'X'} do
-      key 'number', :field_name => 'Region'
+    import :url => 'http://www.census.gov/popest/about/geo/state_geocodes_v2009.txt',
+           :skip => 6,
+           :headers => %w{ Region Division FIPS Name },
+           :select => ::Proc.new { |row| row['Region'].to_i > 0 and row['Division'].to_i == 0 } do
+      key   'number', :field_name => 'Region'
       store 'name', :field_name => 'Name'
     end
 
     # pretend this is a different data source
     # fake! just for testing purposes
-    import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Region'].to_i > 0 and row['Division'].to_s.strip == 'X'} do
-      key 'number', :field_name => 'Region'
+    import :url => 'http://www.census.gov/popest/about/geo/state_geocodes_v2009.txt',
+           :skip => 6,
+           :headers => %w{ Region Division FIPS Name },
+           :select => ::Proc.new { |row| row['Region'].to_i > 0 and row['Division'].to_i == 0 } do
+      key   'number', :field_name => 'Region'
       store 'name', :field_name => 'Name'
     end
   end
@@ -26,7 +32,10 @@ class CensusDivision < ActiveRecord::Base
   self.primary_key =  :number
 
   data_miner do
-    import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Division'].to_s.strip != 'X' and row['FIPS CODE STATE'].to_s.strip == 'X'} do
+    import :url => 'http://www.census.gov/popest/about/geo/state_geocodes_v2009.txt',
+           :skip => 6,
+           :headers => %w{ Region Division FIPS Name },
+           :select => ::Proc.new { |row| row['Division'].to_i > 0 and row['FIPS'].to_i == 0 } do
       key 'number', :field_name => 'Division'
       store 'name', :field_name => 'Name'
       store 'census_region_number', :field_name => 'Region'
@@ -39,7 +48,10 @@ class CensusDivisionDeux < ActiveRecord::Base
   self.primary_key =  :number
 
   data_miner do
-    import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Division'].to_s.strip != 'X' and row['FIPS CODE STATE'].to_s.strip == 'X'} do
+    import :url => 'http://www.census.gov/popest/about/geo/state_geocodes_v2009.txt',
+           :skip => 6,
+           :headers => %w{ Region Division FIPS Name },
+           :select => ::Proc.new { |row| row['Division'].to_i > 0 and row['FIPS'].to_i == 0 } do
       key 'number', :field_name => 'Division'
       store 'name', :field_name => 'Name'
       store 'census_region_number', :field_name => 'Region'
@@ -75,7 +87,11 @@ class CrosscallingCensusDivision < ActiveRecord::Base
   belongs_to :crosscalling_census_regions, :foreign_key => 'census_region_number'
 
   data_miner do
-    import "get a list of census divisions and their regions", :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Division'].to_s.strip != 'X' and row['FIPS CODE STATE'].to_s.strip == 'X'} do
+    import "get a list of census divisions and their regions",
+           :url => 'http://www.census.gov/popest/about/geo/state_geocodes_v2009.txt',
+           :skip => 6,
+           :headers => %w{ Region Division FIPS Name },
+           :select => ::Proc.new { |row| row['Division'].to_i > 0 and row['FIPS'].to_i == 0 } do
       key 'number', :field_name => 'Division'
       store 'name', :field_name => 'Name'
       store 'census_region_number', :field_name => 'Region'
