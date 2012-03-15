@@ -1,5 +1,5 @@
 class Airport < ActiveRecord::Base
-  set_primary_key :iata_code
+  self.primary_key =  :iata_code
   
   data_miner do
     import :url => 'https://openflights.svn.sourceforge.net/svnroot/openflights/openflights/data/airports.dat',
