@@ -53,7 +53,7 @@ class DataMiner
         end
         string = sprintf % string
       end
-      string.downcase! unless options['case_sensitive']
+      string.to_s.downcase! unless options['case_sensitive']
       string.to_s.strip
     end
   end
