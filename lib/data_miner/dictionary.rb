@@ -38,6 +38,8 @@ class DataMiner
     
     def find(key_name, key, value_name, options = {})
       if match = table.detect { |row| normalize_for_comparison(key, options) == normalize_for_comparison(row[key_name], options) }
+      normalized_key = normalize_for_comparison(key, options)
+      if match = table.detect { |row| normalized_key == normalize_for_comparison(row[key_name], options) }
         match[value_name].to_s
       end
     end
