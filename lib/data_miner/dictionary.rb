@@ -19,6 +19,10 @@ class DataMiner
       options['sprintf'] || '%s'
     end
     
+    def case_sensitive
+      true unless options['case_sensitive'] == false
+    end
+    
     def table
       @table ||= ::RemoteTable.new(options['url']).to_a # convert to Array immediately
     end
@@ -27,9 +31,9 @@ class DataMiner
       @table.free if @table.is_a?(::RemoteTable)
       @table = nil
     end
-
+    
     def lookup(key)
-      find key_name, key, value_name, 'sprintf' => sprintf
+      find key_name, key, value_name, {'sprintf' => sprintf, 'case_sensitive' => case_sensitive}
     end
     
     def find(key_name, key, value_name, options = {})
@@ -37,9 +41,9 @@ class DataMiner
         match[value_name].to_s
       end
     end
-
+    
     private
-
+    
     def normalize_for_comparison(string, options = {})
       if options['sprintf']
         if /\%[0-9\.]*f/.match options['sprintf']
@@ -49,6 +53,7 @@ class DataMiner
         end
         string = sprintf % string
       end
+      string.downcase! unless options['case_sensitive']
       string.to_s.strip
     end
   end
