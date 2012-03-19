@@ -4,18 +4,24 @@ require 'helper'
 TestDatabase.load_models
 
 class CensusRegion < ActiveRecord::Base
-  set_primary_key :number
+  self.primary_key =  :number
 
   data_miner do
-    import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Region'].to_i > 0 and row['Division'].to_s.strip == 'X'} do
-      key 'number', :field_name => 'Region'
+    import :url => 'http://www.census.gov/popest/about/geo/state_geocodes_v2009.txt',
+           :skip => 6,
+           :headers => %w{ Region Division FIPS Name },
+           :select => ::Proc.new { |row| row['Region'].to_i > 0 and row['Division'].to_i == 0 } do
+      key   'number', :field_name => 'Region'
       store 'name', :field_name => 'Name'
     end
 
     # pretend this is a different data source
     # fake! just for testing purposes
-    import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Region'].to_i > 0 and row['Division'].to_s.strip == 'X'} do
-      key 'number', :field_name => 'Region'
+    import :url => 'http://www.census.gov/popest/about/geo/state_geocodes_v2009.txt',
+           :skip => 6,
+           :headers => %w{ Region Division FIPS Name },
+           :select => ::Proc.new { |row| row['Region'].to_i > 0 and row['Division'].to_i == 0 } do
+      key   'number', :field_name => 'Region'
       store 'name', :field_name => 'Name'
     end
   end
@@ -23,10 +29,13 @@ end
 
 # smaller than a region
 class CensusDivision < ActiveRecord::Base
-  set_primary_key :number
+  self.primary_key =  :number
 
   data_miner do
-    import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Division'].to_s.strip != 'X' and row['FIPS CODE STATE'].to_s.strip == 'X'} do
+    import :url => 'http://www.census.gov/popest/about/geo/state_geocodes_v2009.txt',
+           :skip => 6,
+           :headers => %w{ Region Division FIPS Name },
+           :select => ::Proc.new { |row| row['Division'].to_i > 0 and row['FIPS'].to_i == 0 } do
       key 'number', :field_name => 'Division'
       store 'name', :field_name => 'Name'
       store 'census_region_number', :field_name => 'Region'
@@ -36,10 +45,13 @@ class CensusDivision < ActiveRecord::Base
 end
 
 class CensusDivisionDeux < ActiveRecord::Base
-  set_primary_key :number
+  self.primary_key =  :number
 
   data_miner do
-    import :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Division'].to_s.strip != 'X' and row['FIPS CODE STATE'].to_s.strip == 'X'} do
+    import :url => 'http://www.census.gov/popest/about/geo/state_geocodes_v2009.txt',
+           :skip => 6,
+           :headers => %w{ Region Division FIPS Name },
+           :select => ::Proc.new { |row| row['Division'].to_i > 0 and row['FIPS'].to_i == 0 } do
       key 'number', :field_name => 'Division'
       store 'name', :field_name => 'Name'
       store 'census_region_number', :field_name => 'Region'
@@ -49,7 +61,7 @@ class CensusDivisionDeux < ActiveRecord::Base
 end
 
 class CrosscallingCensusRegion < ActiveRecord::Base
-  set_primary_key :number
+  self.primary_key =  :number
 
   has_many :crosscalling_census_divisions
 
@@ -70,12 +82,16 @@ class CrosscallingCensusRegion < ActiveRecord::Base
 end
 
 class CrosscallingCensusDivision < ActiveRecord::Base
-  set_primary_key :number
+  self.primary_key =  :number
 
   belongs_to :crosscalling_census_regions, :foreign_key => 'census_region_number'
 
   data_miner do
-    import "get a list of census divisions and their regions", :url => 'http://www.census.gov/popest/geographic/codes02.csv', :skip => 9, :select => lambda { |row| row['Division'].to_s.strip != 'X' and row['FIPS CODE STATE'].to_s.strip == 'X'} do
+    import "get a list of census divisions and their regions",
+           :url => 'http://www.census.gov/popest/about/geo/state_geocodes_v2009.txt',
+           :skip => 6,
+           :headers => %w{ Region Division FIPS Name },
+           :select => ::Proc.new { |row| row['Division'].to_i > 0 and row['FIPS'].to_i == 0 } do
       key 'number', :field_name => 'Division'
       store 'name', :field_name => 'Name'
       store 'census_region_number', :field_name => 'Region'
@@ -89,7 +105,7 @@ class CrosscallingCensusDivision < ActiveRecord::Base
 end
 
 class ResidentialEnergyConsumptionSurveyResponse < ActiveRecord::Base
-  set_primary_key :department_of_energy_identifier
+  self.primary_key =  :department_of_energy_identifier
 
   data_miner do
     process 'Define some unit conversions' do
@@ -256,7 +272,7 @@ end
 
 # T-100 Segment (All Carriers):  http://www.transtats.bts.gov/Fields.asp?Table_ID=293
 class T100FlightSegment < ActiveRecord::Base
-  set_primary_key :row_hash
+  self.primary_key =  :row_hash
   URL = 'http://www.transtats.bts.gov/DownLoad_Table.asp?Table_ID=293&Has_Group=3&Is_Zipped=0'
   FORM_DATA = %{
     UserTableName=T_100_Segment__All_Carriers&
@@ -502,7 +518,7 @@ end
 
 # note that this depends on stuff in Aircraft
 class AircraftDeux < ActiveRecord::Base
-  set_primary_key :icao_code
+  self.primary_key =  :icao_code
 
   # defined on the class because we defined the errata with a shorthand
   class << self
@@ -556,7 +572,7 @@ class AircraftDeux < ActiveRecord::Base
 end
 
 class AutomobileMakeFleetYear < ActiveRecord::Base
-  set_primary_key :name
+  self.primary_key =  :name
 
   col :name
   col :make_name
@@ -595,7 +611,7 @@ class AutomobileMakeFleetYear < ActiveRecord::Base
 end
 
 class CensusDivisionTrois < ActiveRecord::Base
-  set_primary_key :number_code
+  self.primary_key =  :number_code
 
   col :number_code
   col :name

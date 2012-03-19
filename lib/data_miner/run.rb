@@ -1,6 +1,6 @@
 class DataMiner
   class Run < ::ActiveRecord::Base
-    set_table_name 'data_miner_runs'
+    self.table_name = 'data_miner_runs'
     
     def resource
       resource_name.constantize

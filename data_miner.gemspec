@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'conversions', '>=1.4.4'
   s.add_runtime_dependency 'blockenspiel', '>=0.3.2'
   s.add_runtime_dependency 'errata', '>=1.0.1'
+  s.add_runtime_dependency 'unicode_utils' # for case-insensitive dictionary lookup with utf-8 characters
   s.add_development_dependency 'mini_record-compat'
   s.add_development_dependency 'loose_tight_dictionary', ">=0.0.5"
   s.add_development_dependency 'test-unit'

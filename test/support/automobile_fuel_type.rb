@@ -1,5 +1,5 @@
 class AutomobileFuelType < ActiveRecord::Base
-  set_primary_key :code
+  self.primary_key =  :code
   
   data_miner do
     import(:url => 'http://www.fueleconomy.gov/FEG/epadata/00data.zip',
