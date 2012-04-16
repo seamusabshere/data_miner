@@ -1,30 +1,32 @@
 require 'rubygems'
-require 'bundler'
-Bundler.setup
-require 'test/unit'
-require 'shoulda'
-require 'mini_record'
+require 'bundler/setup'
+
+if Bundler.definition.specs['ruby-debug19'].first or Bundler.definition.specs['ruby-debug'].first
+  require 'ruby-debug'
+end
+
+require 'minitest/spec'
+require 'minitest/autorun'
+require 'minitest/reporters'
+MiniTest::Unit.runner = MiniTest::SuiteRunner.new
+MiniTest::Unit.runner.reporters << MiniTest::Reporters::SpecReporter.new
+
+cmd = %{mysql -u root -ppassword -e "drop database data_miner_test; create database data_miner_test charset utf8"}
+$stderr.puts "Running `#{cmd}`..."
+system cmd
+$stderr.puts "Done."
+
+require 'active_record'
 require 'logger'
-# require 'ruby-debug'
-$LOAD_PATH.unshift(File.dirname(__FILE__))
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+ActiveRecord::Base.logger = Logger.new $stderr
+ActiveRecord::Base.logger.level = Logger::INFO
+# ActiveRecord::Base.logger.level = Logger::DEBUG
+ActiveRecord::Base.establish_connection(
+  'adapter' => 'mysql2',
+  'database' => 'data_miner_test',
+  'username' => 'root',
+  'password' => 'password'
+)
+
 require 'data_miner'
-class Test::Unit::TestCase
-end
-
-test_log = File.open('test.log', 'w')
-test_log.sync = true
-DataMiner.logger = Logger.new test_log
-
-# because some of the test files reference it
-require 'errata'
-
-ENV['WIP'] = 'true' if ENV['ALL'] == 'true'
-
-$:.push File.dirname(__FILE__)
-require 'support/test_database'
-
-ActiveSupport::Inflector.inflections do |inflect|
-  inflect.uncountable %w{ aircraft aircraft_deux census_division_deux census_division_trois }
-end
-
+DataMiner::Run.auto_upgrade!

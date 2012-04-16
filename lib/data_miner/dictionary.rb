@@ -1,32 +1,37 @@
 require 'remote_table'
-require 'unicode_utils/downcase'
+if RUBY_VERSION >= '1.9'
+  begin
+    require 'unicode_utils/downcase'
+  rescue LoadError
+    Kernel.warn '[data_miner] You may wish to include unicode_utils in your Gemfile to improve accuracy of downcasing'
+  end
+end
 
 class DataMiner
   class Dictionary
     attr_reader :options
     def initialize(options = {})
-      @options = options.dup
-      @options.stringify_keys!
+      @options = options.symbolize_keys
     end
     
     def key_name
-      options['input']
+      options[:input]
     end
     
     def value_name
-      options['output']
+      options[:output]
     end
     
     def sprintf
-      options['sprintf'] || '%s'
+      options[:sprintf] || '%s'
     end
     
     def case_sensitive
-      true unless options['case_sensitive'] == false
+      true unless options[:case_sensitive] == false
     end
     
     def table
-      @table ||= ::RemoteTable.new(options['url']).to_a # convert to Array immediately
+      @table ||= ::RemoteTable.new(options[:url]).to_a # convert to Array immediately
     end
     
     def free
@@ -47,17 +52,20 @@ class DataMiner
     
     private
     
-    def normalize_for_comparison(string, options = {})
-      if options['sprintf']
-        if /\%[0-9\.]*f/.match options['sprintf']
-          string = string.to_f
-        elsif /\%[0-9\.]*d/.match options['sprintf']
-          string = string.to_i
+    def normalize_for_comparison(str, options = {})
+      if options[:sprintf]
+        if /\%[0-9\.]*f/.match options[:sprintf]
+          str = str.to_f
+        elsif /\%[0-9\.]*d/.match options[:sprintf]
+          str = str.to_i
         end
-        string = sprintf % string
+        str = sprintf % str
       end
-      string = UnicodeUtils.downcase(string.to_s) unless options['case_sensitive']
-      string.to_s.strip
+      str = str.to_s.strip
+      unless options[:case_sensitive]
+        str = defined?(::UnicodeUtils) ? ::UnicodeUtils.downcase(str) : str.downcase
+      end
+      str
     end
   end
 end

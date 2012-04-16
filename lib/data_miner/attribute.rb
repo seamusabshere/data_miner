@@ -6,8 +6,8 @@ class DataMiner
     attr_reader :name
     attr_reader :options
 
-    def resource
-      step.resource
+    def model
+      step.model
     end
 
     VALID_OPTIONS = %w{
@@ -29,20 +29,18 @@ class DataMiner
       field_number
       chars
       synthesize
-    }
+    }.map(&:to_sym)
 
     def initialize(step, name, options = {})
-      @options = ::DataMiner.recursively_stringify_keys options
-
+      @options = DataMiner.recursively_symbolize_keys options
       @step = step
       @name = name
-      
-      invalid_option_keys = @options.keys.select { |k| not VALID_OPTIONS.include? k }
+      invalid_option_keys = @options.keys - VALID_OPTIONS
       raise "Invalid options: #{invalid_option_keys.map(&:inspect).to_sentence} (#{inspect})" if invalid_option_keys.any?
     end
         
     def inspect
-      %{#<DataMiner::Attribute(#{resource}##{name})>}
+      %{#<DataMiner::Attribute(#{model}##{name})>}
     end
 
     def value_in_dictionary(str)
@@ -58,10 +56,10 @@ class DataMiner
         else
           row[field_number]
         end
-      elsif field_name == 'row_hash'
+      elsif field_name == :row_hash
         row.row_hash
       elsif row.is_a?(::Hash) or row.is_a?(::ActiveSupport::OrderedHash)
-        row[field_name]
+        row[field_name.to_s] # remote_table hash keys are always strings
       end
       return nil if value.nil?
       return value if value.is_a?(::ActiveRecord::Base) # escape valve for parsers that look up associations directly
@@ -126,13 +124,13 @@ class DataMiner
     end
     
     def do_split(value)
-      pattern = split_options['pattern'] || /\s+/ # default is split on whitespace
-      keep = split_options['keep'] || 0           # default is keep first element
+      pattern = split_options[:pattern] || /\s+/ # default is split on whitespace
+      keep = split_options[:keep] || 0           # default is keep first element
       value.to_s.split(pattern)[keep].to_s
     end
   
     def column_type
-      resource.columns_hash[name.to_s].type
+      model.columns_hash[name.to_s].type
     end
     
     # Our wants and needs :)
@@ -146,7 +144,7 @@ class DataMiner
       upcase.present?
     end
     def wants_static?
-      options.has_key? 'static'
+      options.has_key? :static
     end
     def wants_nullification?
       nullify == true
@@ -167,67 +165,67 @@ class DataMiner
       to_units.present? or units_field_name.present? or units_field_number.present?
     end
     def wants_dictionary?
-      options['dictionary'].present?
+      options[:dictionary].present?
     end
     def wants_matcher?
-      options['matcher'].present?
+      options[:matcher].present?
     end
 
     # Options that always have values
     def field_name
-      (options['field_name'] || name).to_s
+      (options[:field_name] || name).to_sym
     end
     def delimiter
-      (options['delimiter'] || ', ')
+      (options[:delimiter] || ', ')
     end
     
     # Options that can't be referred to by their names
     def split_options
-      options['split']
+      options[:split]
     end
     
     def from_units
-      options['from_units']
+      options[:from_units]
     end
     def to_units
-      options['to_units'] || options['units']
+      options[:to_units] || options[:units]
     end
     def sprintf
-      options['sprintf']
+      options[:sprintf]
     end
     def nullify
-      options['nullify']
+      options[:nullify]
     end
     def overwrite
-      options['overwrite']
+      options[:overwrite]
     end
     def upcase
-      options['upcase']
+      options[:upcase]
     end
     def units_field_name
-      options['units_field_name']
+      options[:units_field_name]
     end
     def units_field_number
-      options['units_field_number']
+      options[:units_field_number]
     end
     def field_number
-      options['field_number']
+      options[:field_number]
     end
     def chars
-      options['chars']
+      options[:chars]
     end
     def synthesize
-      options['synthesize']
+      options[:synthesize]
     end
     def static
-      options['static']
+      options[:static]
     end
     # must be cleared before every run! (because it relies on remote data)
     def dictionary
-      @dictionary ||= (options['dictionary'].is_a?(Dictionary) ? options['dictionary'] : Dictionary.new(options['dictionary']))
+      @dictionary ||= (options[:dictionary].is_a?(Dictionary) ? options[:dictionary] : Dictionary.new(options[:dictionary]))
     end
     def matcher
-      @matcher ||= (options['matcher'].is_a?(::String) ? options['matcher'].constantize.new : options['matcher'])
+      @matcher ||= (options[:matcher].is_a?(::String) ? options[:matcher].constantize.new : options[:matcher])
     end
     
     def free

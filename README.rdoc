@@ -268,7 +268,7 @@ This is how we linked together (http://data.brighterplanet.com/aircraft) the FAA
         update_all "weighting = (#{segments.project(segments[:passengers].sum).where(aircraft[:bts_aircraft_type_code].eq(segments[:bts_aircraft_type_code])).to_sql})"
       end
     
-      # And finally re-run the import of resources that depend on this resource.
+      # And finally re-run the import of resources that depend on this model.
       # Don't worry about calling Aircraft.run_data_miner! at the top of AircraftManufacturer's data_miner block;
       # that's the right way to do dependencies. It won't get called twice in the same run.
       [ AircraftManufacturer ].each do |synthetic_resource|

@@ -1,22 +1,20 @@
 require 'active_record'
-require 'blockenspiel'
 
 class DataMiner
   module ActiveRecordExtensions
     def data_miner_config
-      @data_miner_config ||= ::DataMiner::Config.new self
-    end
-    
-    def data_miner_config=(config)
-      @data_miner_config = config
+      @data_miner_config ||= DataMiner::Config.new self
     end
     
     def data_miner_runs
-      ::DataMiner::Run.scoped :conditions => { :resource_name => name }
+      DataMiner::Run.scoped :conditions => { :model_name => name }
     end
 
-    def run_data_miner!(options = {})
-      data_miner_config.run options
+    def run_data_miner!
+      data_miner_config.steps.each do |step|
+        step.perform
+        reset_column_information
+      end
     end
     
     def run_data_miner_on_parent_associations!
@@ -27,17 +25,13 @@ class DataMiner
     end
     
     def data_miner(options = {}, &blk)
-      ::DataMiner.instance.resource_names.push name unless ::DataMiner.instance.resource_names.include?(name)
-
-      unless options[:append]
-        self.data_miner_config = ::DataMiner::Config.new self
+      unless DataMiner.instance.model_names.include?(name)
+        DataMiner.instance.model_names << name
       end
-
-      ::Blockenspiel.invoke blk, data_miner_config
-
-      data_miner_config.after_invoke
+      unless options[:append]
+        @data_miner_config = DataMiner::Config.new self
+      end
+      data_miner_config.append_block blk
     end
   end
 end
-
-
