@@ -1,11 +1,18 @@
 require 'singleton'
+require 'set'
 require 'active_support'
 require 'active_support/version'
 if ::ActiveSupport::VERSION::MAJOR >= 3
   require 'active_support/core_ext'
 end
-
 require 'active_record'
+if RUBY_VERSION >= '1.9'
+  begin
+    require 'unicode_utils/downcase'
+  rescue LoadError
+    Kernel.warn '[data_miner] You may wish to include unicode_utils in your Gemfile to improve accuracy of downcasing'
+  end
+end
 
 require 'data_miner/active_record_extensions'
 require 'data_miner/attribute'
@@ -24,6 +31,22 @@ class DataMiner
     delegate :logger=, :to => :instance
     delegate :model_names, :to => :instance
 
+    # @private
+    def downcase(str)
+      defined?(::UnicodeUtils) ? ::UnicodeUtils.downcase(str) : str.downcase
+    end
+
+    # @private
+    def upcase(str)
+      defined?(::UnicodeUtils) ? ::UnicodeUtils.upcase(str) : str.upcase
+    end
+
+    # @private
+    def compress_whitespace(str)
+      str.gsub(INNER_SPACE, ' ').strip
+    end
+
+    # @private
     # http://devblog.avdi.org/2009/07/14/recursively-symbolize-keys/
     def recursively_symbolize_keys(hash)
       hash.inject(::Hash.new) do |result, (key, value)|
@@ -41,22 +64,22 @@ class DataMiner
     end
   end
 
-  class Finish < StandardError; end
-  class Skip < StandardError; end
+  class Finish < ::StandardError; end
+  class Skip < ::StandardError; end
 
-  # thread safety
   MUTEX = ::Mutex.new
+  INNER_SPACE = /[ ]+/
 
   include ::Singleton
 
   attr_writer :logger
 
   def run(model_names = DataMiner.model_names)
-    finished = []
-    model_names.each do |model_name|
-      Run.new(:model_name => model_name).perform finished
+    Run.stack do
+      model_names.each do |model_name|
+        model_name.constantize.run_data_miner!
+      end
     end
-    finished
   end
 
   def logger
@@ -74,7 +97,7 @@ class DataMiner
 
   def model_names
     @model_names || MUTEX.synchronize do
-      @model_names ||= []
+      @model_names ||= ::Set.new
     end
   end
 

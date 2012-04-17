@@ -2,6 +2,19 @@ require 'active_record_inline_schema'
 
 class DataMiner
   class Run < ::ActiveRecord::Base
+    class << self
+      def stack
+        @users ||= 0
+        @stack ||= []
+        @users += 1
+        yield @stack
+        @users -= 1
+        if @users == 0
+          @stack = nil
+        end
+      end
+    end
+
     self.table_name = 'data_miner_runs'
 
     col :model_name
@@ -15,13 +28,13 @@ class DataMiner
 
     validates_presence_of :model_name
 
-    def perform(context)
-      return if context.include?(model_name)
-      context << model_name
+    def perform(stack)
+      return if stack.include? model_name
+      stack << model_name
       self.killed = true
       save!
       begin
-        model.run_data_miner!
+        yield
         self.finished = true
       rescue Finish
         self.finished = true
@@ -39,7 +52,7 @@ class DataMiner
     end
 
     def model
-      model_name.constantize
+      @model ||= model_name.constantize
     end
   end
 end

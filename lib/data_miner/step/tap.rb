@@ -3,24 +3,41 @@ require 'uri'
 #
 # This class automatically detects if you have Bundler installed, and if so, executes the `taps` binary with a "clean" environment (i.e. one that will not pay attention to the fact that taps is not in your Gemfile)
 class DataMiner::Step::Tap
+  DEFAULT_PORTS = {
+    :mysql => 3306,
+    :mysql2 => 3306,
+    :postgres => 5432
+  }
+  
+  DEFAULT_USERNAMES = {
+    :mysql => 'root',
+    :mysql2 => 'root',
+    :postgres => ''
+  }
+  
+  DEFAULT_PASSWORDS = {}
+  DEFAULT_PASSWORDS.default = ''
+  
+  DEFAULT_HOSTS = {}
+  DEFAULT_HOSTS.default = '127.0.0.1'
+
   attr_reader :config
   attr_reader :description
   attr_reader :source
-  attr_reader :options
+  attr_reader :database_options
+  attr_reader :source_table_name
 
   def initialize(config, description, source, options = {})
+    options = options.symbolize_keys
     @config = config
-    @options = options.symbolize_keys
     @description = description
     @source = source
+    @database_options = options.except(:source_table_name).reverse_merge(connection.instance_variable_get(:@config).symbolize_keys)
+    @source_table_name = options.fetch :source_table_name, model.table_name
   end
   
   def model
     config.model
-  end
-  
-  def inspect
-    %{#<DataMiner::Tap(#{model}): #{description} (#{source})>}
   end
   
   def perform
@@ -42,14 +59,6 @@ class DataMiner::Step::Tap
     ::ActiveRecord::Base.connection
   end
   
-  def db_config
-    @db_config ||= connection.instance_variable_get(:@config).symbolize_keys.merge(options.except(:source_table_name))
-  end
-  
-  def source_table_name
-    options[:source_table_name] || model.table_name
-  end
-  
   def needs_table_rename?
     source_table_name != model.table_name
   end
@@ -69,31 +78,13 @@ class DataMiner::Step::Tap
 
   # never optional
   def database
-    db_config[:database]
+    database_options[:database]
   end
   
-  DEFAULT_PORTS = {
-    'mysql' => 3306,
-    'mysql2' => 3306,
-    'postgres' => 5432
-  }
-  
-  DEFAULT_USERNAMES = {
-    'mysql' => 'root',
-    'mysql2' => 'root',
-    'postgres' => ''
-  }
-  
-  DEFAULT_PASSWORDS = {}
-  DEFAULT_PASSWORDS.default = ''
-  
-  DEFAULT_HOSTS = {}
-  DEFAULT_HOSTS.default = 'localhost'
-
   %w{ username password port host }.each do |x|
     module_eval %{
       def #{x}
-        db_config[:#{x}] || DEFAULT_#{x.upcase}S[adapter]
+        database_options[:#{x}] || DEFAULT_#{x.upcase}S[adapter.to_sym]
       end
     }
   end
