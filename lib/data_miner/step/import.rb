@@ -64,13 +64,7 @@ class DataMiner::Step::Import
     table.each do |row|
       record = model.send "find_or_initialize_by_#{@key}", attributes[@key].read(row)
       attributes.each { |_, attr| attr.set_from_row record, row }
-      begin
-        record.save!
-      rescue
-        a = 1
-        debugger
-        a = 1
-      end
+      record.save!
     end
     free
     nil

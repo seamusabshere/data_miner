@@ -9,12 +9,12 @@ gem 'minitest-reporters'
 gem 'mysql2'
 gem 'rake'
 gem 'yard'
-gem 'earth', :path => '/Users/seamusabshere/code/earth'
+gem 'earth'
 if RUBY_VERSION >= '1.9'
   gem 'unicode_utils'
 end
-if RUBY_VERSION >= '1.9'
-#  gem 'ruby-debug19'
-else
-  gem 'ruby-debug'
-end
+# if RUBY_VERSION >= '1.9'
+#  gem 'ruby-debug19' # replace with debugger?
+# else
+#   gem 'ruby-debug'
+# end

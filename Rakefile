@@ -11,6 +11,7 @@ end
 
 task :test2 do
   system "rake test TEST=test/test_earth_tap.rb"
+  system "rake test TEST=test/test_safety.rb"
   system "rake test TEST=test/test_earth_import.rb"
 end
 

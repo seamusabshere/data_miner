@@ -21,10 +21,6 @@ class DataMiner::Step::Process
     config.model
   end
   
-  def inspect
-    %{#<DataMiner::Process(#{model}) #{description}>}
-  end
-  
   def perform
     if blk
       model.instance_eval(&blk)

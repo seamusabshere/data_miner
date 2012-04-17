@@ -1,4 +1,5 @@
 require 'active_record'
+require 'lock_method'
 
 class DataMiner
   module ActiveRecordExtensions

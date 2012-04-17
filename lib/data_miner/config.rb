@@ -49,12 +49,10 @@ class DataMiner
     end
 
     def perform
-      Run.stack do |stack|
-        Run.new(:model_name => model.name).perform(stack) do
-          steps.each do |step|
-            step.perform
-            model.reset_column_information
-          end
+      Run.perform(model) do
+        steps.each do |step|
+          step.perform
+          model.reset_column_information
         end
       end
     end

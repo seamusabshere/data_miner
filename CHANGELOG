@@ -1,3 +1,29 @@
+unreleased
+
+* Breaking changes
+
+  * Simplify DataMiner.run arguments
+      was: DataMiner.run(:resource_names => ['Country'])
+      now: DataMiner.run(['Country'])
+  * Rename "resources" to "models"
+      was: DataMiner.resource_names
+      now: DataMiner.model_names
+  * Expect procs instead of lambdas (because they are just instance-eval'ed now, Blockenspiel is no longer guessing where to find methods)
+      was: :synthesize => lambda { class_method }
+      now: :synthesize => proc { Klass.class_method }
+  * Use UnicodeUtils to correctly upcase and downcase
+  * Use throw/catch instead of exceptions to signal to force a step to stop successfully
+      was: DataMiner::Succeed
+      now: throw :data_miner_succeed
+  * Import steps no longer accept deprecated :table => RemoteTable or :errata => Errata options
+  * DataMiner::Run structure has changed (in addition to other internals)
+
+* Enhancements
+
+  * No longer depends on Blockenspiel
+  * Uses UnixUtils instead of its own spawning code
+  * Should be threadsafe (no more autoload, has mutexes, more careful/fewer singletons, etc.)
+
 1.1.0
 * fixed dependency issues
 1.0.0
