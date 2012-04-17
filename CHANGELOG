@@ -1,9 +1,8 @@
-unreleased
+2.0.0 / 2012-04-17
 
 * Breaking changes
 
   * Renamed data_miner_config to data_miner_script (etc. for class/method naming)
-  * 
   * Simplify DataMiner.run arguments
       was: DataMiner.run(:resource_names => ['Country'])
       now: DataMiner.run(['Country'])
