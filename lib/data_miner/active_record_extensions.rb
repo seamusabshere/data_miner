@@ -5,9 +5,9 @@ class DataMiner
   module ActiveRecordExtensions
     MUTEX = ::Mutex.new
 
-    def data_miner_config
-      @data_miner_config || MUTEX.synchronize do
-        @data_miner_config ||= DataMiner::Config.new(self)
+    def data_miner_script
+      @data_miner_script || MUTEX.synchronize do
+        @data_miner_script ||= DataMiner::Script.new(self)
       end
     end
     
@@ -16,7 +16,7 @@ class DataMiner
     end
 
     def run_data_miner!
-      data_miner_config.perform
+      data_miner_script.perform
     end
     
     def run_data_miner_on_parent_associations!
@@ -30,9 +30,9 @@ class DataMiner
     def data_miner(options = {}, &blk)
       DataMiner.model_names.add name
       unless options[:append]
-        @data_miner_config = nil
+        @data_miner_script = nil
       end
-      data_miner_config.append_block blk
+      data_miner_script.append_block blk
     end
   end
 end

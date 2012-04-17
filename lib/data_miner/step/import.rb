@@ -3,11 +3,11 @@ require 'remote_table'
 
 class DataMiner::Step::Import
   attr_reader :attributes
-  attr_reader :config
+  attr_reader :script
   attr_reader :description
   attr_reader :attributes
   
-  def initialize(config, description, options = {}, &blk)
+  def initialize(script, description, options = {}, &blk)
     options = options.symbolize_keys
     if options.has_key?(:table)
       raise ::ArgumentError, %{[data_miner] :table is no longer an allowed option.}
@@ -15,7 +15,7 @@ class DataMiner::Step::Import
     if (errata_options = options[:errata]) and not errata_options.is_a?(::Hash)
       raise ::ArgumentError, %{[data_miner] :errata must be a hash of initialization options to Errata}
     end
-    @config = config
+    @script = script
     @mutex = ::Mutex.new
     @attributes = ::ActiveSupport::OrderedHash.new
     @description = description
@@ -30,7 +30,7 @@ class DataMiner::Step::Import
   end
 
   def model
-    config.model
+    script.model
   end
 
   def store(attr_name, attr_options = {})

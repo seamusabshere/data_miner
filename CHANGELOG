@@ -2,6 +2,8 @@ unreleased
 
 * Breaking changes
 
+  * Renamed data_miner_config to data_miner_script (etc. for class/method naming)
+  * 
   * Simplify DataMiner.run arguments
       was: DataMiner.run(:resource_names => ['Country'])
       now: DataMiner.run(['Country'])
@@ -20,6 +22,8 @@ unreleased
 
 * Enhancements
 
+  * Easy to modify data miner scripts using DataMiner::Script#{append|prepend|append_once|prepend_once}
+  * DRYer codebase
   * No longer depends on Blockenspiel
   * Uses UnixUtils instead of its own spawning code
   * Should be threadsafe (no more autoload, has mutexes, more careful/fewer singletons, etc.)

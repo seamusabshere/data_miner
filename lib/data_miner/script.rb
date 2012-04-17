@@ -1,7 +1,5 @@
-require 'benchmark'
-
 class DataMiner
-  class Config
+  class Script
     attr_reader :model
     attr_reader :steps
 

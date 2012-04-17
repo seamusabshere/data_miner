@@ -1,13 +1,13 @@
 class DataMiner::Step::Process
-  attr_reader :config
+  attr_reader :script
   attr_reader :method_id
   attr_reader :description
   attr_reader :blk
 
   alias :block_description :description
 
-  def initialize(config, method_id_or_description, ignored_options = {}, &blk)
-    @config = config
+  def initialize(script, method_id_or_description, ignored_options = {}, &blk)
+    @script = script
     if block_given?
       @description = method_id_or_description
       @blk = blk
@@ -18,7 +18,7 @@ class DataMiner::Step::Process
   end
   
   def model
-    config.model
+    script.model
   end
   
   def perform

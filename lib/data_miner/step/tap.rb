@@ -21,23 +21,23 @@ class DataMiner::Step::Tap
   DEFAULT_HOSTS = {}
   DEFAULT_HOSTS.default = '127.0.0.1'
 
-  attr_reader :config
+  attr_reader :script
   attr_reader :description
   attr_reader :source
   attr_reader :database_options
   attr_reader :source_table_name
 
-  def initialize(config, description, source, options = {})
+  def initialize(script, description, source, options = {})
     options = options.symbolize_keys
-    @config = config
+    @script = script
     @description = description
     @source = source
-    @database_options = options.except(:source_table_name).reverse_merge(connection.instance_variable_get(:@config).symbolize_keys)
+    @database_options = options.except(:source_table_name).reverse_merge(active_record_config)
     @source_table_name = options.fetch :source_table_name, model.table_name
   end
   
   def model
-    config.model
+    script.model
   end
   
   def perform
@@ -105,6 +105,10 @@ class DataMiner::Step::Tap
     else
       ::URI::Generic.new(adapter, userinfo, host, port, nil, "/#{database}", nil, nil, nil).to_s
     end
+  end
+
+  def active_record_config
+    connection.instance_variable_get(:@config).symbolize_keys
   end
   
   def taps_pull

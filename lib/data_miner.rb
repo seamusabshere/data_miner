@@ -16,7 +16,7 @@ end
 
 require 'data_miner/active_record_extensions'
 require 'data_miner/attribute'
-require 'data_miner/config'
+require 'data_miner/script'
 require 'data_miner/dictionary'
 require 'data_miner/step'
 require 'data_miner/step/import'
