@@ -97,7 +97,7 @@ describe DataMiner do
     end
     it "runs class methods" do
       Breed.run_data_miner!
-      Breed.find('Beagle').average_age.must_equal (5+2)/2.0
+      Breed.find('Beagle').average_age.must_equal((5+2)/2.0)
     end
   end
 end
