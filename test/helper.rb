@@ -19,8 +19,8 @@ $stderr.puts "Done."
 require 'active_record'
 require 'logger'
 ActiveRecord::Base.logger = Logger.new $stderr
-# ActiveRecord::Base.logger.level = Logger::INFO
-ActiveRecord::Base.logger.level = Logger::DEBUG
+ActiveRecord::Base.logger.level = Logger::INFO
+# ActiveRecord::Base.logger.level = Logger::DEBUG
 ActiveRecord::Base.establish_connection(
   'adapter' => 'mysql2',
   'database' => 'data_miner_test',

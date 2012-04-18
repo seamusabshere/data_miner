@@ -3,41 +3,9 @@ require 'active_record_inline_schema'
 
 class DataMiner
   class Run < ::ActiveRecord::Base
-    class << self
-      # @private
-      # activerecord-3.2.3/lib/active_record/scoping.rb
-      # Model.run_data_miner! is usually run in locked mode - but still, make this thread safe
-      def stack(stack = [])
-        previous_stack = current_stack
-        Run.current_stack = stack + previous_stack
-        begin
-          yield
-        ensure
-          Run.current_stack = previous_stack
-        end
-      end
-
-      def perform(model, &blk)
-        model_name = model.name
-        unless current_stack.include? model_name
-          current_stack << model_name
-          new(:model_name => model_name).perform(&blk)
-        end
-      end
-
-      def current_stack
-        ::Thread.current[THREAD_VAR] ||= []
-      end
-
-      def current_stack=(stack)
-        ::Thread.current[THREAD_VAR] = stack
-      end
-    end
-
     class Skip < ::Exception
     end
 
-    THREAD_VAR = 'DataMiner::Run.current_stack'
     INITIAL_STATE = :limbo
 
     self.table_name = 'data_miner_runs'
@@ -61,17 +29,17 @@ class DataMiner
 
     validates_presence_of :model_name
 
-    def perform(&blk)
+    def perform
       save!
       begin
         catch :data_miner_succeed do
-          blk.call
+          yield
         end
         succeed!
       rescue Skip
         skip!
       rescue
-        self.error = "#{$!}\n#{$!.backtrace.join("\n")}"
+        self.error = "#{$!.message}\n#{$!.backtrace.join("\n")}"
         fail!
         raise $!
       ensure

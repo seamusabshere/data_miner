@@ -1,3 +1,16 @@
+2.0.1 / 2012-04-18
+
+* Enhancements
+
+  * DataMiner.run -> DataMiner.perform
+  * Some basic tests that don't rely on Earth
+
+* Bug fixes
+
+  * Fix the "call stack" - the thing that keeps infinite loops from occurring
+  * Make sure sources get refreshed every time you re-run data miner
+  * Make sure dictionaries " " " " " " "
+
 2.0.0 / 2012-04-17
 
 * Breaking changes

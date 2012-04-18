@@ -5,6 +5,9 @@ class DataMiner
     class << self
       def check_options(options)
         errors = []
+        if options[:dictionary].is_a?(Dictionary)
+          errors << %{:dictionary must be a Hash of options}
+        end
         if (invalid_option_keys = options.keys - VALID_OPTIONS).any?
           errors << %{Invalid options: #{invalid_option_keys.map(&:inspect).to_sentence}}
         end
@@ -56,7 +59,6 @@ class DataMiner
     attr_reader :name
     attr_reader :synthesize
     attr_reader :matcher
-    attr_reader :dictionary
     attr_reader :field_number
     attr_reader :field_name
     # For use when joining a range of field numbers
@@ -78,8 +80,8 @@ class DataMiner
       @step = step
       @name = name
       @synthesize = options[:synthesize]
-      if dictionary = options[:dictionary]
-        @dictionary = dictionary.is_a?(Dictionary) ? dictionary : Dictionary.new(dictionary)
+      if @dictionary_boolean = options.has_key?(:dictionary)
+        @dictionary_options = options[:dictionary]
       end
       @matcher = options[:matcher].is_a?(::String) ? options[:matcher].constantize.new : options[:matcher]
       if @static_boolean = options.has_key?(:static)
@@ -100,6 +102,7 @@ class DataMiner
       @overwrite_boolean = options.fetch :overwrite, DEFAULT_OVERWRITE
       @units_field_name = options[:units_field_name]
       @units_field_number = options[:units_field_number]
+      @dictionary_mutex = ::Mutex.new
     end
 
     def model
@@ -116,6 +119,10 @@ class DataMiner
 
     def upcase?
       @upcase_boolean
+    end
+
+    def dictionary?
+      @dictionary_boolean
     end
 
     def convert?
@@ -188,7 +195,7 @@ class DataMiner
         end
         value = sprintf % value
       end
-      if dictionary
+      if dictionary?
         value = dictionary.lookup(value)
       end
       value
@@ -201,6 +208,16 @@ class DataMiner
       if units? and ((final_to_units = (to_units || read_units(row))) or nullify?)
         target.send "#{name}_units=", final_to_units
       end
+    end
+
+    def dictionary
+      @dictionary || @dictionary_mutex.synchronize do
+        @dictionary ||= Dictionary.new(@dictionary_options)
+      end
+    end
+
+    def refresh
+      @dictionary = nil
     end
         
     private

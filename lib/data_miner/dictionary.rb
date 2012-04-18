@@ -12,21 +12,21 @@ class DataMiner
 
     def initialize(options = {})
       options = options.symbolize_keys
-      @mutex = ::Mutex.new
       @url = options[:url]
       @key_name = options[:input]
       @value_name = options[:output]
       @sprintf = options[:sprintf]
       @case_sensitive = options.fetch :case_sensitive, DEFAULT_CASE_SENSITIVE
+      @table_mutex = ::Mutex.new
     end
     
     def table
-      @table || @mutex.synchronize do
+      @table || @table_mutex.synchronize do
         @table ||= ::RemoteTable.new(url).to_a # make sure it's fully cached
       end
     end
     
-    def free
+    def refresh
       @table = nil
     end
     
@@ -36,8 +36,8 @@ class DataMiner
     
     def find(key_name, key, value_name, options = {})
       normalized_key = normalize_for_comparison(key, options)
-      if match = table.detect { |row| normalized_key == normalize_for_comparison(row[key_name], options) }
-        match[value_name].to_s
+      if match = table.detect { |row| normalized_key == normalize_for_comparison(row[key_name.to_s], options) }
+        match[value_name.to_s].to_s
       end
     end
     

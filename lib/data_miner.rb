@@ -26,6 +26,7 @@ require 'data_miner/run'
 
 class DataMiner
   class << self
+    delegate :perform, :to => :instance
     delegate :run, :to => :instance
     delegate :logger, :to => :instance
     delegate :logger=, :to => :instance
@@ -54,13 +55,16 @@ class DataMiner
 
   attr_writer :logger
 
-  def run(model_names = DataMiner.model_names)
-    Run.stack do
+  def perform(model_names = DataMiner.model_names)
+    Script.uniq do
       model_names.each do |model_name|
         model_name.constantize.run_data_miner!
       end
     end
   end
+
+  # legacy
+  alias :run :perform
 
   def logger
     @logger || MUTEX.synchronize do

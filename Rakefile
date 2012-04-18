@@ -9,13 +9,13 @@ Rake::TestTask.new(:test) do |test|
   test.verbose = true
 end
 
-task :test2 do
-  system "rake test TEST=test/test_earth_tap.rb"
-  system "rake test TEST=test/test_safety.rb"
-  system "rake test TEST=test/test_earth_import.rb"
+task :test_separately do
+  Dir[File.expand_path('../test/**/test_*.rb', __FILE__)].each do |path|
+    system "rake test TEST=#{path}"
+  end
 end
 
-task :default => :test2
+task :default => :test_separately
 
 require 'yard'
 YARD::Rake::YardocTask.new do |y|

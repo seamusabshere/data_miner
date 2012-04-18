@@ -56,8 +56,10 @@ class DataMiner::Step::Import
     end
   end
 
-  def free
+  def refresh
     @table = nil
+    attributes.each { |_, attr| attr.refresh }
+    nil
   end
   
   def perform
@@ -66,7 +68,7 @@ class DataMiner::Step::Import
       attributes.each { |_, attr| attr.set_from_row record, row }
       record.save!
     end
-    free
+    refresh
     nil
   end
 end

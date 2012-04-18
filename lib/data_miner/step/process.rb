@@ -22,10 +22,12 @@ class DataMiner::Step::Process
   end
   
   def perform
-    if blk
-      model.instance_eval(&blk)
-    else
-      model.send method_id
+    DataMiner::Script.uniq do
+      if blk
+        model.instance_eval(&blk)
+      else
+        model.send method_id
+      end
     end
     nil
   end
