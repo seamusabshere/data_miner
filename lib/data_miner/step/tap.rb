@@ -7,7 +7,7 @@ class DataMiner
     # Create these by calling +tap+ inside a +data_miner+ block.
     #
     # @see DataMiner::ActiveRecordClassMethods#data_miner Overview of how to define data miner scripts inside of ActiveRecord models.
-    # @see DataMiner::Script#tap
+    # @see DataMiner::Script#tap Creating a tap step by calling DataMiner::Script#tap from inside a data miner script
     class Tap < Step
       DEFAULT_PORTS = {
         :mysql => 3306,

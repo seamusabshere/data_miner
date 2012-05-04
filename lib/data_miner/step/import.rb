@@ -8,7 +8,8 @@ class DataMiner
     # Create these by calling +import+ inside a +data_miner+ block.
     #
     # @see DataMiner::ActiveRecordClassMethods#data_miner Overview of how to define data miner scripts inside of ActiveRecord models.
-    # @see DataMiner::Script#import
+    # @see DataMiner::Script#import Creating an import step by calling DataMiner::Script#import from inside a data miner script
+    # @see DataMiner::Attribute The Attribute class, which maps local columns and remote data fields from within an import step
     class Import < Step
       # The mappings of local columns to remote data source fields.
       # @return [Array<DataMiner::Attribute>]

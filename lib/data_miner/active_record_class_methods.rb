@@ -62,9 +62,9 @@ class DataMiner
     #
     # @yield [] The block defining the steps.
     #
-    # @see DataMiner::Script#import
-    # @see DataMiner::Script#process
-    # @see DataMiner::Script#tap
+    # @see DataMiner::Script#import Creating an import step by calling DataMiner::Script#import from inside a data miner script
+    # @see DataMiner::Script#process Creating a process step by calling DataMiner::Script#process from inside a data miner script
+    # @see DataMiner::Script#tap Creating a tap step by calling DataMiner::Script#tap from inside a data miner script
     #
     # @example Creating steps
     #   class MyModel < ActiveRecord::Base

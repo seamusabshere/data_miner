@@ -130,7 +130,7 @@ class DataMiner
     # @yield [] A block defining how to +key+ the import (to make it idempotent) and which columns to +store+.
     #
     # @note Be sure to check out https://github.com/seamusabshere/remote_table and https://github.com/seamusabshere/errata for available +table_and_errata_settings+.
-    # @note There are hundreds of +import+ examples in https://github.com/brighterplanet/earth
+    # @note There are hundreds of +import+ examples in https://github.com/brighterplanet/earth. The {file:README.markdown README} points to a few (at the bottom.)
     # @note We often use string primary keys to make idempotency easier. https://github.com/seamusabshere/active_record_inline_schema supports defining these inline.
     #
     # @example From the README

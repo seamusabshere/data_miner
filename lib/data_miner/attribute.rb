@@ -4,8 +4,8 @@ class DataMiner
   # A mapping between a local model column and a remote data source column.
   #
   # @see DataMiner::ActiveRecordClassMethods#data_miner Overview of how to define data miner scripts inside of ActiveRecord models.
-  # @see DataMiner::Step::Import#store
-  # @see DataMiner::Step::Import#key
+  # @see DataMiner::Step::Import#store Telling an import step to store a column with DataMiner::Step::Import#store
+  # @see DataMiner::Step::Import#key Telling an import step to key on a column with DataMiner::Step::Import#key
   class Attribute
     class << self
       # @private

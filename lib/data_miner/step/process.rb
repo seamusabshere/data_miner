@@ -5,7 +5,7 @@ class DataMiner
     # Create these by calling +process+ inside a +data_miner+ block.
     #
     # @see DataMiner::ActiveRecordClassMethods#data_miner Overview of how to define data miner scripts inside of ActiveRecord models.
-    # @see DataMiner::Script#process
+    # @see DataMiner::Script#process Creating a process step by calling DataMiner::Script#process from inside a data miner script
     class Process < Step
       # @private
       attr_reader :script
