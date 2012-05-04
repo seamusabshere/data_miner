@@ -1,6 +1,6 @@
 # data_miner
 
-Download and import XLS, ODS, XML, CSV, etc. into your ActiveRecord models.
+Download, pull out of a ZIP/TAR/GZ/BZ2 archive, parse, correct, and import XLS, ODS, XML, CSV, HTML, etc. into your ActiveRecord models.
 
 Tested in MRI 1.8.7+, MRI 1.9.2+, and JRuby 1.6.7+. Thread safe.
 
@@ -13,19 +13,23 @@ We use `data_miner` for [data science at Brighter Planet](http://brighterplanet.
 * [Brighter Planet's reference data web service](http://data.brighterplanet.com)
 * [Brighter Planet's impact estimate web service](http://impact.brighterplanet.com)
 
-The killer combination:
+The killer combination for us is:
 
 1. [`active_record_inline_schema`](https://github.com/seamusabshere/active_record_inline_schema) - define table structure
 2. [`remote_table`](https://github.com/seamusabshere/remote_table) - download data and parse it
 3. [`errata`](https://github.com/seamusabshere/errata) - apply corrections in a transparent way
 4. [`data_miner`](https://github.com/seamusabshere/remote_table) (this library!) - import data idempotently
 
+## Documentation
+
+Check out the [extensive documentation](http://rdoc.info/github/seamusabshere/data_miner).
+
 ## Quick start
 
-You define <tt>data_miner</tt> blocks in your ActiveRecord models. For example, in <tt>app/models/country.rb</tt>:
+You define <code>data_miner</code> blocks in your ActiveRecord models. For example, in <code>app/models/country.rb</code>:
 
     class Country < ActiveRecord::Base
-      self.primary_key =  'iso_3166_code'
+      self.primary_key = 'iso_3166_code'
   
       data_miner do
         import("OpenGeoCode.org's Country Codes to Country Names list",
@@ -44,20 +48,57 @@ You define <tt>data_miner</tt> blocks in your ActiveRecord models. For example, 
 
 Now you can run:
 
-  >> Country.run_data_miner!
-  => nil
+    >> Country.run_data_miner!
+    => nil
 
 ## More advanced usage
 
-The [`earth` library](https://github.com/brighterplanet/earth) has dozens of real-life examples showing how to download, parse, correct, and import CSVs, fixed-width files, ODS, XLS, XLSX, even HTML and XML:
+The [`earth` library](https://github.com/brighterplanet/earth) has dozens of real-life examples showing how to download, pull out of a ZIP/TAR/BZ2 archive, parse, correct, and import CSVs, fixed-width files, ODS, XLS, XLSX, even HTML and XML:
 
-* https://github.com/brighterplanet/earth/blob/master/lib/earth/locality/country/data_miner.rb - CSV and a few other tricks
-* https://github.com/brighterplanet/earth/blob/master/lib/earth/locality/egrid_region/data_miner.rb - XLS
-* https://github.com/brighterplanet/earth/blob/master/lib/earth/locality/zip_code.rb - pulling an XLSX out of a ZIP file
-* https://github.com/brighterplanet/earth/blob/master/lib/earth/air/aircraft/data_miner.rb - parsing Microsoft Frontpage HTML
-* https://github.com/brighterplanet/earth/blob/master/lib/earth/automobile/automobile_make_model_year_variant/data_miner.rb - super advanced usage showing "custom parser" and errata usage
-* https://github.com/brighterplanet/earth/blob/master/lib/earth/air/flight_segment/data_miner.rb - super advanced usage showing submission of form data
-* and many more - look for the `data_miner.rb` file that corresponds to each model.
+<table>
+  <tr>
+    <th>Model</th>
+    <th>Highlights</th>
+    <th>Reference</th>
+  </tr>
+  <tr>
+    <td><a href="http://data.brighterplanet.com/aircraft">Aircraft</a></td>
+    <td>parsing Microsoft Frontpage HTML (!)</td>
+    <td><a href="https://github.com/brighterplanet/earth/blob/master/lib/earth/air/aircraft/data_miner.rb">data_miner.rb</a></td>
+  </tr>
+  <tr>
+    <td><a href="http://data.brighterplanet.com/airports">Airports</a></td>
+    <td>forcing column names and use of <code>:select</code> block (<code>Proc</code>)</td>
+    <td><a href="https://github.com/brighterplanet/earth/blob/master/lib/earth/air/airport/data_miner.rb">data_miner.rb</a></td>
+  </tr>
+  <tr>
+    <td><a href="http://data.brighterplanet.com/automobile_make_model_year_variants">Automobile model variants</a></td>
+    <td>super advanced usage of "custom parser" and errata</td>
+    <td><a href="https://github.com/brighterplanet/earth/blob/master/lib/earth/automobile/automobile_make_model_year_variant/data_miner.rb">data_miner.rb</a></td>
+  </tr>
+  <tr>
+    <td><a href="http://data.brighterplanet.com/countries">Country</a></td>
+    <td>parsing CSV and a few other tricks</td>
+    <td><a href="https://github.com/brighterplanet/earth/blob/master/lib/earth/locality/country/data_miner.rb">data_miner.rb</a></td>
+  </tr>
+  <tr>
+    <td><a href="http://data.brighterplanet.com/egrid_regions">EGRID regions</a></td>
+    <td>parsing XLS</td>
+    <td><a href="https://github.com/brighterplanet/earth/blob/master/lib/earth/locality/egrid_region/data_miner.rb">data_miner.rb</a></td>
+  </tr>
+  <tr>
+    <td><a href="http://data.brighterplanet.com/flight_segments">Flight segment (stage)</a></td>
+    <td>super advanced usage of POSTing form data</td>
+    <td><a href="https://github.com/brighterplanet/earth/blob/master/lib/earth/air/flight_segment/data_miner.rb">data_miner.rb</a></td>
+  </tr>
+  <tr>
+    <td><a href="http://data.brighterplanet.com/zip_codes">Zip codes</a></td>
+    <td>downloading a ZIP file and pulling an XLSX out of it</td>
+    <td><a href="https://github.com/brighterplanet/earth/blob/master/lib/earth/locality/zip_code.rb">data_miner.rb</a></td>
+  </tr>
+</table>
+
+And many more - look for the `data_miner.rb` file that corresponds to each model. Note that you would normally put the `data_miner` declaration right inside the ActiveRecord model file... it's kept separate in `earth` so that loading it is optional.
 
 ## Authors
 

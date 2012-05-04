@@ -1,3 +1,16 @@
+2.0.2 / 2012-05-04
+
+* Breaking changes
+
+  * Import descriptions are no longer optional
+  * Import options are no longer optional (but then, they never were)
+
+* Enhancements
+
+  * Real documentation!
+  * Replace class-level mutexes with simple Thread.exclusive calls
+  * Simplified DataMiner::Dictionary
+
 2.0.1 / 2012-04-18
 
 * Enhancements

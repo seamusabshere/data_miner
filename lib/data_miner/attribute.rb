@@ -1,8 +1,14 @@
 require 'conversions'
 
 class DataMiner
+  # A mapping between a local model column and a remote data source column.
+  #
+  # @see DataMiner::ActiveRecordClassMethods#data_miner Overview of how to define data miner scripts inside of ActiveRecord models.
+  # @see DataMiner::Step::Import#store
+  # @see DataMiner::Step::Import#key
   class Attribute
     class << self
+      # @private
       def check_options(options)
         errors = []
         if options[:dictionary].is_a?(Dictionary)
@@ -18,26 +24,26 @@ class DataMiner
       end
     end
 
-    VALID_OPTIONS = %w{
-      from_units
-      to_units
-      static
-      dictionary
-      matcher
-      field_name
-      delimiter
-      split
-      units
-      sprintf
-      nullify
-      overwrite
-      upcase
-      units_field_name
-      units_field_number
-      field_number
-      chars
-      synthesize
-    }.map(&:to_sym)
+    VALID_OPTIONS = [
+      :from_units,
+      :to_units,
+      :static,
+      :dictionary,
+      :matcher,
+      :field_name,
+      :delimiter,
+      :split,
+      :units,
+      :sprintf,
+      :nullify,
+      :overwrite,
+      :upcase,
+      :units_field_name,
+      :units_field_number,
+      :field_number,
+      :chars,
+      :synthesize,
+    ]
 
     VALID_UNIT_DEFINITION_SETS = [
       [:units],
@@ -48,30 +54,102 @@ class DataMiner
       [:units_field_number, :to_units],
     ]
 
-    DEFAULT_SPLIT = /\s+/
-    DEFAULT_KEEP = 0
+    DEFAULT_SPLIT_PATTERN = /\s+/
+    DEFAULT_SPLIT_KEEP = 0
     DEFAULT_DELIMITER = ', '
     DEFAULT_NULLIFY = false
     DEFAULT_UPCASE = false
     DEFAULT_OVERWRITE = true
 
+    # @private
     attr_reader :step
+    
+    # Local column name.
+    # @return [Symbol]
     attr_reader :name
+    
+    # Synthesize a value by passing a proc that will receive +row+ and should return a final value.
+    #
+    # +row+ will be a +Hash+ with string keys or (less often) an +Array+
+    #
+    # @return [Proc]
     attr_reader :synthesize
+    
+    # An object that will be sent +#match(row)+ and should return a final value.
+    #
+    # Can be specified as a String which will be constantized into a class and an object of that class instantized with no arguments.
+    #
+    # +row+ will be a +Hash+ with string keys or (less often) an +Array+
+    # @return [Object]
     attr_reader :matcher
+    
+    # Index of where to find the data in the row, starting from zero.
+    #
+    # If you pass a +Range+, then multiple fields will be joined together.
+    #
+    # @return [Integer, Range]
     attr_reader :field_number
+
+    # Where to find the data in the row.
+    # @return [Symbol]
     attr_reader :field_name
-    # For use when joining a range of field numbers
+
+    # A delimiter to be used when joining fields together into a single final value. Used when +:field_number+ is a +Range+. Defaults to DEFAULT_DELIMITER.
+    # @return [String]
     attr_reader :delimiter
+
+    # Which characters in a field to keep. Zero-based.
+    # @return [Range]
     attr_reader :chars
+
+    # How to split a field. You specify two options:
+    #
+    # +:pattern+: what to split on. Defaults to DEFAULT_SPLIT_PATTERN.
+    # +:keep+: which of elements resulting from the split to keep. Defaults to DEFAULT_SPLIT_KEEP.
+    #
+    # @return [Hash]
     attr_reader :split
+
+    # Final units. May invoke a conversion using https://github.com/seamusabshere/conversions
+    #
+    # If a local column named +[name]_units+ exists, it will be populated with this value.
+    #
+    # @return [Symbol]
     attr_reader :to_units
+
+    # Initial units. May invoke a conversion using https://github.com/seamusabshere/conversions
+    # @return [Symbol]
     attr_reader :from_units
+
+    # If every row specifies its own units, index of where to find the units. Zero-based.
+    # @return [Integer]
     attr_reader :units_field_number
+
+    # If every row specifies its own units, where to find the units.
+    # @return [Symbol]
     attr_reader :units_field_name
+
+    # A +sprintf+-style format to apply.
+    # @return [String]
     attr_reader :sprintf
+
+    # A static value to be used.
+    # @return [String,Numeric,TrueClass,FalseClass,Object]
     attr_reader :static
 
+    # Whether to nullify the value in a local column if it was not previously null. Defaults to DEFAULT_NULLIFY.
+    # @return [TrueClass,FalseClass]
+    attr_reader :nullify
+
+    # Whether to upcase value. Defaults to DEFAULT_UPCASE.
+    # @return [TrueClass,FalseClass]
+    attr_reader :upcase
+
+    # Whether to overwrite the value in a local column if it is not null. Defaults to DEFAULT_OVERWRITE.
+    # @return [TrueClass,FalseClass]
+    attr_reader :overwrite
+
+    # @private
     def initialize(step, name, options = {})
       options = options.symbolize_keys
       if (errors = Attribute.check_options(options)).any?
@@ -81,7 +159,7 @@ class DataMiner
       @name = name
       @synthesize = options[:synthesize]
       if @dictionary_boolean = options.has_key?(:dictionary)
-        @dictionary_options = options[:dictionary]
+        @dictionary_settings = options[:dictionary]
       end
       @matcher = options[:matcher].is_a?(::String) ? options[:matcher].constantize.new : options[:matcher]
       if @static_boolean = options.has_key?(:static)
@@ -94,52 +172,42 @@ class DataMiner
       if split = options[:split]
         @split = split.symbolize_keys
       end
-      @nullify_boolean = options.fetch :nullify, DEFAULT_NULLIFY
-      @upcase_boolean = options.fetch :upcase, DEFAULT_UPCASE
+      @nullify = options.fetch :nullify, DEFAULT_NULLIFY
+      @upcase = options.fetch :upcase, DEFAULT_UPCASE
       @from_units = options[:from_units]
       @to_units = options[:to_units] || options[:units]
       @sprintf = options[:sprintf]
-      @overwrite_boolean = options.fetch :overwrite, DEFAULT_OVERWRITE
+      @overwrite = options.fetch :overwrite, DEFAULT_OVERWRITE
       @units_field_name = options[:units_field_name]
       @units_field_number = options[:units_field_number]
       @dictionary_mutex = ::Mutex.new
     end
 
-    def model
-      step.model
+    # Dictionary for translating.
+    #
+    # You pass a +Hash+ of options which is used to initialize a +DataMiner::Dictionary+.
+    #
+    # @return [DataMiner::Dictionary]
+    def dictionary
+      @dictionary || @dictionary_mutex.synchronize do
+        @dictionary ||= Dictionary.new(@dictionary_settings)
+      end
     end
 
-    def static?
-      @static_boolean
+    # @private
+    def set_from_row(local_record, remote_row)
+      if overwrite or local_record.send(name).nil?
+        local_record.send "#{name}=", read(remote_row)
+      end
+      if units? and ((final_to_units = (to_units || read_units(remote_row))) or nullify)
+        local_record.send "#{name}_units=", final_to_units
+      end
     end
 
-    def nullify?
-      @nullify_boolean
-    end
-
-    def upcase?
-      @upcase_boolean
-    end
-
-    def dictionary?
-      @dictionary_boolean
-    end
-
-    def convert?
-      from_units.present? or units_field_name.present? or units_field_number.present?
-    end
-
-    def units?
-      to_units.present? or units_field_name.present? or units_field_number.present?
-    end
-
-    def overwrite?
-      @overwrite_boolean
-    end
-        
+    # @private
     def read(row)
-      if matcher and matched_row = matcher.match(row)
-        return matched_row
+      if matcher and matcher_output = matcher.match(row)
+        return matcher_output
       end
       if synthesize
         return synthesize.call(row)
@@ -168,15 +236,15 @@ class DataMiner
         value = value[chars]
       end
       if split
-        pattern = split.fetch :pattern, DEFAULT_SPLIT
-        keep = split.fetch :keep, DEFAULT_KEEP
+        pattern = split.fetch :pattern, DEFAULT_SPLIT_PATTERN
+        keep = split.fetch :keep, DEFAULT_SPLIT_KEEP
         value = value.to_s.split(pattern)[keep].to_s
       end
       value = DataMiner.compress_whitespace value
-      if nullify? and value.blank?
+      if nullify and value.blank?
         return
       end
-      if upcase?
+      if upcase
         value = DataMiner.upcase value
       end
       if convert?
@@ -201,26 +269,32 @@ class DataMiner
       value
     end
 
-    def set_from_row(target, row)
-      if overwrite? or target.send(name).nil?
-        target.send "#{name}=", read(row)
-      end
-      if units? and ((final_to_units = (to_units || read_units(row))) or nullify?)
-        target.send "#{name}_units=", final_to_units
-      end
-    end
-
-    def dictionary
-      @dictionary || @dictionary_mutex.synchronize do
-        @dictionary ||= Dictionary.new(@dictionary_options)
-      end
-    end
-
+    # @private
     def refresh
       @dictionary = nil
     end
         
     private
+
+    def model
+      step.model
+    end
+
+    def static?
+      @static_boolean
+    end
+
+    def dictionary?
+      @dictionary_boolean
+    end
+
+    def convert?
+      from_units.present? or units_field_name.present? or units_field_number.present?
+    end
+
+    def units?
+      to_units.present? or units_field_name.present? or units_field_number.present?
+    end
 
     def read_units(row)
       if units = row[units_field_name || units_field_number]

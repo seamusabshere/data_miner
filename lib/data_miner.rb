@@ -14,7 +14,7 @@ if RUBY_VERSION >= '1.9'
   end
 end
 
-require 'data_miner/active_record_extensions'
+require 'data_miner/active_record_class_methods'
 require 'data_miner/attribute'
 require 'data_miner/script'
 require 'data_miner/dictionary'
@@ -24,14 +24,13 @@ require 'data_miner/step/tap'
 require 'data_miner/step/process'
 require 'data_miner/run'
 
+# A singleton class that holds global configuration for data mining.
+#
+# All of its instance methods are delegated to +DataMiner.instance+, so you can call +DataMiner.model_names+, for example.
+#
+# @see DataMiner::ActiveRecordClassMethods#data_miner Overview of how to define data miner scripts inside of ActiveRecord models.
 class DataMiner
   class << self
-    delegate :perform, :to => :instance
-    delegate :run, :to => :instance
-    delegate :logger, :to => :instance
-    delegate :logger=, :to => :instance
-    delegate :model_names, :to => :instance
-
     # @private
     def downcase(str)
       defined?(::UnicodeUtils) ? ::UnicodeUtils.downcase(str) : str.downcase
@@ -48,16 +47,20 @@ class DataMiner
     end
   end
 
-  MUTEX = ::Mutex.new
   INNER_SPACE = /[ ]+/
 
   include ::Singleton
 
   attr_writer :logger
 
+  # Run data miner scripts on models identified by their names. Defaults to all models.
+  #
+  # @param [optional, Array<String>] model_names Names of models to be run.
+  #
+  # @return [Array<DataMiner::Run>]
   def perform(model_names = DataMiner.model_names)
     Script.uniq do
-      model_names.each do |model_name|
+      model_names.map do |model_name|
         model_name.constantize.run_data_miner!
       end
     end
@@ -66,8 +69,11 @@ class DataMiner
   # legacy
   alias :run :perform
 
+  # Where DataMiner logs to. Defaults to +Rails.logger+ or +ActiveRecord::Base.logger+ if either is available.
+  #
+  # @return [Logger]
   def logger
-    @logger || MUTEX.synchronize do
+    @logger || ::Thread.exclusive do
       @logger ||= if defined?(::Rails)
         ::Rails.logger
       elsif defined?(::ActiveRecord) and active_record_logger = ::ActiveRecord::Base.logger
@@ -79,12 +85,20 @@ class DataMiner
     end
   end
 
+  # Names of the models that have defined a data miner script.
+  #
+  # @note Models won't appear here until the files containing their data miner scripts have been +require+'d.
+  #
+  # @return [Set<String>]
   def model_names
-    @model_names || MUTEX.synchronize do
+    @model_names || ::Thread.exclusive do
       @model_names ||= ::Set.new
     end
   end
 
+  class << self
+    delegate(*DataMiner.instance_methods(false), :to => :instance)
+  end
 end
 
-::ActiveRecord::Base.extend ::DataMiner::ActiveRecordExtensions
+::ActiveRecord::Base.extend ::DataMiner::ActiveRecordClassMethods

@@ -1,74 +1,110 @@
 require 'errata'
 require 'remote_table'
 
-class DataMiner::Step::Import
-  attr_reader :attributes
-  attr_reader :script
-  attr_reader :description
-  attr_reader :attributes
-  
-  def initialize(script, description, options = {}, &blk)
-    options = options.symbolize_keys
-    if options.has_key?(:table)
-      raise ::ArgumentError, %{[data_miner] :table is no longer an allowed option.}
-    end
-    if (errata_options = options[:errata]) and not errata_options.is_a?(::Hash)
-      raise ::ArgumentError, %{[data_miner] :errata must be a hash of initialization options to Errata}
-    end
-    @script = script
-    @mutex = ::Mutex.new
-    @attributes = ::ActiveSupport::OrderedHash.new
-    @description = description
-    if options.has_key? :errata
-      errata_options = options[:errata].symbolize_keys
-      errata_options[:responder] ||= model
-      options[:errata] = errata_options
-    end
-    @table_options = options.dup
-    @table_options[:streaming] = true
-    instance_eval(&blk)
-  end
+class DataMiner
+  class Step
+    # A step that imports data from a remote source.
+    #
+    # Create these by calling +import+ inside a +data_miner+ block.
+    #
+    # @see DataMiner::ActiveRecordClassMethods#data_miner Overview of how to define data miner scripts inside of ActiveRecord models.
+    # @see DataMiner::Script#import
+    class Import < Step
+      # The mappings of local columns to remote data source fields.
+      # @return [Array<DataMiner::Attribute>]
+      attr_reader :attributes
 
-  def model
-    script.model
-  end
+      # @private
+      attr_reader :script
 
-  def store(attr_name, attr_options = {})
-    attr_name = attr_name.to_sym
-    if attributes.has_key? attr_name
-      raise "You should only call store or key once for #{model.name}##{attr_name}"
-    end
-    attributes[attr_name] = DataMiner::Attribute.new self, attr_name, attr_options
-  end
-  
-  def key(attr_name, attr_options = {})
-    attr_name = attr_name.to_sym
-    if attributes.has_key? attr_name
-      raise "You should only call store or key once for #{model.name}##{attr_name}"
-    end
-    @key = attr_name
-    store attr_name, attr_options
-  end
+      # Description of what this step does.
+      # @return [String]
+      attr_reader :description
+      
+      # @private
+      def initialize(script, description, table_and_errata_settings, &blk)
+        table_and_errata_settings = table_and_errata_settings.symbolize_keys
+        if table_and_errata_settings.has_key?(:table)
+          raise ::ArgumentError, %{[data_miner] :table is no longer an allowed setting.}
+        end
+        if (errata_settings = table_and_errata_settings[:errata]) and not errata_settings.is_a?(::Hash)
+          raise ::ArgumentError, %{[data_miner] :errata must be a hash of initialization settings to Errata}
+        end
+        @script = script
+        @attributes = ::ActiveSupport::OrderedHash.new
+        @description = description
+        if table_and_errata_settings.has_key? :errata
+          errata_settings = table_and_errata_settings[:errata].symbolize_keys
+          errata_settings[:responder] ||= model
+          table_and_errata_settings[:errata] = errata_settings
+        end
+        @table_settings = table_and_errata_settings.dup
+        @table_settings[:streaming] = true
+        @table_mutex = ::Mutex.new
+        instance_eval(&blk)
+      end
 
-  def table
-    @table || @mutex.synchronize do
-      @table ||= ::RemoteTable.new(@table_options)
-    end
-  end
+      # Store data into a model column.
+      #
+      # @see DataMiner::Attribute The actual Attribute class.
+      #
+      # @param [Symbol] attr_name The name of the local model column.
+      # @param [optional, Hash] attr_options Options that will be passed to +DataMiner::Attribute.new+
+      # @option attr_options [*] anything Any option for +DataMiner::Attribute+.
+      #
+      # @return [nil]
+      def store(attr_name, attr_options = {})
+        attr_name = attr_name.to_sym
+        if attributes.has_key? attr_name
+          raise "You should only call store or key once for #{model.name}##{attr_name}"
+        end
+        attributes[attr_name] = DataMiner::Attribute.new self, attr_name, attr_options
+      end
 
-  def refresh
-    @table = nil
-    attributes.each { |_, attr| attr.refresh }
-    nil
-  end
-  
-  def perform
-    table.each do |row|
-      record = model.send "find_or_initialize_by_#{@key}", attributes[@key].read(row)
-      attributes.each { |_, attr| attr.set_from_row record, row }
-      record.save!
+      # Store data into a model column AND use it as the key.
+      #
+      # @see DataMiner::Attribute The actual Attribute class.
+      #
+      # Enables idempotency. In other words, you can run the data miner script multiple times, get updated data, and not get duplicate rows.
+      #
+      # @param [Symbol] attr_name The name of the local model column.
+      # @param [optional, Hash] attr_options Options that will be passed to +DataMiner::Attribute.new+
+      # @option attr_options [*] anything Any option for +DataMiner::Attribute+.
+      #
+      # @return [nil]
+      def key(attr_name, attr_options = {})
+        attr_name = attr_name.to_sym
+        if attributes.has_key? attr_name
+          raise "You should only call store or key once for #{model.name}##{attr_name}"
+        end
+        @key = attr_name
+        store attr_name, attr_options
+      end
+
+      # @private
+      def perform
+        table.each do |row|
+          record = model.send "find_or_initialize_by_#{@key}", attributes[@key].read(row)
+          attributes.each { |_, attr| attr.set_from_row record, row }
+          record.save!
+        end
+        refresh
+        nil
+      end
+
+      private
+
+      def table
+        @table || @table_mutex.synchronize do
+          @table ||= ::RemoteTable.new(@table_settings)
+        end
+      end
+
+      def refresh
+        @table = nil
+        attributes.each { |_, attr| attr.refresh }
+        nil
+      end
     end
-    refresh
-    nil
   end
 end

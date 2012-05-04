@@ -7,8 +7,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Seamus Abshere", "Andy Rossmeissl", "Derek Kastner"]
   s.email       = ["seamus@abshere.net"]
   s.homepage    = "https://github.com/seamusabshere/data_miner"
-  s.summary     = %{Mine remote data into your ActiveRecord models.}
-  s.description = %q{Mine remote data into your ActiveRecord models. You can also convert units.}
+  s.summary     = %{Download, pull out of a ZIP/TAR/GZ/BZ2 archive, parse, correct, and import XLS, ODS, XML, CSV, HTML, etc. into your ActiveRecord models.}
+  s.description = %q{Download, pull out of a ZIP/TAR/GZ/BZ2 archive, parse, correct, and import XLS, ODS, XML, CSV, HTML, etc. into your ActiveRecord models. You can also convert units.}
 
   s.rubyforge_project = "data_miner"
 
