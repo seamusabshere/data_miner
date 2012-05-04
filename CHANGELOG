@@ -8,6 +8,7 @@
 * Enhancements
 
   * Real documentation!
+  * Make it easier to clear locks with DataMiner::Run.clear_locks
   * Replace class-level mutexes with simple Thread.exclusive calls
   * Simplified DataMiner::Dictionary
 
