@@ -199,8 +199,8 @@ class DataMiner
       if overwrite or local_record.send(name).nil?
         local_record.send "#{name}=", read(remote_row)
       end
-      if units? and ((final_to_units = (to_units || read_units(remote_row))) or nullify)
-        local_record.send "#{name}_units=", final_to_units
+      if units? and (final_to_units = (to_units || read_units(remote_row)))
+        local_record.send "#{name}_units=", final_to_units unless (nullify and read(remote_row).nil?)
       end
     end
 

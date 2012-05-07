@@ -13,15 +13,22 @@ class Pet < ActiveRecord::Base
   col :breed_id
   col :color_id
   col :age, :type => :integer
+  col :age_units
+  col :weight, :type => :float
+  col :weight_units
+  col :height, :type => :integer
+  col :height_units
   belongs_to :breed
   data_miner do
     process :auto_upgrade!
     process :run_data_miner_on_parent_associations!
     import("A list of pets", :url => "file://#{PETS}") do
       key :name
-      store :age
+      store :age, :units_field_name => 'age_units'
       store :breed_id, :field_name => :breed
       store :color_id, :field_name => :color, :dictionary => { :url => "file://#{COLOR_DICTIONARY_ENGLISH}", :input => :input, :output => :output }
+      store :weight, :nullify => true, :from_units => :pounds, :to_units => :kilograms
+      store :height, :units => :centimetres
     end
   end
 end
@@ -98,6 +105,24 @@ describe DataMiner do
     it "runs class methods" do
       Breed.run_data_miner!
       Breed.find('Beagle').average_age.must_equal((5+2)/2.0)
+    end
+    it "performs unit conversions" do
+      Pet.run_data_miner!
+      Pet.find('Pierre').weight.must_be_close_to(4.4.pounds.to(:kilograms), 0.00001)
+    end
+    it "sets units" do
+      Pet.run_data_miner!
+      Pet.find('Pierre').age_units.must_equal 'years'
+      Pet.find('Pierre').weight_units.must_equal 'kilograms'
+      Pet.find('Pierre').height_units.must_equal 'centimetres'
+    end
+    it "nullifies blanks when asked" do
+      Pet.run_data_miner!
+      Pet.find('Amigo').weight.must_be_nil
+    end
+    it "doesn't set units for a field that has been nullified" do
+      Pet.run_data_miner!
+      Pet.find('Amigo').weight_units.must_be_nil
     end
   end
 end

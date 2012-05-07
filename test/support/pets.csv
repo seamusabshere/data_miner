@@ -1,5 +1,5 @@
-name,breed,color,age
-Pierre,Tabby,GO,4
-Jerry,Beagle,BR/BL,5
-Amigo,Spanish Lizarto,GR/BU,17
-Johnny,Beagle,BR/BL,2
+name,breed,color,age,age_units,weight,height
+Pierre,Tabby,GO,4,years,4.4,30
+Jerry,Beagle,BR/BL,5,years,10,30
+Amigo,Spanish Lizarto,GR/BU,17,years,,3
+Johnny,Beagle,BR/BL,2,years,20,45
