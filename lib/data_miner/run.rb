@@ -93,7 +93,8 @@ class DataMiner
 
     # @private
     def as_lock
-      [Run.connection.current_database, model_name]
+      database_name = Run.connection.instance_variable_get(:@config).try(:[], :database)
+      [database_name, model_name]
     end
   end
 end
