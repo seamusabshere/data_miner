@@ -20,6 +20,13 @@ class DataMiner
         end
         nil
       end
+
+      # @private
+      def perform(model_name, &blk)
+        run = new
+        run.model_name = model_name
+        run.perform(&blk)
+      end
     end
     # Raise this exception to skip the current run without causing it to fail.
     #

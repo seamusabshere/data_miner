@@ -1,3 +1,9 @@
+2.0.3 / 2012-05-07
+
+* Bug fixes
+
+  * Don't blow up if mass-assignment rules are strict
+
 2.0.2 / 2012-05-04
 
 * Breaking changes

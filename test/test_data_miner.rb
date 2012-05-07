@@ -53,12 +53,28 @@ class Breed < ActiveRecord::Base
   end
 end
 
+ActiveRecord::Base.mass_assignment_sanitizer = :strict
+ActiveRecord::Base.descendants.each do |model|
+  model.attr_accessible nil
+end
+
 Pet.auto_upgrade!
 
 describe DataMiner do
   describe "when used to import example data about pets" do
     before do
       Pet.delete_all
+    end
+    it "it does not depend on mass-assignment" do
+      lambda do
+        Pet.new(:name => 'hello').save!
+      end.must_raise(ActiveModel::MassAssignmentSecurity::Error)
+      lambda do
+        Pet.new(:color_id => 'hello').save!
+      end.must_raise(ActiveModel::MassAssignmentSecurity::Error)
+      lambda do
+        Pet.new(:age => 'hello').save!
+      end.must_raise(ActiveModel::MassAssignmentSecurity::Error)
     end
     it "is idempotent given a key" do
       Pet.run_data_miner!
