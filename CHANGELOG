@@ -1,8 +1,14 @@
 2.0.3 / 2012-05-07
 
+* Enhancements
+
+  * Rename :nullify to :nullify_blank_strings to clarify that it only affects textual columns and means "treat blank input as null".
+  * Don't try to set units for a column that is currently nil (thanks @ihough)
+
 * Bug fixes
 
-  * Don't blow up if mass-assignment rules are strict
+  * Don't blow up if mass-assignment rules are strict.
+  * Don't accidentally set a numeric column to 0.0 when the input is blank or nil.
 
 2.0.2 / 2012-05-04
 

@@ -35,7 +35,8 @@ class DataMiner
       :split,
       :units,
       :sprintf,
-      :nullify,
+      :nullify, # deprecated
+      :nullify_blank_strings,
       :overwrite,
       :upcase,
       :units_field_name,
@@ -57,7 +58,7 @@ class DataMiner
     DEFAULT_SPLIT_PATTERN = /\s+/
     DEFAULT_SPLIT_KEEP = 0
     DEFAULT_DELIMITER = ', '
-    DEFAULT_NULLIFY = false
+    DEFAULT_NULLIFY_BLANK_STRINGS = false
     DEFAULT_UPCASE = false
     DEFAULT_OVERWRITE = true
 
@@ -137,9 +138,9 @@ class DataMiner
     # @return [String,Numeric,TrueClass,FalseClass,Object]
     attr_reader :static
 
-    # Whether to nullify the value in a local column if it was not previously null. Defaults to DEFAULT_NULLIFY.
+    # Only meaningful for string columns. Whether to store blank input ("    ") as NULL. Defaults to DEFAULT_NULLIFY_BLANK_STRINGS.
     # @return [TrueClass,FalseClass]
-    attr_reader :nullify
+    attr_reader :nullify_blank_strings
 
     # Whether to upcase value. Defaults to DEFAULT_UPCASE.
     # @return [TrueClass,FalseClass]
@@ -156,7 +157,7 @@ class DataMiner
         raise ::ArgumentError, %{[data_miner] Errors on #{inspect}: #{errors.join(';')}}
       end
       @step = step
-      @name = name
+      @name = name.to_sym
       @synthesize = options[:synthesize]
       if @dictionary_boolean = options.has_key?(:dictionary)
         @dictionary_settings = options[:dictionary]
@@ -172,7 +173,12 @@ class DataMiner
       if split = options[:split]
         @split = split.symbolize_keys
       end
-      @nullify = options.fetch :nullify, DEFAULT_NULLIFY
+      @nullify_blank_strings = if options.has_key?(:nullify)
+        # deprecated
+        options[:nullify]
+      else
+        options.fetch :nullify_blank_strings, DEFAULT_NULLIFY_BLANK_STRINGS
+      end
       @upcase = options.fetch :upcase, DEFAULT_UPCASE
       @from_units = options[:from_units]
       @to_units = options[:to_units] || options[:units]
@@ -196,11 +202,17 @@ class DataMiner
 
     # @private
     def set_from_row(local_record, remote_row)
-      if overwrite or local_record.send(name).nil?
-        local_record.send "#{name}=", read(remote_row)
+      previously_nil = local_record.send(name).nil?
+      currently_nil = false
+
+      if previously_nil or overwrite
+        new_value = read remote_row
+        local_record.send "#{name}=", new_value
+        currently_nil = new_value.nil?
       end
-      if units? and (final_to_units = (to_units || read_units(remote_row)))
-        local_record.send "#{name}_units=", final_to_units unless (nullify and read(remote_row).nil?)
+
+      if not currently_nil and units? and (final_to_units = (to_units || read_units(remote_row)))
+        local_record.send "#{name}_units=", final_to_units
       end
     end
 
@@ -240,10 +252,10 @@ class DataMiner
         keep = split.fetch :keep, DEFAULT_SPLIT_KEEP
         value = value.to_s.split(pattern)[keep].to_s
       end
-      value = DataMiner.compress_whitespace value
-      if nullify and value.blank?
+      if value.blank? and (not stringlike_column? or nullify_blank_strings)
         return
       end
+      value = DataMiner.compress_whitespace value
       if upcase
         value = DataMiner.upcase value
       end
@@ -278,6 +290,12 @@ class DataMiner
 
     def model
       step.model
+    end
+
+    def stringlike_column?
+      return @stringlike_column_query[0] if @stringlike_column_query.is_a?(::Array)
+      @stringlike_column_query = [model.columns_hash[name.to_s].type == :string]
+      @stringlike_column_query[0]
     end
 
     def static?

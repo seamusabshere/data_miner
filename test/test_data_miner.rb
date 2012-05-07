@@ -18,6 +18,8 @@ class Pet < ActiveRecord::Base
   col :weight_units
   col :height, :type => :integer
   col :height_units
+  col :favorite_food
+  col :command_phrase
   belongs_to :breed
   data_miner do
     process :auto_upgrade!
@@ -27,7 +29,9 @@ class Pet < ActiveRecord::Base
       store :age, :units_field_name => 'age_units'
       store :breed_id, :field_name => :breed
       store :color_id, :field_name => :color, :dictionary => { :url => "file://#{COLOR_DICTIONARY_ENGLISH}", :input => :input, :output => :output }
-      store :weight, :nullify => true, :from_units => :pounds, :to_units => :kilograms
+      store :weight, :from_units => :pounds, :to_units => :kilograms
+      store :favorite_food, :nullify_blank_strings => true
+      store :command_phrase
       store :height, :units => :centimetres
     end
   end
@@ -132,12 +136,23 @@ describe DataMiner do
       Pet.find('Pierre').weight_units.must_equal 'kilograms'
       Pet.find('Pierre').height_units.must_equal 'centimetres'
     end
-    it "nullifies blanks when asked" do
+    it "always nullifies numeric columns when blank/nil is the input" do
       Pet.run_data_miner!
       Pet.find('Amigo').weight.must_be_nil
     end
-    it "doesn't set units for a field that has been nullified" do
+    it "doesn't nullify string columns by default" do
       Pet.run_data_miner!
+      Pet.find('Amigo').command_phrase.must_equal ''
+      Pet.find('Johnny').command_phrase.must_equal ''
+    end
+    it "nullifies string columns on demand" do
+      Pet.run_data_miner!
+      Pet.find('Jerry').favorite_food.must_equal 'cheese'
+      Pet.find('Johnny').favorite_food.must_be_nil
+    end
+    it "doesn't set units if the input was blank/null" do
+      Pet.run_data_miner!
+      Pet.find('Amigo').weight.must_be_nil
       Pet.find('Amigo').weight_units.must_be_nil
     end
   end

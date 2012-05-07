@@ -30,3 +30,4 @@ ActiveRecord::Base.establish_connection(
 
 require 'data_miner'
 DataMiner::Run.auto_upgrade!
+DataMiner::Run.clear_locks
