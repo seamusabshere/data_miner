@@ -1,5 +1,9 @@
 unreleased
 
+* Enhancements
+
+  * Don't mess with DataMiner::Run.perform, which some people use in conjunction with Resque
+
 * Bug fixes
 
   * Don't blow up trying to get current database name on SQLite3

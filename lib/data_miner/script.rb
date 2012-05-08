@@ -213,7 +213,9 @@ class DataMiner
         Script.current_stack.clear
       end
       Script.current_stack << model_name
-      Run.perform(model_name) do
+      run = Run.new
+      run.model_name = model_name
+      run.perform do
         steps.each do |step|
           step.perform
           model.reset_column_information
