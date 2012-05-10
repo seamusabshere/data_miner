@@ -3,7 +3,7 @@ require 'helper'
 require 'earth'
 
 require 'lock_method'
-DataMiner::Run.lock_method :perform
+DataMiner::Run.lock_method :start
 
 # use earth, which has a plethora of real-world data_miner blocks
 Earth.init :locality, :pet, :load_data_miner => true, :apply_schemas => true

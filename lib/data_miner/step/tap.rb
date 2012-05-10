@@ -57,7 +57,7 @@ class DataMiner
       end
       
       # @private
-      def perform
+      def start
         [ source_table_name, model.table_name ].each do |possible_obstacle|
           if connection.table_exists? possible_obstacle
             connection.drop_table possible_obstacle

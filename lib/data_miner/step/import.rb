@@ -83,7 +83,7 @@ class DataMiner
       end
 
       # @private
-      def perform
+      def start
         table.each do |row|
           record = model.send "find_or_initialize_by_#{@key}", attributes[@key].read(row)
           attributes.each { |_, attr| attr.set_from_row record, row }

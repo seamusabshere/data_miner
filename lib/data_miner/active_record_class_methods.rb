@@ -23,7 +23,7 @@ class DataMiner
     #
     # @return [DataMiner::Run]
     def run_data_miner!
-      data_miner_script.perform
+      data_miner_script.start
     end
     
     # Run the data miner scripts of parent associations. Useful for dependencies. Safe to call using +process+.

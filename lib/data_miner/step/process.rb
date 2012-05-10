@@ -37,7 +37,7 @@ class DataMiner
       end
       
       # @private
-      def perform
+      def start
         DataMiner::Script.uniq do
           if blk
             model.instance_eval(&blk)

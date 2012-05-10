@@ -199,7 +199,7 @@ class DataMiner
     # @note A primitive "call stack" is kept that will prevent infinite loops. So, if Country's data miner script calls Province's AND vice-versa, each one will only be run once.
     #
     # @return [DataMiner::Run]
-    def perform
+    def start
       model_name = model.name
       # $stderr.write "0 - #{model_name}\n"
       # $stderr.write "A - current_uniq - #{Script.current_uniq ? 'true' : 'false'}\n"
@@ -215,9 +215,9 @@ class DataMiner
       Script.current_stack << model_name
       run = Run.new
       run.model_name = model_name
-      run.perform do
+      run.start do
         steps.each do |step|
-          step.perform
+          step.start
           model.reset_column_information
         end
       end

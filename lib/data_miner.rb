@@ -58,7 +58,7 @@ class DataMiner
   # @param [optional, Array<String>] model_names Names of models to be run.
   #
   # @return [Array<DataMiner::Run>]
-  def perform(model_names = DataMiner.model_names)
+  def start(model_names = DataMiner.model_names)
     Script.uniq do
       model_names.map do |model_name|
         model_name.constantize.run_data_miner!
@@ -67,7 +67,7 @@ class DataMiner
   end
 
   # legacy
-  alias :run :perform
+  alias :run :start
 
   # Where DataMiner logs to. Defaults to +Rails.logger+ or +ActiveRecord::Base.logger+ if either is available.
   #

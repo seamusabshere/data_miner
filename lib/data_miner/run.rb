@@ -18,13 +18,13 @@ class DataMiner
       # @example Re-enable locking (since it was turned off by default in 2.1.0)
       #   require 'data_miner'
       #   require 'lock_method'
-      #   DataMiner::Run.lock_method :perform
+      #   DataMiner::Run.lock_method :start
       def clear_locks(model_names = DataMiner.model_names)
         return unless defined?(::LockMethod)
         model_names.each do |model_name|
           dummy = new
           dummy.model_name = model_name
-          dummy.lock_method_clear :perform
+          dummy.lock_method_clear :start
         end
         nil
       end
@@ -71,7 +71,7 @@ class DataMiner
     validates_presence_of :model_name
 
     # @private
-    def perform
+    def start
       save!
       begin
         catch :data_miner_succeed do
