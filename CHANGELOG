@@ -3,6 +3,7 @@ unreleased
 * Enhancements
 
   * Don't mess with DataMiner::Run.perform, which some people use in conjunction with Resque
+  * Don't lock DataMiner::Run#perform. Provide instructions for how people can do this manually.
 
 * Bug fixes
 

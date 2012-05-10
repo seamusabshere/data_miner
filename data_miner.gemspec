@@ -24,5 +24,4 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'errata', '>=1.0.1'
   s.add_runtime_dependency 'active_record_inline_schema'
   s.add_runtime_dependency 'aasm'
-  s.add_runtime_dependency 'lock_method', '>=0.5.1'
 end

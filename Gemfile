@@ -10,6 +10,7 @@ gem 'mysql2'
 gem 'rake'
 gem 'yard'
 gem 'earth'
+gem 'lock_method'
 if RUBY_VERSION >= '1.9'
   gem 'unicode_utils'
 end

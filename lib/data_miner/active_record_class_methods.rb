@@ -1,5 +1,4 @@
 require 'active_record'
-require 'lock_method'
 
 class DataMiner
   # Class methods that are mixed into models (i.e. ActiveRecord::Base)

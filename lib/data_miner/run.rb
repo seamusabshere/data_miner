@@ -7,12 +7,20 @@ class DataMiner
   # To create the table, use +DataMiner::Run.auto_upgrade!+, possibly in +db/seeds.rb+ or a database migration.
   class Run < ::ActiveRecord::Base
     class << self
-      # If a previous run died, you may find yourself getting +LockMethod::Locked+ exceptions.
+      # If a previous run died and you have manually enabled locking, you may find yourself getting +LockMethod::Locked+ exceptions.
+      #
+      # @note Starting in 2.1.0, runs are no longer locked by default. This method remains in case you want to re-apply locking.
       # 
       # @param [String] model_names What locks to clear.
       #
       # @return [nil]
+      #
+      # @example Re-enable locking (since it was turned off by default in 2.1.0)
+      #   require 'data_miner'
+      #   require 'lock_method'
+      #   DataMiner::Run.lock_method :perform
       def clear_locks(model_names = DataMiner.model_names)
+        return unless defined?(::LockMethod)
         model_names.each do |model_name|
           dummy = new
           dummy.model_name = model_name
@@ -83,7 +91,6 @@ class DataMiner
       end
       self
     end
-    lock_method :perform
 
     # @private
     def as_lock
