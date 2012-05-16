@@ -1,3 +1,10 @@
+2.1.1 / 2012-05-16
+
+* Enhancements
+
+  * Keep row counts from before and after runs.
+  * If DataMiner.per_column_statistics?, keep per-column statistics from before and after runs.
+
 2.1.0 / 2012-05-10
 
 * Enhancements

@@ -1,6 +1,8 @@
 require 'aasm'
 require 'active_record_inline_schema'
 
+require 'data_miner/run/column_statistic'
+
 class DataMiner
   # A record of what happened when you ran a data miner script.
   #
@@ -57,6 +59,14 @@ class DataMiner
     col :stopped_at, :type => :datetime
     col :updated_at, :type => :datetime
     col :error, :type => :text
+    col :row_count_before, :type => :integer
+    col :row_count_after, :type => :integer
+    add_index :model_name
+    add_index :aasm_state
+
+    validates_presence_of :model_name
+
+    has_many :column_statistics, :class_name => 'DataMiner::Run::ColumnStatistic'
 
     include ::AASM
     aasm_initial_state INITIAL_STATE
@@ -68,11 +78,16 @@ class DataMiner
     aasm_event(:skip)    { transitions :from => :limbo, :to => :skipped }
     aasm_event(:fail)    { transitions :from => :limbo, :to => :failed }
 
-    validates_presence_of :model_name
-
     # @private
     def start
+      model = model_name.constantize
+      if model.table_exists?
+        self.row_count_before = model.count
+      end
       save!
+      if DataMiner.per_column_statistics?
+        ColumnStatistic.before self
+      end
       begin
         catch :data_miner_succeed do
           yield
@@ -85,11 +100,40 @@ class DataMiner
         fail!
         raise $!
       ensure
+        self.row_count_after = model.count
+        if DataMiner.per_column_statistics?
+          ColumnStatistic.after self
+        end
         self.stopped_at = ::Time.now
         save!
         DataMiner.logger.info %{[data_miner] #{model_name} #{aasm_current_state.to_s.upcase} (#{(stopped_at-created_at).round(2)}s)}
       end
       self
+    end
+
+    # Get the column statistics for a particular column before or after this run.
+    #
+    # @param [String] column_name The column you want to know about.
+    # @param ["before","after"] period Whether you want to know about before or after the run.
+    #
+    # @return [ColumnStatistic]
+    def column_statistics_for(column_name, period)
+      column_name = column_name.to_s
+      period = period.to_s
+      model = model_name.constantize
+      if existing = column_statistics.where(:column_name => column_name, :period => period).first
+        existing
+      elsif model.table_exists?
+        unless model.column_names.include?(column_name)
+          raise ::ArgumentError, %{[data_miner] Nonexistent column #{column_name.inspect} on #{model_name}}
+        end
+        blank = ColumnStatistic.new
+        blank.run = self
+        blank.model_name = model_name
+        blank.period = period
+        blank.column_name = column_name
+        blank
+      end
     end
 
     # @private

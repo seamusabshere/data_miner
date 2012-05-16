@@ -96,6 +96,16 @@ class DataMiner
     end
   end
 
+  # Whether per-column stats like max, min, average, standard deviation, etc are enabled.
+  def per_column_statistics?
+    @per_column_statistics == true
+  end
+
+  # Turn on or off per-column stats.
+  def per_column_statistics=(boolean)
+    @per_column_statistics = boolean
+  end
+
   class << self
     delegate(*DataMiner.instance_methods(false), :to => :instance)
   end

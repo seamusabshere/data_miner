@@ -213,6 +213,9 @@ class DataMiner
         Script.current_stack.clear
       end
       Script.current_stack << model_name
+      unless Run.table_exists?
+        Run.auto_upgrade!
+      end
       run = Run.new
       run.model_name = model_name
       run.start do
