@@ -1,3 +1,14 @@
+2.1.2 / 2012-05-22
+
+* Breaking changes
+
+  * DataMiner::Run#column_statistics_for(column_name, period) -> {initial,final}_column_statistics(column_name)
+  * Remove std dev from statistics kept
+
+* Enhancements
+
+  * Added zero count and null count
+
 2.1.1 / 2012-05-16
 
 * Enhancements

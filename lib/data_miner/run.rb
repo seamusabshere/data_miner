@@ -86,7 +86,7 @@ class DataMiner
       end
       save!
       if DataMiner.per_column_statistics?
-        ColumnStatistic.before self
+        ColumnStatistic.take self
       end
       begin
         catch :data_miner_succeed do
@@ -102,38 +102,31 @@ class DataMiner
       ensure
         self.row_count_after = model.count
         if DataMiner.per_column_statistics?
-          ColumnStatistic.after self
+          ColumnStatistic.take self
         end
-        self.stopped_at = ::Time.now
+        self.stopped_at = ::Time.now.utc
         save!
         DataMiner.logger.info %{[data_miner] #{model_name} #{aasm_current_state.to_s.upcase} (#{(stopped_at-created_at).round(2)}s)}
       end
       self
     end
 
-    # Get the column statistics for a particular column before or after this run.
+    # Get the column statistics for a particular column before this run started.
     #
     # @param [String] column_name The column you want to know about.
-    # @param ["before","after"] period Whether you want to know about before or after the run.
     #
     # @return [ColumnStatistic]
-    def column_statistics_for(column_name, period)
-      column_name = column_name.to_s
-      period = period.to_s
-      model = model_name.constantize
-      if existing = column_statistics.where(:column_name => column_name, :period => period).first
-        existing
-      elsif model.table_exists?
-        unless model.column_names.include?(column_name)
-          raise ::ArgumentError, %{[data_miner] Nonexistent column #{column_name.inspect} on #{model_name}}
-        end
-        blank = ColumnStatistic.new
-        blank.run = self
-        blank.model_name = model_name
-        blank.period = period
-        blank.column_name = column_name
-        blank
-      end
+    def initial_column_statistics(column_name)
+      column_statistics.where(:column_name => column_name.to_s).first
+    end
+
+    # Get the column statistics for a particular column after this run finished.
+    #
+    # @param [String] column_name The column you want to know about.
+    #
+    # @return [ColumnStatistic]
+    def final_column_statistics(column_name)
+      column_statistics.where(:column_name => column_name.to_s).last
     end
 
     # @private
