@@ -17,11 +17,11 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
   
-  s.add_runtime_dependency 'remote_table', '>=1.2.2'
+  s.add_runtime_dependency 'aasm'
+  s.add_runtime_dependency 'active_record_inline_schema'
   s.add_runtime_dependency 'activerecord', '>=2.3.4'
   s.add_runtime_dependency 'activesupport', '>=2.3.4'
-  s.add_runtime_dependency 'conversions', '>=1.4.4'
+  s.add_runtime_dependency 'alchemist', '~>0.1.2.1'
   s.add_runtime_dependency 'errata', '>=1.0.1'
-  s.add_runtime_dependency 'active_record_inline_schema'
-  s.add_runtime_dependency 'aasm'
+  s.add_runtime_dependency 'remote_table', '>=1.2.2'
 end

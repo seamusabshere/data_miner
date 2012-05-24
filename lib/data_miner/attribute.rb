@@ -1,4 +1,4 @@
-require 'conversions'
+require 'alchemist'
 
 class DataMiner
   # A mapping between a local model column and a remote data source column.
@@ -111,14 +111,14 @@ class DataMiner
     # @return [Hash]
     attr_reader :split
 
-    # Final units. May invoke a conversion using https://github.com/seamusabshere/conversions
+    # Final units. May invoke a conversion using https://rubygems.org/gems/alchemist
     #
     # If a local column named +[name]_units+ exists, it will be populated with this value.
     #
     # @return [Symbol]
     attr_reader :to_units
 
-    # Initial units. May invoke a conversion using https://github.com/seamusabshere/conversions
+    # Initial units. May invoke a conversion using https://rubygems.org/gems/alchemist
     # @return [Symbol]
     attr_reader :from_units
 
@@ -265,7 +265,7 @@ class DataMiner
         if final_from_units.blank? or final_to_units.blank?
           raise ::RuntimeError, "[data_miner] Missing units (from=#{final_from_units.inspect}, to=#{final_to_units.inspect}"
         end
-        value = value.to_f.convert final_from_units, final_to_units
+        value = value.to_f.send(final_from_units).to(final_to_units)
       end
       if sprintf
         if sprintf.end_with?('f')
