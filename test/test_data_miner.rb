@@ -69,7 +69,7 @@ describe DataMiner do
     end
     it "performs unit conversions" do
       Pet.run_data_miner!
-      Pet.find('Pierre').weight.must_be_close_to(4.4.pounds.to.kilograms, 0.00001)
+      Pet.find('Pierre').weight.must_be_close_to(4.4.pounds.to.kilograms.to_f, 0.00001)
     end
     it "sets units" do
       Pet.run_data_miner!

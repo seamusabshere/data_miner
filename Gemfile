@@ -2,15 +2,9 @@ source :rubygems
 
 gemspec
 
-# development dependencies
-gem 'fuzzy_match'
-gem 'minitest'
-gem 'minitest-reporters'
-gem 'mysql2'
-gem 'rake'
-gem 'yard'
-gem 'earth'
-gem 'lock_method'
+gem 'alchemist', :path => '~/alchemist'
+gem 'conversions', :require => false
+
 if RUBY_VERSION >= '1.9'
   gem 'unicode_utils'
 end
