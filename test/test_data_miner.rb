@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 require 'helper'
 init_database
+init_pet
 
 describe DataMiner do
   describe "when used to import example data about pets" do
