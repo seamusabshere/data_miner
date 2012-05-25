@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 require 'helper'
+init_database
 
 describe DataMiner::Run::ColumnStatistic do
   describe "when advanced statistics are enabled" do

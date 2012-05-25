@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 require 'helper'
+init_database
 require 'earth'
 
 # use earth, which has a plethora of real-world data_miner blocks

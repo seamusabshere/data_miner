@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 require 'helper'
+init_database
 require 'earth'
 
 require 'lock_method'
