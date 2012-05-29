@@ -65,6 +65,10 @@ describe DataMiner do
       Breed.run_data_miner!
       Breed.find('Beagle').average_age.must_equal((5+2)/2.0)
     end
+    it "deals with commas from numerical values" do
+      Pet.run_data_miner!
+      Pet.find('Amigo').age.must_equal 6205
+    end
     it "performs unit conversions" do
       Pet.run_data_miner!
       Pet.find('Pierre').weight.must_be_close_to(4.4.pounds.to(:kilograms), 0.00001)

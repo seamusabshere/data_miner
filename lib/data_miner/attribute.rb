@@ -244,6 +244,9 @@ class DataMiner
         return value
       end
       value = value.to_s
+      if value =~ /^\d+,\d+(\.\d+)?$/
+        value = value.delete(',')
+      end
       if chars
         value = value[chars]
       end
