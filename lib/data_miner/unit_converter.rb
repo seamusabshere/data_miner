@@ -2,7 +2,7 @@ class DataMiner
   class UnitConverter
     def self.load(type)
       require "data_miner/unit_converter/#{type}"
-      const_get(type.to_s.capitalize).new
+      const_get(type.to_s.camelize).new
     end
 
     def convert(value, from, to)
