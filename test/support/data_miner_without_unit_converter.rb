@@ -1,5 +1,4 @@
 require_relative '../helper'
-init_database(nil)
 
 class MyPet < ActiveRecord::Base
   PETS = File.expand_path('../pets.csv', __FILE__)
@@ -31,15 +30,23 @@ class MyPet < ActiveRecord::Base
   end
 end
 
-require 'test/unit/assertions'
-include Test::Unit::Assertions
 
-assert DataMiner.unit_converter.nil?
+describe 'DataMiner with Conversions' do
+  it 'happens when DataMiner.unit_converter is nil' do
+    DataMiner.unit_converter.must_be_nil
+  end
 
-MyPet.run_data_miner!
-assert_equal 4.4, MyPet.find('Pierre').weight
+  it 'converts convertible units' do
+    init_database(nil)
+    MyPet.run_data_miner!
+    MyPet.find('Pierre').weight.must_equal 4.4
+  end
 
-assert_raise DataMiner::Attribute::NoConverterSet do
-  init_pet
-  Pet.run_data_miner!
+  it 'raises an error if conversions are attempted' do
+    init_database(nil)
+    lambda do
+      init_pet
+      Pet.run_data_miner!
+    end.must_raise DataMiner::Attribute::NoConverterSet
+  end
 end

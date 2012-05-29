@@ -1,8 +1,13 @@
 require_relative '../helper'
-init_database(:alchemist)
-init_pet
-require 'test/unit/assertions'
-include Test::Unit::Assertions
 
-Pet.run_data_miner!
-assert_in_delta Pet.find('Pierre').weight, 4.4.pounds.to.kilograms.to_f, 0.00001
+describe 'DataMiner with Alchemist' do
+  before do
+    init_database(:alchemist)
+    init_pet
+    Pet.run_data_miner!
+  end
+
+  it 'converts convertible units' do
+    Pet.find('Pierre').weight.must_be_close_to 4.4.pounds.to.kilograms.to_f
+  end
+end

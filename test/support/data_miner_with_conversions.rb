@@ -3,10 +3,14 @@ require_relative '../helper'
 require 'conversions'
 Conversions.register :years, :years, 1
 
-init_database(:conversions)
-init_pet
-require 'test/unit/assertions'
-include Test::Unit::Assertions
+describe 'DataMiner with Conversions' do
+  before do
+    init_database(:conversions)
+    init_pet
+    Pet.run_data_miner!
+  end
 
-Pet.run_data_miner!
-assert_in_delta Pet.find('Pierre').weight, 4.4.pounds.to(:kilograms), 0.00001
+  it 'converts convertible units' do
+    Pet.find('Pierre').weight.must_be_close_to 4.4.pounds.to(:kilograms)
+  end
+end
