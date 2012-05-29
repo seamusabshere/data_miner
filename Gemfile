@@ -3,7 +3,7 @@ source :rubygems
 gemspec
 
 gem 'alchemist', :path => '~/alchemist'
-gem 'conversions', :require => false
+gem 'conversions'
 
 if RUBY_VERSION >= '1.9'
   gem 'unicode_utils'
