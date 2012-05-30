@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 require 'helper'
 init_database
-init_pet
+init_models
 
 describe DataMiner::Run::ColumnStatistic do
   describe "when advanced statistics are enabled" do

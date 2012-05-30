@@ -1,4 +1,4 @@
-require_relative '../../helper'
+require 'helper'
 
 describe 'DataMiner::UnitConverter::Conversions' do
   before do
