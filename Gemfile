@@ -2,7 +2,6 @@ source :rubygems
 
 gemspec
 
-gem 'alchemist', :git => 'https://github.com/dkastner/alchemist.git', :branch => 'helpers'
 gem 'conversions'
 
 if RUBY_VERSION >= '1.9'
