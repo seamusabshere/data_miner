@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 require 'helper'
 init_database
-init_pet
+init_models
 
 describe DataMiner do
   describe "when used to import example data about pets" do
@@ -69,7 +69,7 @@ describe DataMiner do
     end
     it "performs unit conversions" do
       Pet.run_data_miner!
-      Pet.find('Pierre').weight.must_be_close_to 4.4.pounds.to.kilograms.to_f
+      Pet.find('Pierre').weight.must_be_close_to 1.9958 # 4.4 pounds in kilograms
     end
     it "sets units" do
       Pet.run_data_miner!

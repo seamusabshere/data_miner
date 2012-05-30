@@ -47,9 +47,19 @@ class DataMiner
       str.gsub(INNER_SPACE, ' ').strip
     end
 
+    # Set the unit converter.
+    #
+    # @note As of 2012-05-30, there are problems with the alchemist gem and the use of the conversions gem instead is recommended.
+    #
+    # @param [Symbol,nil] conversion_library Either +:alchemist+ or +:conversions+
+    #
+    # @return [nil]
     def unit_converter=(conversion_library)
-      @unit_converter = conversion_library ? DataMiner::UnitConverter.load(conversion_library) : nil
+      @unit_converter = UnitConverter.load conversion_library
+      nil
     end
+
+    # @return [#convert,nil] The user-selected unit converter or nil.
     def unit_converter
       @unit_converter
     end

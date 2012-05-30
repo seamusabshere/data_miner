@@ -1,4 +1,4 @@
-require_relative '../helper'
+require 'helper'
 
 class MyPet < ActiveRecord::Base
   PETS = File.expand_path('../pets.csv', __FILE__)
@@ -30,7 +30,6 @@ class MyPet < ActiveRecord::Base
   end
 end
 
-
 describe 'DataMiner with Conversions' do
   it 'happens when DataMiner.unit_converter is nil' do
     DataMiner.unit_converter.must_be_nil
@@ -45,7 +44,7 @@ describe 'DataMiner with Conversions' do
   it 'raises an error if conversions are attempted' do
     init_database(nil)
     lambda do
-      init_pet
+      init_models
       Pet.run_data_miner!
     end.must_raise DataMiner::Attribute::NoConverterSet
   end

@@ -5,12 +5,6 @@ class DataMiner
   # @see DataMiner::Step::Import#store Telling an import step to store a column with DataMiner::Step::Import#store
   # @see DataMiner::Step::Import#key Telling an import step to key on a column with DataMiner::Step::Import#key
   class Attribute
-    class NoConverterSet < StandardError
-      def message
-        'You must set DataMiner.unit_converter to one of [:alchemist, :conversions] if you wish to convert units'
-      end
-    end
-
     class << self
       # @private
       def check_options(options)
@@ -21,7 +15,11 @@ class DataMiner
         if (invalid_option_keys = options.keys - VALID_OPTIONS).any?
           errors << %{Invalid options: #{invalid_option_keys.map(&:inspect).to_sentence}}
         end
-        if (units_options = options.select { |k, _| k.to_s.include?('units') }).any? and VALID_UNIT_DEFINITION_SETS.none? { |d| d.all? { |required_option| options[required_option].present? } }
+        units_options = options.select { |k, _| k.to_s.include?('units') }
+        if units_options.any? and DataMiner.unit_converter.nil?
+          errors << %{You must set DataMiner.unit_converter to :alchemist or :conversions if you wish to convert units}
+        end
+        if units_options.any? and VALID_UNIT_DEFINITION_SETS.none? { |d| d.all? { |required_option| options[required_option].present? } }
           errors << %{#{units_options.inspect} is not a valid set of units definitions. Please supply a set like #{VALID_UNIT_DEFINITION_SETS.map(&:inspect).to_sentence}".}
         end
         errors
@@ -51,12 +49,12 @@ class DataMiner
     ]
 
     VALID_UNIT_DEFINITION_SETS = [
-      [:units],
-      [:from_units, :to_units],
-      [:units_field_name],
-      [:units_field_name, :to_units],
-      [:units_field_number],
-      [:units_field_number, :to_units],
+      [:units],                         # no conversion
+      [:from_units, :to_units],         # yes
+      [:units_field_name],              # no
+      [:units_field_name, :to_units],   # yes
+      [:units_field_number],            # no
+      [:units_field_number, :to_units], # yes
     ]
 
     DEFAULT_SPLIT_PATTERN = /\s+/
@@ -191,6 +189,8 @@ class DataMiner
       @overwrite = options.fetch :overwrite, DEFAULT_OVERWRITE
       @units_field_name = options[:units_field_name]
       @units_field_number = options[:units_field_number]
+      @convert_boolean = (@from_units.present? or (@to_units.present? and (@units_field_name.present? or @units_field_number.present?)))
+      @persist_units_boolean = (@to_units.present? or @units_field_name.present? or @units_field_number.present?)
       @dictionary_mutex = ::Mutex.new
     end
 
@@ -216,7 +216,7 @@ class DataMiner
         currently_nil = new_value.nil?
       end
 
-      if not currently_nil and units? and (final_to_units = (to_units || read_units(remote_row)))
+      if not currently_nil and persist_units? and (final_to_units = (to_units || read_units(remote_row)))
         local_record.send "#{name}_units=", final_to_units
       end
     end
@@ -257,14 +257,16 @@ class DataMiner
         keep = split.fetch :keep, DEFAULT_SPLIT_KEEP
         value = value.to_s.split(pattern)[keep].to_s
       end
-      if value.blank? and (not stringlike_column? or nullify_blank_strings)
+      if value.blank? and (not text_column? or nullify_blank_strings)
         return
       end
       value = DataMiner.compress_whitespace value
       if upcase
         value = DataMiner.upcase value
       end
-      value = convert_units value, row
+      if convert?
+        value = convert_units value, row
+      end
       if sprintf
         if sprintf.end_with?('f')
           value = value.to_f
@@ -281,14 +283,12 @@ class DataMiner
 
     # @private
     def convert_units(value, row)
-      enforce_conversion_options
-      if convert?
-        final_from_units = from_units || read_units(row)
-        final_to_units = to_units || read_units(row)
-        DataMiner.unit_converter.convert(value, final_from_units, final_to_units)
-      else
-        value
+      final_from_units = from_units || read_units(row)
+      final_to_units = to_units || read_units(row)
+      unless final_from_units and final_to_units
+        raise RuntimeError, "[data_miner] Missing units: from=#{final_from_units.inspect}, to=#{final_to_units.inspect}"
       end
+      DataMiner.unit_converter.convert value, final_from_units, final_to_units
     end
 
     # @private
@@ -302,10 +302,10 @@ class DataMiner
       step.model
     end
 
-    def stringlike_column?
-      return @stringlike_column_query[0] if @stringlike_column_query.is_a?(::Array)
-      @stringlike_column_query = [model.columns_hash[name.to_s].type == :string]
-      @stringlike_column_query[0]
+    def text_column?
+      return @text_column_query[0] if @text_column_query.is_a?(Array)
+      @text_column_query = [model.columns_hash[name.to_s].text?]
+      @text_column_query[0]
     end
 
     def static?
@@ -316,20 +316,12 @@ class DataMiner
       @dictionary_boolean
     end
 
-    def enforce_conversion_options
-      raise NoConverterSet if DataMiner.unit_converter.nil? and convert_options_present?
-    end
-
     def convert?
-      !DataMiner.unit_converter.nil? and convert_options_present?
+      @convert_boolean
     end
 
-    def convert_options_present?
-      from_units.present? or units_field_name.present? or units_field_number.present?
-    end
-
-    def units?
-      to_units.present? or units_field_name.present? or units_field_number.present?
+    def persist_units?
+      @persist_units_boolean
     end
 
     def read_units(row)

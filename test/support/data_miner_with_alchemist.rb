@@ -1,9 +1,9 @@
-require_relative '../helper'
+require 'helper'
 
 describe 'DataMiner with Alchemist' do
   before do
     init_database(:alchemist)
-    init_pet
+    init_models
     Pet.run_data_miner!
   end
 

@@ -8,10 +8,8 @@ end
 require 'minitest/spec'
 require 'minitest/autorun'
 require 'minitest/reporters'
-require 'test/unit/assertions'
 MiniTest::Unit.runner = MiniTest::SuiteRunner.new
 MiniTest::Unit.runner.reporters << MiniTest::Reporters::SpecReporter.new
-include Test::Unit::Assertions
 
 require 'active_record'
 require 'logger'
@@ -29,7 +27,7 @@ ActiveRecord::Base.mass_assignment_sanitizer = :strict
 
 require 'data_miner'
 
-def init_database(unit_converter = :alchemist)
+def init_database(unit_converter = :conversions)
   cmd = %{mysql -u root -ppassword -e "DROP DATABASE data_miner_test; CREATE DATABASE data_miner_test CHARSET utf8"}
   $stderr.puts "Running `#{cmd}`..."
   system cmd
@@ -40,14 +38,14 @@ def init_database(unit_converter = :alchemist)
   DataMiner::Run.clear_locks
 
   DataMiner.unit_converter = unit_converter
+end
+
+def init_models
+  require 'support/breed'
+  require 'support/pet'
+  Pet.auto_upgrade!
 
   ActiveRecord::Base.descendants.each do |model|
     model.attr_accessible nil
   end
-end
-
-def init_pet
-  require_relative './support/breed'
-  require_relative './support/pet'
-  Pet.auto_upgrade!
 end

@@ -1,4 +1,4 @@
-require_relative '../helper'
+require 'helper'
 
 require 'conversions'
 Conversions.register :years, :years, 1
@@ -6,7 +6,7 @@ Conversions.register :years, :years, 1
 describe 'DataMiner with Conversions' do
   before do
     init_database(:conversions)
-    init_pet
+    init_models
     Pet.run_data_miner!
   end
 

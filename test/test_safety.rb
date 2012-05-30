@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 require 'helper'
 init_database
-init_pet
+init_models
 require 'earth'
 
 require 'lock_method'
