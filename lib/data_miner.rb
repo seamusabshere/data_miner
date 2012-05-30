@@ -23,6 +23,7 @@ require 'data_miner/step/import'
 require 'data_miner/step/tap'
 require 'data_miner/step/process'
 require 'data_miner/run'
+require 'data_miner/unit_converter'
 
 # A singleton class that holds global configuration for data mining.
 #
@@ -44,6 +45,13 @@ class DataMiner
     # @private
     def compress_whitespace(str)
       str.gsub(INNER_SPACE, ' ').strip
+    end
+
+    def unit_converter=(conversion_library)
+      @unit_converter = conversion_library ? DataMiner::UnitConverter.load(conversion_library) : nil
+    end
+    def unit_converter
+      @unit_converter
     end
   end
 

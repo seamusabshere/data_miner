@@ -1,5 +1,3 @@
-require 'conversions'
-
 class DataMiner
   # A mapping between a local model column and a remote data source column.
   #
@@ -7,6 +5,12 @@ class DataMiner
   # @see DataMiner::Step::Import#store Telling an import step to store a column with DataMiner::Step::Import#store
   # @see DataMiner::Step::Import#key Telling an import step to key on a column with DataMiner::Step::Import#key
   class Attribute
+    class NoConverterSet < StandardError
+      def message
+        'You must set DataMiner.unit_converter to one of [:alchemist, :conversions] if you wish to convert units'
+      end
+    end
+
     class << self
       # @private
       def check_options(options)
@@ -111,14 +115,15 @@ class DataMiner
     # @return [Hash]
     attr_reader :split
 
-    # Final units. May invoke a conversion using https://github.com/seamusabshere/conversions
+    # Final units. May invoke a conversion using https://rubygems.org/gems/alchemist
     #
     # If a local column named +[name]_units+ exists, it will be populated with this value.
     #
     # @return [Symbol]
     attr_reader :to_units
 
-    # Initial units. May invoke a conversion using https://github.com/seamusabshere/conversions
+    # Initial units. May invoke a conversion using a conversion gem like https://rubygems.org/gems/alchemist
+    # Be sure to set DataMiner.unit_converter
     # @return [Symbol]
     attr_reader :from_units
 
@@ -259,14 +264,7 @@ class DataMiner
       if upcase
         value = DataMiner.upcase value
       end
-      if convert?
-        final_from_units = from_units || read_units(row)
-        final_to_units = to_units || read_units(row)
-        if final_from_units.blank? or final_to_units.blank?
-          raise ::RuntimeError, "[data_miner] Missing units (from=#{final_from_units.inspect}, to=#{final_to_units.inspect}"
-        end
-        value = value.to_f.convert final_from_units, final_to_units
-      end
+      value = convert_units value, row
       if sprintf
         if sprintf.end_with?('f')
           value = value.to_f
@@ -279,6 +277,18 @@ class DataMiner
         value = dictionary.lookup(value)
       end
       value
+    end
+
+    # @private
+    def convert_units(value, row)
+      enforce_conversion_options
+      if convert?
+        final_from_units = from_units || read_units(row)
+        final_to_units = to_units || read_units(row)
+        DataMiner.unit_converter.convert(value, final_from_units, final_to_units)
+      else
+        value
+      end
     end
 
     # @private
@@ -306,7 +316,15 @@ class DataMiner
       @dictionary_boolean
     end
 
+    def enforce_conversion_options
+      raise NoConverterSet if DataMiner.unit_converter.nil? and convert_options_present?
+    end
+
     def convert?
+      !DataMiner.unit_converter.nil? and convert_options_present?
+    end
+
+    def convert_options_present?
       from_units.present? or units_field_name.present? or units_field_number.present?
     end
 
