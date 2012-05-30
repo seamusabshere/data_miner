@@ -1,6 +1,6 @@
 name,breed,color,age,age_units,weight,height,favorite_food,command_phrase
 Pierre,Tabby,GO,4,years,4.4,30,tomato,"eh"
 Jerry,Beagle,BR/BL,5,years,10,30,cheese,"che"
-Amigo,Spanish Lizarto,GR/BU,17,years,"   ",3,crickets,"    "
+Amigo,Spanish Lizarto,GR/BU,"6,205",days,"   ",3,crickets,"    "
 Johnny,Beagle,BR/BL,2,years,20,45,"   ",
 Nemo,,,,,,,,
