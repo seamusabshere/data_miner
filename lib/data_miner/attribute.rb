@@ -23,7 +23,13 @@ class DataMiner
         errors
       end
     end
-
+    
+    def number_column?
+      return @number_column_query[0] if @number_column_query.is_a?(Array)
+      @number_column_query = [model.columns_hash[name.to_s].number?]
+      @number_column_query[0]
+    end
+    
     VALID_OPTIONS = [
       :from_units,
       :to_units,
@@ -244,8 +250,22 @@ class DataMiner
         return value
       end
       value = value.to_s
-      if value =~ /^\d+,\d+(\.\d+)?$/
-        value = value.delete(',')
+      if number_column?
+        period_position = value.rindex '.'
+        comma_position = value.rindex ','
+        # assume that ',' is a thousands separator and '.' is a decimal point unless we have evidence to the contrary
+        if period_position and comma_position and comma_position > period_position
+          # uncommon euro style 1.000,53
+          value = value.delete('.').gsub(',', '.')
+        elsif comma_position
+          if comma_position > (value.length - 4)
+            # uncommon euro style 1000,53
+            value = value.gsub(',', '.')
+          else
+            # more common 1,000[.00] style - still don't want commas
+            value = value.delete(',')
+          end
+        end
       end
       if chars
         value = value[chars]

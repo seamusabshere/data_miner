@@ -50,7 +50,7 @@ class Pet < ActiveRecord::Base
   col :age_units
   col :weight, :type => :float
   col :weight_units
-  col :height, :type => :integer
+  col :height, :type => :float
   col :height_units
   col :favorite_food
   col :command_phrase
@@ -66,7 +66,7 @@ class Pet < ActiveRecord::Base
       store :weight, :from_units => :pounds, :to_units => :kilograms
       store :favorite_food, :nullify_blank_strings => true
       store :command_phrase
-      store :height, :units => :centimetres
+      store :height, :units => :millimetres
     end
   end
 end
