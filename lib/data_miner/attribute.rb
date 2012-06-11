@@ -257,14 +257,12 @@ class DataMiner
         if period_position and comma_position and comma_position > period_position
           # uncommon euro style 1.000,53
           value = value.delete('.').gsub(',', '.')
+        elsif comma_position and > (value.length - 4)
+          # uncommon euro style 1000,53
+          value = value.gsub(',', '.')
         elsif comma_position
-          if comma_position > (value.length - 4)
-            # uncommon euro style 1000,53
-            value = value.gsub(',', '.')
-          else
-            # more common 1,000[.00] style - still don't want commas
-            value = value.delete(',')
-          end
+          # more common 1,000[.00] style - still don't want commas
+          value = value.delete(',')
         end
       end
       if chars
