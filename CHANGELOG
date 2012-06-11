@@ -1,3 +1,14 @@
+unreleased
+
+* Breaking changes
+
+  * You must specify DataMiner.units_convert = {:alchemist,:conversions}
+
+* Enhancements
+
+  * Swappable unit conversion libraries [@dkastner]
+  * Intelligent parsing of commas and periods in number fields [@ihough]
+
 2.1.2 / 2012-05-22
 
 * Breaking changes
