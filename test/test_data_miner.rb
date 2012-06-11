@@ -67,6 +67,13 @@ describe DataMiner do
       Breed.run_data_miner!
       Breed.find('Beagle').average_age.must_equal((5+2)/2.0)
     end
+    it "properly interprets numbers using comma or period separators" do
+      Pet.run_data_miner!
+      Pet.find('Pierre').height.must_equal 3000.5
+      Pet.find('Jerry').height.must_equal 3000.0
+      Pet.find('Amigo').height.must_equal 300.5
+      Pet.find('Johnny').height.must_equal 4000.0
+    end
     it "performs unit conversions" do
       Pet.run_data_miner!
       Pet.find('Pierre').weight.must_be_close_to 1.9958 # 4.4 pounds in kilograms
@@ -75,7 +82,7 @@ describe DataMiner do
       Pet.run_data_miner!
       Pet.find('Pierre').age_units.must_equal 'years'
       Pet.find('Pierre').weight_units.must_equal 'kilograms'
-      Pet.find('Pierre').height_units.must_equal 'centimetres'
+      Pet.find('Pierre').height_units.must_equal 'millimetres'
     end
     it "always nullifies numeric columns when blank/nil is the input" do
       Pet.run_data_miner!
