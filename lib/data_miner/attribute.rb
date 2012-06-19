@@ -228,11 +228,15 @@ class DataMiner
 
     # @private
     def updates(remote_row)
-      memo = { name => read(remote_row) }
-      if persist_units? and (final_to_units = (to_units || read_units(remote_row)))
-        memo["#{name}_units"] = final_to_units.to_s
+      v = read remote_row
+      if persist_units?
+        v_units = unless v.nil?
+          to_units || read_units(remote_row)
+        end
+        { name => v, "#{name}_units" => v_units }
+      else
+        { name => v }
       end
-      memo
     end
 
     # @private
