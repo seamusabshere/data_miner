@@ -1,7 +1,9 @@
 require 'rubygems'
 require 'bundler/setup'
 
-if Bundler.definition.specs['ruby-debug19'].first or Bundler.definition.specs['ruby-debug'].first
+if Bundler.definition.specs['debugger'].first
+  require 'debugger'
+elsif Bundler.definition.specs['ruby-debug'].first
   require 'ruby-debug'
 end
 
