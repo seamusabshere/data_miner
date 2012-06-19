@@ -18,12 +18,48 @@ require 'logger'
 ActiveRecord::Base.logger = Logger.new $stderr
 ActiveRecord::Base.logger.level = Logger::INFO
 # ActiveRecord::Base.logger.level = Logger::DEBUG
-ActiveRecord::Base.establish_connection(
-  'adapter' => 'mysql2',
-  'database' => 'data_miner_test',
-  'username' => 'root',
-  'password' => 'password'
-)
+
+case ENV['DATABASE']
+when /mysql/i
+  bin = ENV['TEST_MYSQL_BIN'] || 'mysql'
+  username = ENV['TEST_MYSQL_USERNAME'] || 'root'
+  password = ENV['TEST_MYSQL_PASSWORD'] || 'password'
+  database = ENV['TEST_MYSQL_DATABASE'] || 'data_miner_test'
+  cmd = "#{bin} -u #{username} -p#{password}"
+  `#{cmd} -e 'show databases'`
+  unless $?.success?
+    $stderr.puts "Skipping mysql tests because `#{cmd}` doesn't work"
+    exit 0
+  end
+  system %{#{cmd} -e "drop database #{database}"}
+  system %{#{cmd} -e "create database #{database}"}
+  ActiveRecord::Base.establish_connection(
+    'adapter' => (RUBY_PLATFORM == 'java' ? 'mysql' : 'mysql2'),
+    'encoding' => 'utf8',
+    'database' => database,
+    'username' => username,
+    'password' => password
+  )
+when /postgr/i
+  createdb_bin = ENV['TEST_CREATEDB_BIN'] || 'createdb'
+  dropdb_bin = ENV['TEST_DROPDB_BIN'] || 'dropdb'
+  username = ENV['TEST_POSTGRES_USERNAME'] || `whoami`.chomp
+  # password = ENV['TEST_POSTGRES_PASSWORD'] || 'password'
+  database = ENV['TEST_POSTGRES_DATABASE'] || 'data_miner_test'
+  system %{#{dropdb_bin} #{database}}
+  system %{#{createdb_bin} #{database}}
+  ActiveRecord::Base.establish_connection(
+    'adapter' => 'postgresql',
+    'encoding' => 'utf8',
+    'database' => database,
+    'username' => username
+    # 'password' => password
+  )
+when /sqlite/i
+  ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
+else
+  raise "don't know how to test against #{ENV['DATABASE']}"
+end
 
 ActiveRecord::Base.mass_assignment_sanitizer = :strict
 

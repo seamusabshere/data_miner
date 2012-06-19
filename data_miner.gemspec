@@ -32,7 +32,16 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'lock_method'
   s.add_development_dependency 'minitest'
   s.add_development_dependency 'minitest-reporters'
-  s.add_development_dependency 'mysql2'
   s.add_development_dependency 'rake'
   s.add_development_dependency 'yard'
+  if RUBY_PLATFORM == 'java'
+    s.add_development_dependency 'jruby-openssl'
+    s.add_development_dependency 'activerecord-jdbcsqlite3-adapter'
+    s.add_development_dependency 'activerecord-jdbcmysql-adapter'
+    s.add_development_dependency 'activerecord-jdbcpostgresql-adapter'
+  else
+    s.add_development_dependency 'sqlite3'
+    s.add_development_dependency 'mysql2'
+    s.add_development_dependency 'pg'
+  end
 end
