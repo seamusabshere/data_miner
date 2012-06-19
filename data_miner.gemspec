@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'activesupport', '>=2.3.4'
   s.add_runtime_dependency 'errata', '>=1.0.1'
   s.add_runtime_dependency 'remote_table', '>=1.2.2'
+  s.add_runtime_dependency 'upsert'
 
   s.add_development_dependency 'dkastner-alchemist'
   s.add_development_dependency 'conversions'

@@ -1,5 +1,6 @@
 require 'errata'
 require 'remote_table'
+require 'upsert'
 
 class DataMiner
   class Step
@@ -84,11 +85,18 @@ class DataMiner
 
       # @private
       def start
-        table.each do |row|
-          record = model.send "find_or_initialize_by_#{@key}", attributes[@key].read(row)
-          attributes.each { |_, attr| attr.set_from_row record, row }
-          record.save!
+        c = ActiveRecord::Base.connection_pool.checkout
+        Upsert.stream(c, model.table_name) do |upsert|
+          table.each do |row|
+            selector = { @key => attributes[@key].read(row) }
+            document = attributes.except(@key).inject({}) do |memo, (_, v)|
+              memo.merge! v.updates(row)
+              memo
+            end
+            upsert.row selector, document
+          end
         end
+        ActiveRecord::Base.connection_pool.checkin c
         refresh
         nil
       end

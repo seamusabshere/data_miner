@@ -211,20 +211,28 @@ class DataMiner
       end
     end
 
+    # # @private
+    # TODO make sure that nil handling is replicated when using upsert
+    # def set_from_row(local_record, remote_row)
+    #   previously_nil = local_record.send(name).nil?
+    #   currently_nil = false
+    #   if previously_nil or overwrite
+    #     new_value = read remote_row
+    #     local_record.send "#{name}=", new_value
+    #     currently_nil = new_value.nil?
+    #   end
+    #   if not currently_nil and persist_units? and (final_to_units = (to_units || read_units(remote_row)))
+    #     local_record.send "#{name}_units=", final_to_units
+    #   end
+    # end
+
     # @private
-    def set_from_row(local_record, remote_row)
-      previously_nil = local_record.send(name).nil?
-      currently_nil = false
-
-      if previously_nil or overwrite
-        new_value = read remote_row
-        local_record.send "#{name}=", new_value
-        currently_nil = new_value.nil?
+    def updates(remote_row)
+      memo = { name => read(remote_row) }
+      if persist_units? and (final_to_units = (to_units || read_units(remote_row)))
+        memo["#{name}_units"] = final_to_units.to_s
       end
-
-      if not currently_nil and persist_units? and (final_to_units = (to_units || read_units(remote_row)))
-        local_record.send "#{name}_units=", final_to_units
-      end
+      memo
     end
 
     # @private
