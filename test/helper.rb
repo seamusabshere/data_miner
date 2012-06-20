@@ -20,7 +20,24 @@ ActiveRecord::Base.logger.level = Logger::INFO
 # ActiveRecord::Base.logger.level = Logger::DEBUG
 
 case ENV['DATABASE']
-when /mysql/i
+when /postgr/i
+  createdb_bin = ENV['TEST_CREATEDB_BIN'] || 'createdb'
+  dropdb_bin = ENV['TEST_DROPDB_BIN'] || 'dropdb'
+  username = ENV['TEST_POSTGRES_USERNAME'] || `whoami`.chomp
+  # password = ENV['TEST_POSTGRES_PASSWORD'] || 'password'
+  database = ENV['TEST_POSTGRES_DATABASE'] || 'data_miner_test'
+  system %{#{dropdb_bin} #{database}}
+  system %{#{createdb_bin} #{database}}
+  ActiveRecord::Base.establish_connection(
+    'adapter' => 'postgresql',
+    'encoding' => 'utf8',
+    'database' => database,
+    'username' => username
+    # 'password' => password
+  )
+when /sqlite/i
+  ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
+else
   bin = ENV['TEST_MYSQL_BIN'] || 'mysql'
   username = ENV['TEST_MYSQL_USERNAME'] || 'root'
   password = ENV['TEST_MYSQL_PASSWORD'] || 'password'
@@ -40,25 +57,6 @@ when /mysql/i
     'username' => username,
     'password' => password
   )
-when /postgr/i
-  createdb_bin = ENV['TEST_CREATEDB_BIN'] || 'createdb'
-  dropdb_bin = ENV['TEST_DROPDB_BIN'] || 'dropdb'
-  username = ENV['TEST_POSTGRES_USERNAME'] || `whoami`.chomp
-  # password = ENV['TEST_POSTGRES_PASSWORD'] || 'password'
-  database = ENV['TEST_POSTGRES_DATABASE'] || 'data_miner_test'
-  system %{#{dropdb_bin} #{database}}
-  system %{#{createdb_bin} #{database}}
-  ActiveRecord::Base.establish_connection(
-    'adapter' => 'postgresql',
-    'encoding' => 'utf8',
-    'database' => database,
-    'username' => username
-    # 'password' => password
-  )
-when /sqlite/i
-  ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
-else
-  raise "don't know how to test against #{ENV['DATABASE']}"
 end
 
 ActiveRecord::Base.mass_assignment_sanitizer = :strict
