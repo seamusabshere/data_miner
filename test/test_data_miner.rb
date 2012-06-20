@@ -108,5 +108,9 @@ describe DataMiner do
       Pet.data_miner_runs.first.row_count_before.must_equal 0
       Pet.data_miner_runs.first.row_count_after.must_equal 5
     end
+    it "can import based on keys other than the primary key" do
+      Pet2.run_data_miner!
+      Pet2.find('Jerry').breed_id.must_equal 'Beagle-Basset'
+    end
   end
 end

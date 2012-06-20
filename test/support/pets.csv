@@ -1,6 +1,6 @@
-name,breed,color,age,age_units,weight,height,favorite_food,command_phrase
-Pierre,Tabby,GO,4,years,4.4,"3.000,5",tomato,"eh"
-Jerry,Beagle,BR/BL,5,years,10,"3,000.0",cheese,"che"
-Amigo,Spanish Lizarto,GR/BU,17,years,"   ","300,5",crickets,"    "
-Johnny,Beagle,BR/BL,2,years,20,"4,000","   ",
-Nemo,,,,,,,,
+license_number,name,breed,color,age,age_units,weight,height,favorite_food,command_phrase
+111,Pierre,Tabby,GO,4,years,4.4,"3.000,5",tomato,"eh"
+222,Jerry,Beagle,BR/BL,5,years,10,"3,000.0",cheese,"che"
+333,Amigo,Spanish Lizarto,GR/BU,17,years,"   ","300,5",crickets,"    "
+444,Johnny,Beagle,BR/BL,2,years,20,"4,000","   ",
+555,Nemo,,,,,,,,

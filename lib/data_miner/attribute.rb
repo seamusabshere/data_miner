@@ -25,13 +25,7 @@ class DataMiner
         errors
       end
     end
-    
-    def number_column?
-      return @number_column_query[0] if @number_column_query.is_a?(Array)
-      @number_column_query = [model.columns_hash[name.to_s].number?]
-      @number_column_query[0]
-    end
-    
+
     VALID_OPTIONS = [
       :from_units,
       :to_units,
@@ -213,18 +207,18 @@ class DataMiner
 
     # # @private
     # TODO make sure that nil handling is replicated when using upsert
-    # def set_from_row(local_record, remote_row)
-    #   previously_nil = local_record.send(name).nil?
-    #   currently_nil = false
-    #   if previously_nil or overwrite
-    #     new_value = read remote_row
-    #     local_record.send "#{name}=", new_value
-    #     currently_nil = new_value.nil?
-    #   end
-    #   if not currently_nil and persist_units? and (final_to_units = (to_units || read_units(remote_row)))
-    #     local_record.send "#{name}_units=", final_to_units
-    #   end
-    # end
+    def set_from_row(local_record, remote_row)
+      previously_nil = local_record.send(name).nil?
+      currently_nil = false
+      if previously_nil or overwrite
+        new_value = read remote_row
+        local_record.send "#{name}=", new_value
+        currently_nil = new_value.nil?
+      end
+      if not currently_nil and persist_units? and (final_to_units = (to_units || read_units(remote_row)))
+        local_record.send "#{name}_units=", final_to_units
+      end
+    end
 
     # @private
     def updates(remote_row)
@@ -328,7 +322,7 @@ class DataMiner
     def refresh
       @dictionary = nil
     end
-        
+
     private
 
     def model
@@ -336,9 +330,15 @@ class DataMiner
     end
 
     def text_column?
-      return @text_column_query[0] if @text_column_query.is_a?(Array)
+      return @text_column_query.first if @text_column_query.is_a?(Array)
       @text_column_query = [model.columns_hash[name.to_s].text?]
-      @text_column_query[0]
+      @text_column_query.first
+    end
+    
+    def number_column?
+      return @number_column_query.first if @number_column_query.is_a?(Array)
+      @number_column_query = [model.columns_hash[name.to_s].number?]
+      @number_column_query.first
     end
 
     def static?

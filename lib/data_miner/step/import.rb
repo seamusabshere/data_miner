@@ -85,23 +85,46 @@ class DataMiner
 
       # @private
       def start
-        c = ActiveRecord::Base.connection_pool.checkout
-        Upsert.stream(c, model.table_name) do |upsert|
-          table.each do |row|
-            selector = { @key => attributes[@key].read(row) }
-            document = attributes.except(@key).inject({}) do |memo, (_, v)|
-              memo.merge! v.updates(row)
-              memo
+        if storing_primary_key? or table_has_autoincrementing_primary_key?
+          c = ActiveRecord::Base.connection_pool.checkout
+          Upsert.stream(c, model.table_name) do |upsert|
+            table.each do |row|
+              selector = { @key => attributes[@key].read(row) }
+              document = attributes.except(@key).inject({}) do |memo, (_, attr)|
+                memo.merge! attr.updates(row)
+                memo
+              end
+              upsert.row selector, document
             end
-            upsert.row selector, document
+          end
+          ActiveRecord::Base.connection_pool.checkin c
+        else
+          table.each do |row|
+            record = model.send "find_or_initialize_by_#{@key}", attributes[@key].read(row)
+            attributes.each { |_, attr| attr.set_from_row record, row }
+            record.save!
           end
         end
-        ActiveRecord::Base.connection_pool.checkin c
         refresh
         nil
       end
 
       private
+
+      def table_has_autoincrementing_primary_key?
+        return @table_has_autoincrementing_primary_key_query.first if @table_has_autoincrementing_primary_key_query.is_a?(Array)
+        answer = model.columns.any? do |column|
+          column.primary and column.sql_type =~ /\bint/i
+        end
+        @table_has_autoincrementing_primary_key_query = [answer]
+        answer
+      end
+
+      def storing_primary_key?
+        return @storing_primary_key_query.first if @storing_primary_key_query.is_a?(Array)
+        @storing_primary_key_query = [attributes.has_key?(model.primary_key.to_sym)]
+        @storing_primary_key_query.first
+      end
 
       def table
         @table || @table_mutex.synchronize do
