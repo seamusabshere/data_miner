@@ -66,7 +66,7 @@ class DataMiner
 
     validates_presence_of :model_name
 
-    has_many :column_statistics, :class_name => 'DataMiner::Run::ColumnStatistic'
+    has_many :column_statistics, :class_name => 'DataMiner::Run::ColumnStatistic', :order => 'id ASC'
 
     include ::AASM
     aasm_initial_state INITIAL_STATE

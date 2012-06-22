@@ -27,7 +27,7 @@ describe DataMiner::Run::ColumnStatistic do
 
     it "keeps max and min (as strings)" do
       Pet.data_miner_runs.first.initial_column_statistics(:age).max.must_equal 'nil'
-      Pet.data_miner_runs.first.final_column_statistics(:age).max.must_equal '17'
+      Pet.data_miner_runs.first.final_column_statistics(:age).max.must_include '17'
     end
 
     it "keeps average and sum" do
