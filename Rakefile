@@ -11,6 +11,7 @@ end
 
 task :test_separately do
   Dir[File.expand_path('../test/**/test_*.rb', __FILE__)].each do |path|
+    sleep 0.5
     system "rake test TEST=#{path}"
   end
 end
