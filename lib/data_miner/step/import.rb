@@ -113,9 +113,23 @@ class DataMiner
 
       def table_has_autoincrementing_primary_key?
         return @table_has_autoincrementing_primary_key_query.first if @table_has_autoincrementing_primary_key_query.is_a?(Array)
-        answer = model.columns.any? do |column|
-          column.primary and column.sql_type =~ /\bint/i
+        c = ActiveRecord::Base.connection_pool.checkout
+        answer = if (pk = model.primary_key) and model.columns_hash[pk].type == :integer
+          case c.adapter_name
+          when /mysql/i
+            extra = c.select_value %{SELECT EXTRA FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = #{c.quote(c.current_database)} AND TABLE_NAME = #{c.quote(model.table_name)} AND COLUMN_NAME = #{c.quote(pk)}}
+            extra.to_s.include?('auto_increment')
+          when /postgres/i
+            column_default = c.select_value %{SELECT COLUMN_DEFAULT FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = #{c.quote(model.table_name)} AND COLUMN_NAME = #{c.quote(pk)}}
+            column_default.to_s.include?('nextval')
+          when /sqlite/i
+            # FIXME doesn't work
+            # row = c.select_rows("PRAGMA table_info(#{model.quoted_table_name})").detect { |r| r[1] == pk }
+            # row[2] == 'INTEGER' and row[3] == 1 and row[5] == 1
+            true
+          end
         end
+        ActiveRecord::Base.connection_pool.checkin c
         @table_has_autoincrementing_primary_key_query = [answer]
         answer
       end

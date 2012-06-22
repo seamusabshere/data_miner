@@ -19,55 +19,34 @@ ActiveRecord::Base.logger = Logger.new $stderr
 ActiveRecord::Base.logger.level = Logger::INFO
 # ActiveRecord::Base.logger.level = Logger::DEBUG
 
-case ENV['DATABASE']
-when /postgr/i
-  createdb_bin = ENV['TEST_CREATEDB_BIN'] || 'createdb'
-  dropdb_bin = ENV['TEST_DROPDB_BIN'] || 'dropdb'
-  username = ENV['TEST_POSTGRES_USERNAME'] || `whoami`.chomp
-  # password = ENV['TEST_POSTGRES_PASSWORD'] || 'password'
-  database = ENV['TEST_POSTGRES_DATABASE'] || 'data_miner_test'
-  system %{#{dropdb_bin} #{database}}
-  system %{#{createdb_bin} #{database}}
-  ActiveRecord::Base.establish_connection(
-    'adapter' => 'postgresql',
-    'encoding' => 'utf8',
-    'database' => database,
-    'username' => username
-    # 'password' => password
-  )
-when /sqlite/i
-  ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
-else
-  bin = ENV['TEST_MYSQL_BIN'] || 'mysql'
-  username = ENV['TEST_MYSQL_USERNAME'] || 'root'
-  password = ENV['TEST_MYSQL_PASSWORD'] || 'password'
-  database = ENV['TEST_MYSQL_DATABASE'] || 'data_miner_test'
-  cmd = "#{bin} -u #{username} -p#{password}"
-  `#{cmd} -e 'show databases'`
-  unless $?.success?
-    $stderr.puts "Skipping mysql tests because `#{cmd}` doesn't work"
-    exit 0
-  end
-  system %{#{cmd} -e "drop database #{database}"}
-  system %{#{cmd} -e "create database #{database}"}
-  ActiveRecord::Base.establish_connection(
-    'adapter' => (RUBY_PLATFORM == 'java' ? 'mysql' : 'mysql2'),
-    'encoding' => 'utf8',
-    'database' => database,
-    'username' => username,
-    'password' => password
-  )
-end
-
 ActiveRecord::Base.mass_assignment_sanitizer = :strict
 
 require 'data_miner'
 
 def init_database(unit_converter = :conversions)
-  cmd = %{mysql -u root -ppassword -e "DROP DATABASE data_miner_test; CREATE DATABASE data_miner_test CHARSET utf8"}
-  $stderr.puts "Running `#{cmd}`..."
-  system cmd
-  $stderr.puts "Done."
+  case ENV['DATABASE']
+  when /postgr/i
+    system %{dropdb test_data_miner}
+    system %{createdb test_data_miner}
+    ActiveRecord::Base.establish_connection(
+      'adapter' => 'postgresql',
+      'encoding' => 'utf8',
+      'database' => 'test_data_miner',
+      'username' => `whoami`.chomp
+    )
+  when /sqlite/i
+    ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
+  else
+    system %{mysql -u root -ppassword -e "DROP DATABASE test_data_miner"}
+    system %{mysql -u root -ppassword -e "CREATE DATABASE test_data_miner CHARSET utf8"}
+    ActiveRecord::Base.establish_connection(
+      'adapter' => (RUBY_PLATFORM == 'java' ? 'mysql' : 'mysql2'),
+      'encoding' => 'utf8',
+      'database' => 'test_data_miner',
+      'username' => 'root',
+      'password' => 'password'
+    )
+  end
 
   DataMiner::Run.auto_upgrade!
   DataMiner::Run::ColumnStatistic.auto_upgrade!
