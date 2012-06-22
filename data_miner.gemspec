@@ -18,12 +18,12 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   
   s.add_runtime_dependency 'aasm'
-  s.add_runtime_dependency 'active_record_inline_schema'
+  s.add_runtime_dependency 'active_record_inline_schema', '>=0.5.6'
   s.add_runtime_dependency 'activerecord', '>=2.3.4'
   s.add_runtime_dependency 'activesupport', '>=2.3.4'
   s.add_runtime_dependency 'errata', '>=1.0.1'
-  s.add_runtime_dependency 'remote_table', '>=1.2.2'
-  s.add_runtime_dependency 'upsert'
+  s.add_runtime_dependency 'remote_table', '>=2.0.2'
+  s.add_runtime_dependency 'upsert', '>=0.3.1'
 
   s.add_development_dependency 'dkastner-alchemist'
   s.add_development_dependency 'conversions'

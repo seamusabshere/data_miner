@@ -1,3 +1,10 @@
+2.3.1 / 2012-06-22
+
+* Bug fixes
+
+  * Avoid duplicate rows by correctly identifying auto-increment versus non-auto-increment integer primary keys
+  * Properly sort per-row column statistics
+
 2.3.0 / 2012-06-21
 
 * Enhancements
