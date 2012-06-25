@@ -64,6 +64,10 @@ class DataMiner
     DEFAULT_UPCASE = false
     DEFAULT_OVERWRITE = true
 
+    # activerecord-3.2.6/lib/active_record/connection_adapters/column.rb
+    TRUE_VALUES = [true, 1, '1', 't', 'T', 'true', 'TRUE', 'on', 'ON', 'yes', 'YES', 'y', 'Y']
+    FALSE_VALUES = [false, 0, '0', 'f', 'F', 'false', 'FALSE', 'off', 'OFF', 'no', 'NO', 'n', 'N']
+
     # @private
     attr_reader :step
     
@@ -261,6 +265,15 @@ class DataMiner
         return value
       end
       value = value.to_s
+      if boolean_column?
+        if TRUE_VALUES.include?(value)
+          return true
+        elsif FALSE_VALUES.include?(value)
+          return false
+        else
+          return
+        end
+      end
       if number_column?
         period_position = value.rindex '.'
         comma_position = value.rindex ','
@@ -330,15 +343,18 @@ class DataMiner
     end
 
     def text_column?
-      return @text_column_query.first if @text_column_query.is_a?(Array)
-      @text_column_query = [model.columns_hash[name.to_s].text?]
-      @text_column_query.first
+      return @text_column_boolean if defined?(@text_column_boolean)
+      @text_column_boolean = model.columns_hash[name.to_s].text?
     end
     
     def number_column?
-      return @number_column_query.first if @number_column_query.is_a?(Array)
-      @number_column_query = [model.columns_hash[name.to_s].number?]
-      @number_column_query.first
+      return @number_column_boolean if defined?(@number_column_boolean)
+      @number_column_boolean = model.columns_hash[name.to_s].number?
+    end
+
+    def boolean_column?
+      return @boolean_column_boolean if defined?(@boolean_column_boolean)
+      @boolean_column_boolean = (model.columns_hash[name.to_s].type == :boolean)
     end
 
     def static?

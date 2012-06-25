@@ -1,3 +1,9 @@
+2.3.2 / 2012-06-25
+
+* Bug fixes
+
+  * Make sure 't', 'true', 1, '1', 'on', 'yes', etc. are treated as true for boolean columns (and 'f', 'false', 'FALSE', etc.)
+
 2.3.1 / 2012-06-22
 
 * Bug fixes
