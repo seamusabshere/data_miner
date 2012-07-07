@@ -129,4 +129,5 @@ class DataMiner
   end
 end
 
+DataMiner.model_names
 ::ActiveRecord::Base.extend ::DataMiner::ActiveRecordClassMethods
