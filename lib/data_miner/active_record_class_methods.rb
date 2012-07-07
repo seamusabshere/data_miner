@@ -96,7 +96,6 @@ class DataMiner
     #
     # @return [nil]
     def data_miner(options = {}, &blk)
-      DataMiner.model_names.add name
       unless options[:append]
         @data_miner_script = nil
       end

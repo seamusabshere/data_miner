@@ -1,3 +1,9 @@
+2.3.3 / 2012-07-06
+
+* Bug fixes
+
+  * Always register data miner scripts with DataMiner.model_names or else DataMiner.run won't work as expected - just bad logic before
+
 2.3.2 / 2012-06-25
 
 * Bug fixes

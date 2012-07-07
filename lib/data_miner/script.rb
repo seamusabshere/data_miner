@@ -47,6 +47,7 @@ class DataMiner
 
     # @private
     def initialize(model)
+      DataMiner.model_names.add model.name
       @model = model
       @steps = []
     end
