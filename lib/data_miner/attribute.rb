@@ -239,6 +239,9 @@ class DataMiner
 
     # @private
     def read(row)
+      unless column_exists?
+        raise RuntimeError, "[data_miner] Table #{model.table_name} does not have column #{name.inspect}"
+      end
       if matcher and matcher_output = matcher.match(row)
         return matcher_output
       end
@@ -340,6 +343,11 @@ class DataMiner
 
     def model
       step.model
+    end
+
+    def column_exists?
+      return @column_exists_boolean if defined?(@column_exists_boolean)
+      @column_exists_boolean = model.column_names.include? name.to_s
     end
 
     def text_column?

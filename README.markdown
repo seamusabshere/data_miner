@@ -116,6 +116,10 @@ And many more - look for the `data_miner.rb` file that corresponds to each model
 * Derek Kastner <dkastner@gmail.com>
 * Ian Hough <ijhough@gmail.com>
 
+## Wishlist
+
+* Make the tests real unit tests
+
 ## Copyright
 
 Copyright (c) 2012 Brighter Planet. See LICENSE for details.

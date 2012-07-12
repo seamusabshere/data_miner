@@ -59,8 +59,10 @@ def init_models
   require 'support/breed'
   require 'support/pet'
   require 'support/pet2'
+  require 'support/pet3'
   Pet.auto_upgrade!
   Pet2.auto_upgrade!
+  Pet3.auto_upgrade!
 
   ActiveRecord::Base.descendants.each do |model|
     model.attr_accessible nil

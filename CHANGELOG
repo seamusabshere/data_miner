@@ -1,3 +1,9 @@
+unreleased
+
+* Enhancements
+
+  * Die with a useful error message if a column specified in an import step doesn't exist - thanks @chrisle https://github.com/seamusabshere/data_miner/issues/17
+
 2.3.4 / 2012-07-06
 
 * Bug fixes

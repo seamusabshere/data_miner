@@ -7,6 +7,8 @@ describe DataMiner do
   describe "when used to import example data about pets" do
     before do
       Pet.delete_all
+      Pet2.delete_all
+      Pet3.delete_all
       DataMiner::Run.delete_all
       DataMiner::Run::ColumnStatistic.delete_all
     end
@@ -112,5 +114,11 @@ describe DataMiner do
       Pet2.run_data_miner!
       Pet2.find('Jerry').breed_id.must_equal 'Beagle-Basset'
     end
+    it "dies if a column specified in an import step doesn't exist" do
+      lambda do
+        Pet3.run_data_miner!
+      end.must_raise RuntimeError, /exist/i
+    end
+
   end
 end
