@@ -30,8 +30,17 @@ You define <code>data_miner</code> blocks in your ActiveRecord models. For examp
 
     class Country < ActiveRecord::Base
       self.primary_key = 'iso_3166_code'
+
+      # the "col" class method is provided by a different library - active_record_inline_schema
+      col :iso_3166_code                            # alpha-2 2-letter like GB
+      col :iso_3166_numeric_code, :type => :integer # numeric like 826; aka UN M49 code
+      col :iso_3166_alpha_3_code                    # 3-letter like GBR
+      col :name
   
       data_miner do
+        # auto_upgrade! is provided by active_record_inline_schema
+        process :auto_upgrade!
+
         import("OpenGeoCode.org's Country Codes to Country Names list",
                :url => 'http://opengeocode.org/download/countrynames.txt',
                :format => :delimited,
