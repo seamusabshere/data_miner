@@ -92,31 +92,6 @@ class DataMiner
       append(:process, method_id_or_description, &blk)
     end
 
-    # Use https://github.com/ricardochimal/taps to pull table structure and data.
-    #
-    # @see DataMiner::ActiveRecordClassMethods#data_miner Overview of how to define data miner scripts inside of ActiveRecord models.
-    # @see DataMiner::Step::Tap The actual Tap class.
-    #
-    # @param [String] description A description of the taps source.
-    # @param [String] source The taps URL, including username, password, domain, and port.
-    # @param [optional, Hash] options
-    # @option options [String] :source_table_name (model.table_name) The source table name, if different.
-    #
-    # @note The source table name will default to the model's table name. If it's different, use the +:source_table_name+ option.
-    # @note +taps+ needs to be installed on your system and in your PATH, but it doesn't have to be in your Gemfile. Sometimes having it in your Gemfile will cause Heroku deploys (etc.) to fail because it requires +sqlite3+.
-    #
-    # @example Tapping Brighter Planet's reference data web service
-    #   data_miner do
-    #     [...]
-    #     tap "Brighter Planet's reference data", "http://carbon:neutral@data.brighterplanet.com:5000"
-    #     [...]
-    #   end
-    #
-    # @return [nil]
-    def tap(description, source, options = {})
-      append :tap, description, source, options
-    end
-
     # Import rows into your model.
     #
     # @see DataMiner::ActiveRecordClassMethods#data_miner Overview of how to define data miner scripts inside of ActiveRecord models.

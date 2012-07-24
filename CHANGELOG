@@ -1,5 +1,9 @@
 unreleased
 
+* Breaking changes
+
+  * Entirely remove taps support - it doesn't preserve foreign key constraints and adds a lot of complexity
+
 * Enhancements
 
   * Die with a useful error message if a column specified in an import step doesn't exist - thanks @chrisle https://github.com/seamusabshere/data_miner/issues/17
