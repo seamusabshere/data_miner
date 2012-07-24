@@ -7,9 +7,6 @@ class DataMiner
     # @see DataMiner::ActiveRecordClassMethods#data_miner Overview of how to define data miner scripts inside of ActiveRecord models.
     # @see DataMiner::Script#process Creating a process step by calling DataMiner::Script#process from inside a data miner script
     class Process < Step
-      # @private
-      attr_reader :script
-
       # The method to be called on the model class.
       # @return [Symbol]
       attr_reader :method_id
@@ -25,7 +22,7 @@ class DataMiner
       alias :block_description :description
 
       # @private
-      def initialize(script, method_id_or_description, ignored_options = {}, &blk)
+      def initialize(script, method_id_or_description, ignored_options = nil, &blk)
         @script = script
         if block_given?
           @description = method_id_or_description

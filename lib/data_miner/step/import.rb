@@ -16,9 +16,6 @@ class DataMiner
       # @return [Array<DataMiner::Attribute>]
       attr_reader :attributes
 
-      # @private
-      attr_reader :script
-
       # Description of what this step does.
       # @return [String]
       attr_reader :description
