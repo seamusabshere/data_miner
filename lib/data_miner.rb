@@ -43,7 +43,7 @@ class DataMiner
 
     # @private
     def compress_whitespace(str)
-      str.gsub(INNER_SPACE, ' ').strip
+      str.gsub(INNER_SPACE, ONE_SPACE).strip
     end
 
     # Set the unit converter.
@@ -65,6 +65,7 @@ class DataMiner
   end
 
   INNER_SPACE = /[ ]+/
+  ONE_SPACE = ' '
 
   include ::Singleton
 
