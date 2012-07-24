@@ -212,7 +212,11 @@ class DataMiner
         args = ["#{klass.name.demodulize} step with no description"]
       end
       initializer = [self] + args + [options]
-      klass.new(*initializer, &blk)
+      if block_given?
+        klass.new(*initializer, &blk)
+      else
+        klass.new(*initializer)
+      end
     end
   end
 end
