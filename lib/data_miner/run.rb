@@ -100,9 +100,11 @@ class DataMiner
         fail!
         raise $!
       ensure
-        self.row_count_after = model.count
-        if DataMiner.per_column_statistics?
-          ColumnStatistic.take self
+        if model.table_exists?
+          self.row_count_after = model.count
+          if DataMiner.per_column_statistics?
+            ColumnStatistic.take self
+          end
         end
         self.stopped_at = ::Time.now.utc
         save!
