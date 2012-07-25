@@ -63,6 +63,7 @@ class DataMiner
     #
     # @see DataMiner::Script#import Creating an import step by calling DataMiner::Script#import from inside a data miner script
     # @see DataMiner::Script#process Creating a process step by calling DataMiner::Script#process from inside a data miner script
+    # @see DataMiner::Script#sql Creating a sql step by calling DataMiner::Script#sql from inside a data miner script
     #
     # @example Creating steps
     #   class MyModel < ActiveRecord::Base
@@ -70,6 +71,7 @@ class DataMiner
     #       process [...]
     #       import [...]
     #       import [...yes, it's ok to have more than one import step...]
+    #       sql [...]
     #       process [...]
     #       [...etc...]
     #     end

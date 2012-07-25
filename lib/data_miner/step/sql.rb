@@ -5,7 +5,7 @@ require 'unix_utils'
 
 class DataMiner
   class Step
-    # A step that executes an SQL file located at a URL.
+    # A step that executes a SQL, either from a string or as retrieved from a URL.
     #
     # Create these by calling +sql+ inside a +data_miner+ block.
     #
