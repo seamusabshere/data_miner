@@ -131,6 +131,22 @@ class DataMiner
       append(:import, description, table_and_errata_settings, &blk)
     end
 
+    # Execute a local or remote SQL file.
+    #
+    # @see DataMiner::ActiveRecordClassMethods#data_miner Overview of how to define data miner scripts inside of ActiveRecord models.
+    # @see DataMiner::Step::Sql The actual Sql class.
+    #
+    # @param [String] description A description of the SQL file.
+    # @param [String] url Location of the SQL file.
+    #
+    # @example Rapidly get a list of countries from Brighter Planet's Reference Data web service
+    #   data_miner do
+    #     sql "Brighter Planet's countries", 'http://data.brighterplanet.com/countries.sql'
+    #   end
+    def sql(description, url)
+      append(:sql, description, url)
+    end
+
     # Prepend a step to a script unless it's already there. Mostly for internal use.
     #
     # @return [nil]
