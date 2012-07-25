@@ -6,7 +6,7 @@ unreleased
 
 * Enhancements
 
-  * New "sql" step - executes a local or remote SQL file
+  * New "sql" step - executes SQL provided as a string OR a local/remote SQL file provided as a URL
   * Die with a useful error message if a column specified in an import step doesn't exist - thanks @chrisle https://github.com/seamusabshere/data_miner/issues/17
 
 2.3.4 / 2012-07-06

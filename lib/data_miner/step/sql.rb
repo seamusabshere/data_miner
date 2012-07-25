@@ -12,26 +12,42 @@ class DataMiner
     # @see DataMiner::ActiveRecordClassMethods#data_miner Overview of how to define data miner scripts inside of ActiveRecord models.
     # @see DataMiner::Script#sql Creating a sql step by calling DataMiner::Script#sql from inside a data miner script
     class Sql < Step
+      URL_DETECTOR = %r{^[^\s]*/[^\*]}
+
       # Description of what this step does.
       # @return [String]
       attr_reader :description
 
-      # Location of the source file.
+      # Location of the SQL file.
       # @return [String]
       attr_reader :url
+
+      # String containing the SQL.
+      # @return [String]
+      attr_reader :statement
       
       # @private
-      def initialize(script, description, url, ignored_options = nil)
+      def initialize(script, description, url_or_statement, ignored_options = nil)
         @script = script
         @description = description
-        @url = url
+        if url_or_statement =~ URL_DETECTOR
+          @url = url_or_statement
+        else
+          @statement = url_or_statement
+        end
       end
 
       # @private
       def start
-        tmp_path = UnixUtils.curl url
-        send config[:adapter], tmp_path
-        File.unlink tmp_path
+        if statement
+          c = ActiveRecord::Base.connection_pool.checkout
+          c.execute statement
+          ActiveRecord::Base.connection_pool.checkin c
+        else
+          tmp_path = UnixUtils.curl url
+          send config[:adapter], tmp_path
+          File.unlink tmp_path
+        end
       end
 
       private
