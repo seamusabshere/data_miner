@@ -36,6 +36,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'minitest-reporters'
   s.add_development_dependency 'rake'
   s.add_development_dependency 'yard'
+  s.add_development_dependency 'rdiscount'
   if RUBY_PLATFORM == 'java'
     s.add_development_dependency 'jruby-openssl'
     s.add_development_dependency 'activerecord-jdbcsqlite3-adapter'
