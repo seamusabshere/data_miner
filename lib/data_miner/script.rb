@@ -94,20 +94,30 @@ class DataMiner
 
     # Import rows into your model.
     #
+    # As long as...
+    # 1. you +key+ on the primary key, or
+    # 2. the table has an auto-increment primary key, or
+    # 3. you DON'T enable +:validate+
+    # ... then things will be sped up using the {https://github.com/seamusabshere/upsert upsert library} in streaming mode.
+    #
+    # Otherwise, native +ActiveRecord+ constuctors and validations will be used.
+    #
     # @see DataMiner::ActiveRecordClassMethods#data_miner Overview of how to define data miner scripts inside of ActiveRecord models.
     # @see DataMiner::Step::Import The actual Import class.
     #
     # @param [String] description A description of the data source.
-    # @param [Hash] table_and_errata_settings Settings, including URL of the data source, that are used to download/parse (using RemoteTable) and (sometimes) correct (using Errata) the data.
-    # @option table_and_errata_settings [String] :url The URL of the data source. Passed directly to +RemoteTable.new+.
-    # @option table_and_errata_settings [Hash] :errata The +:responder+ and +:url+ settings that will be passed to +Errata.new+.
-    # @option table_and_errata_settings [*] anything Any other setting will be passed to +RemoteTable.new+.
+    # @param [Hash] settings Settings, including URL of the data source, that are used to download/parse (using RemoteTable) and (sometimes) correct (using Errata) the data.
+    # @option settings [String] :url The URL of the data source. Passed directly to +RemoteTable.new+.
+    # @option settings [Hash] :errata The +:responder+ and +:url+ settings that will be passed to +Errata.new+.
+    # @option settings [TrueClass,FalseClass] :validate Whether to always run +ActiveRecord+ validations.
+    # @option settings [*] anything Any other setting will be passed to +RemoteTable.new+.
     #
     # @yield [] A block defining how to +key+ the import (to make it idempotent) and which columns to +store+.
     #
-    # @note Be sure to check out https://github.com/seamusabshere/remote_table and https://github.com/seamusabshere/errata for available +table_and_errata_settings+.
+    # @note Be sure to check out https://github.com/seamusabshere/remote_table and https://github.com/seamusabshere/errata for available +settings+.
     # @note There are hundreds of +import+ examples in https://github.com/brighterplanet/earth. The {file:README.markdown README} points to a few (at the bottom.)
     # @note We often use string primary keys to make idempotency easier. https://github.com/seamusabshere/active_record_inline_schema supports defining these inline.
+    # @note Enabling +:validate+ may slow down importing large files because it precludes bulk loading using https://github.com/seamusabshere/upsert.
     #
     # @example From the README
     #   data_miner do
@@ -127,8 +137,8 @@ class DataMiner
     #   end
     #
     # @return [nil]
-    def import(description, table_and_errata_settings, &blk)
-      append(:import, description, table_and_errata_settings, &blk)
+    def import(description, settings, &blk)
+      append(:import, description, settings, &blk)
     end
 
     # Execute SQL, provided either as a string or a URL.

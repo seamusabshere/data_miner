@@ -21,23 +21,24 @@ class DataMiner
       attr_reader :description
       
       # @private
-      def initialize(script, description, table_and_errata_settings, &blk)
-        table_and_errata_settings = table_and_errata_settings.symbolize_keys
-        if table_and_errata_settings.has_key?(:table)
+      def initialize(script, description, settings, &blk)
+        settings = settings.symbolize_keys
+        if settings.has_key?(:table)
           raise ::ArgumentError, %{[data_miner] :table is no longer an allowed setting.}
         end
-        if (errata_settings = table_and_errata_settings[:errata]) and not errata_settings.is_a?(::Hash)
+        if (errata_settings = settings[:errata]) and not errata_settings.is_a?(::Hash)
           raise ::ArgumentError, %{[data_miner] :errata must be a hash of initialization settings to Errata}
         end
         @script = script
         @attributes = ::ActiveSupport::OrderedHash.new
+        @validate_query = !!settings[:validate]
         @description = description
-        if table_and_errata_settings.has_key? :errata
-          errata_settings = table_and_errata_settings[:errata].symbolize_keys
+        if settings.has_key? :errata
+          errata_settings = settings[:errata].symbolize_keys
           errata_settings[:responder] ||= model
-          table_and_errata_settings[:errata] = errata_settings
+          settings[:errata] = errata_settings
         end
-        @table_settings = table_and_errata_settings.dup
+        @table_settings = settings.dup
         @table_settings[:streaming] = true
         @table_mutex = ::Mutex.new
         instance_eval(&blk)
@@ -82,7 +83,7 @@ class DataMiner
 
       # @private
       def start
-        if storing_primary_key? or table_has_autoincrementing_primary_key?
+        if not validate? and (storing_primary_key? or table_has_autoincrementing_primary_key?)
           c = ActiveRecord::Base.connection_pool.checkout
           Upsert.stream(c, model.table_name) do |upsert|
             table.each do |row|
@@ -104,6 +105,12 @@ class DataMiner
         end
         refresh
         nil
+      end
+
+      # @private
+      # Whether to run ActiveRecord validations. Slows things down because Upsert isn't used.
+      def validate?
+        @validate_query == true
       end
 
       private
