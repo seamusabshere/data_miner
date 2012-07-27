@@ -112,6 +112,21 @@ class DataMiner
         end
         nil
       end
+
+      def sqlite3(path)
+        argv = [
+          'sqlite3',
+          config[:database]
+        ]
+        File.open(path) do |f|
+          pid = POSIX::Spawn.spawn(*(argv+[{:in => f}]))
+          ::Process.waitpid pid
+        end
+        unless $?.success?
+          raise RuntimeError, %{[data_miner] Failed: "cat #{path} | #{argv.join(' ')}"}
+        end
+        nil
+      end
     end
   end
 end
