@@ -100,6 +100,10 @@ class DataMiner
         fail!
         raise $!
       ensure
+        if model.connection.respond_to?(:schema_cache)
+          model.connection.schema_cache.clear!
+        end
+        model.reset_column_information
         if model.table_exists?
           self.row_count_after = model.count
           if DataMiner.per_column_statistics?

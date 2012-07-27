@@ -3,6 +3,7 @@ unreleased
 * Enhancements
 
   * Support sqlite in sql steps
+  * More accurately detect if a table has been created during a run
 
 2.4.0 / 2012-07-26
 
