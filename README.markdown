@@ -119,6 +119,8 @@ And many more - look for the `data_miner.rb` file that corresponds to each model
 ## Wishlist
 
 * Make the tests real unit tests
+* sql steps shouldn't shell out if binaries are missing
+* csv import step that uses pg_restore, mysqlimport, etc.
 
 ## Copyright
 
