@@ -80,6 +80,10 @@ describe DataMiner do
       Pet.run_data_miner!
       Pet.find('Pierre').weight.must_be_close_to 1.9958 # 4.4 pounds in kilograms
     end
+    it "doesn't convert nil to 0 when converting units" do
+      Pet.run_data_miner!
+      Pet.find('Nemo').age.must_be_nil
+    end
     it "sets units" do
       Pet.run_data_miner!
       Pet.find('Pierre').age_units.must_equal 'years'
