@@ -25,7 +25,7 @@ class Pet < ActiveRecord::Base
       store :age, :units_field_name => 'age_units'
       store :breed_id, :field_name => :breed, :nullify_blank_strings => true
       store :color_id, :field_name => :color, :dictionary => { :url => "file://#{COLOR_DICTIONARY_ENGLISH}", :input => :input, :output => :output }
-      store :weight, :from_units => :pounds, :to_units => :kilograms
+      store :weight, :from_units => :pounds, :to_units => :kilograms, :sprintf => '%f'
       store :favorite_food, :nullify_blank_strings => true
       store :command_phrase
       store :height, :units => :millimetres
