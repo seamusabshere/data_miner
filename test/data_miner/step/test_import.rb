@@ -2,7 +2,9 @@ require 'helper'
 init_database
 require 'earth'
 
-Earth.init :residence, :electricity, :hospitality, :load_data_miner => true, :apply_schemas => true
+require 'earth/residence'
+require 'earth/electricity'
+require 'earth/hospitality'
 
 class PetBlue < ActiveRecord::Base
   data_miner do
