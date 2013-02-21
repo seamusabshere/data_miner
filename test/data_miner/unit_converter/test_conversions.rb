@@ -2,14 +2,19 @@ require 'helper'
 
 describe 'DataMiner::UnitConverter::Conversions' do
   before do
-    #DataMiner.unit_converter = :conversions
+    @original_converter = DataMiner.unit_converter
+    DataMiner.unit_converter = :conversions
+  end
+
+  after do
+    DataMiner.unit_converter = @original_converter
   end
 
   describe '#convert' do
     it 'converts a value from one unit to another' do
-      # can't load both alchemist and conversions in same test run
-      # see test/test_unit_conversion for coverage of this adapter
-      #DataMiner.unit_converter.convert 3.5, :kilograms, :pounds
+      value = DataMiner.unit_converter.convert 3.5, :kilograms, :pounds
+      assert value.is_a?(Float)
+      value.must_be_close_to 7.71617918
     end
   end
 end
