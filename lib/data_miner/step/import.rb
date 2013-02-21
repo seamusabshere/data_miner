@@ -19,7 +19,7 @@ class DataMiner
       # Description of what this step does.
       # @return [String]
       attr_reader :description
-      
+
       # @private
       def initialize(script, description, settings, &blk)
         settings = settings.symbolize_keys
@@ -83,27 +83,9 @@ class DataMiner
 
       # @private
       def start
-        if not validate? and (storing_primary_key? or table_has_autoincrementing_primary_key?)
-          c = ActiveRecord::Base.connection_pool.checkout
-          Upsert.stream(c, model.table_name) do |upsert|
-            table.each do |row|
-              selector = { @key => attributes[@key].read(row) }
-              document = attributes.except(@key).inject({}) do |memo, (_, attr)|
-                memo.merge! attr.updates(row)
-                memo
-              end
-              upsert.row selector, document
-            end
-          end
-          ActiveRecord::Base.connection_pool.checkin c
-        else
-          table.each do |row|
-            record = model.send "find_or_initialize_by_#{@key}", attributes[@key].read(row)
-            attributes.each { |_, attr| attr.set_from_row record, row }
-            record.save!
-          end
-        end
+        upsert_enabled? ? save_with_upsert : save_with_activerecord
         refresh
+
         nil
       end
 
@@ -114,6 +96,33 @@ class DataMiner
       end
 
       private
+
+      def upsert_enabled?
+        not validate? && (storing_primary_key? || table_has_autoincrementing_primary_key?)
+      end
+
+      def save_with_upsert
+        c = ActiveRecord::Base.connection_pool.checkout
+        Upsert.stream(c, model.table_name) do |upsert|
+          table.each do |row|
+            selector = { @key => attributes[@key].read(row) } if @key
+            document = attributes.except(@key).inject({}) do |memo, (_, attr)|
+              memo.merge! attr.updates(row)
+              memo
+            end
+            upsert.row selector || { model.primary_key => nil }, document
+          end
+        end
+        ActiveRecord::Base.connection_pool.checkin c
+      end
+
+      def save_with_activerecord
+        table.each do |row|
+          record = @key ? model.send("find_or_initialize_by_#{@key}", attributes[@key].read(row)) : model.new
+          attributes.each { |_, attr| attr.set_from_row record, row }
+          record.save!
+        end
+      end
 
       def table_has_autoincrementing_primary_key?
         return @table_has_autoincrementing_primary_key_query.first if @table_has_autoincrementing_primary_key_query.is_a?(Array)
