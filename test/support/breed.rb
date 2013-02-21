@@ -5,7 +5,7 @@ class Breed < ActiveRecord::Base
     def update_average_age!
       # make sure pet is populated
       Pet.run_data_miner!
-      update_all %{`average_age` = (SELECT AVG(`pets`.`age`) FROM `pets` WHERE `pets`.`breed_id` = `breeds`.`name`)}
+      update_all %{average_age = (SELECT AVG(pets.age) FROM pets WHERE pets.breed_id = breeds.name)}
     end
   end
   self.primary_key = "name"
