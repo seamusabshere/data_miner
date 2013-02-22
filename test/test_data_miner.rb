@@ -123,6 +123,37 @@ describe DataMiner do
         Pet3.run_data_miner!
       end.must_raise RuntimeError, /exist/i
     end
+  end
 
+  describe 'when the key attribute is not defined' do
+    class PetFunny < ActiveRecord::Base
+      col :name
+      col :breed
+      col :color
+
+      data_miner do
+        import 'without a key', url: "file://#{PETS_FUNNY}" do
+          store :name
+          store :breed
+          store :color
+        end
+      end
+    end
+    PetFunny.auto_upgrade!
+
+    before { PetFunny.delete_all }
+
+    it 'imports the example data' do
+      PetFunny.run_data_miner!
+      PetFunny.must_be :exists?
+    end
+
+    it 'imports new example data for each run' do
+      PetFunny.run_data_miner!
+      first_count = PetFunny.count
+
+      PetFunny.run_data_miner!
+      PetFunny.count.must_equal first_count * 2
+    end
   end
 end
