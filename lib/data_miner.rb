@@ -10,7 +10,7 @@ if RUBY_VERSION >= '1.9'
   begin
     require 'unicode_utils/downcase'
   rescue LoadError
-    Kernel.warn '[data_miner] You may wish to include unicode_utils in your Gemfile to improve accuracy of downcasing'
+    # oh well.
   end
 end
 
