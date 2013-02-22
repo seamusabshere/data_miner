@@ -105,12 +105,12 @@ class DataMiner
         c = ActiveRecord::Base.connection_pool.checkout
         Upsert.stream(c, model.table_name) do |upsert|
           table.each do |row|
-            selector = { @key => attributes[@key].read(row) } if @key
+            selector = @key ? { @key => attributes[@key].read(row) } : { model.primary_key => nil }
             document = attributes.except(@key).inject({}) do |memo, (_, attr)|
               memo.merge! attr.updates(row)
               memo
             end
-            upsert.row selector || { model.primary_key => nil }, document
+            upsert.row selector, document
           end
         end
         ActiveRecord::Base.connection_pool.checkin c
