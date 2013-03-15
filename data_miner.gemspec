@@ -26,7 +26,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'upsert', '>=0.3.1'
   s.add_runtime_dependency 'posix-spawn'
   s.add_runtime_dependency 'unix_utils'
-  s.add_runtime_dependency 'roo', '1.10.1'
+  s.add_runtime_dependency 'roo', '>=1.10.3'
 
   s.add_development_dependency 'dkastner-alchemist'
   s.add_development_dependency 'conversions'
