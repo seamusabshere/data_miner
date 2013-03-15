@@ -98,7 +98,7 @@ class DataMiner
       private
 
       def upsert_enabled?
-        not validate? && (storing_primary_key? || table_has_autoincrementing_primary_key?)
+        (not validate?) and (storing_primary_key? or table_has_autoincrementing_primary_key?)
       end
 
       def save_with_upsert
@@ -149,7 +149,7 @@ class DataMiner
 
       def storing_primary_key?
         return @storing_primary_key_query.first if @storing_primary_key_query.is_a?(Array)
-        @storing_primary_key_query = [attributes.has_key?(model.primary_key.to_sym)]
+        @storing_primary_key_query = [model.primary_key && attributes.has_key?(model.primary_key.to_sym)]
         @storing_primary_key_query.first
       end
 

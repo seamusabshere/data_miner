@@ -127,6 +127,7 @@ describe DataMiner do
 
   describe 'when the key attribute is not defined' do
     class PetFunny < ActiveRecord::Base
+      self.primary_key = false
       col :name
       col :breed
       col :color

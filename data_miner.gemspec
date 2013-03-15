@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   
   s.add_runtime_dependency 'aasm'
-  s.add_runtime_dependency 'active_record_inline_schema', '>=0.5.6'
+  s.add_runtime_dependency 'active_record_inline_schema', '>=0.6.1'
   s.add_runtime_dependency 'activerecord', '> 3'
   s.add_runtime_dependency 'activesupport', '> 3'
   s.add_runtime_dependency 'errata', '>=1.0.1'
