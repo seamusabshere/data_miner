@@ -1,3 +1,18 @@
+2.5.0 / 2013-03-15
+
+* Breaking changes
+
+  * Lock to roo 1.10.1 and activerecord > 3
+
+* Enhancements
+
+  * If you don't define a `key` in a data_miner block, then just keep appending records - thanks @towerhe
+  * Got rid of ridiculous "install unicode-utils" warning
+
+* Bug fixes
+
+  * Don't die because an Alchemist::NumericConversion is passed to a function that expects a plain Float - thanks @towerhe
+
 2.4.1 / 2012-07-26
 
 * Enhancements

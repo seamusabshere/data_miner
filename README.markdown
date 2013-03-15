@@ -115,13 +115,13 @@ And many more - look for the `data_miner.rb` file that corresponds to each model
 * Andy Rossmeissl <andy@rossmeissl.net>
 * Derek Kastner <dkastner@gmail.com>
 * Ian Hough <ijhough@gmail.com>
+* Tower He <towerhe@gmail.com>
 
 ## Wishlist
 
 * Make the tests real unit tests
 * sql steps shouldn't shell out if binaries are missing
-* csv import step that uses pg_restore, mysqlimport, etc.
 
 ## Copyright
 
-Copyright (c) 2012 Brighter Planet. See LICENSE for details.
+Copyright (c) 2013 Seamus Abshere

@@ -4,8 +4,8 @@ require File.expand_path("../lib/data_miner/version", __FILE__)
 Gem::Specification.new do |s|
   s.name        = "data_miner"
   s.version     = DataMiner::VERSION
-  s.authors     = ["Seamus Abshere", "Andy Rossmeissl", "Derek Kastner"]
-  s.email       = ["seamus@abshere.net"]
+  s.authors     = ["Seamus Abshere", "Andy Rossmeissl", "Derek Kastner", "Ian Hough", "Tower He"]
+  s.email       = ["seamus@abshere.net", "rossmeissl@gmail.com", "dkastner@gmail.com", "ijhough@gmail.com", "towerhe@gmail.com"]
   s.homepage    = "https://github.com/seamusabshere/data_miner"
   s.summary     = %{Download, pull out of a ZIP/TAR/GZ/BZ2 archive, parse, correct, and import XLS, ODS, XML, CSV, HTML, etc. into your ActiveRecord models.}
   s.description = %q{Download, pull out of a ZIP/TAR/GZ/BZ2 archive, parse, correct, and import XLS, ODS, XML, CSV, HTML, etc. into your ActiveRecord models. You can also convert units.}
