@@ -53,7 +53,7 @@ class DataMiner
       private
 
       def config
-        @config ||= if ActiveRecord::Base.respond_to?(:connection_config)
+        if ActiveRecord::Base.respond_to?(:connection_config)
           ActiveRecord::Base.connection_config
         else
           ActiveRecord::Base.connection_pool.spec.config
@@ -82,7 +82,7 @@ class DataMiner
           ::Process.waitpid pid
         end
         unless $?.success?
-          raise RuntimeError, "[data_miner] Failed: #{argv.join(' ').inspect}"
+          raise RuntimeError, "[data_miner] Failed: ARGV #{argv.join(' ').inspect}"
         end
         nil
       end
@@ -90,25 +90,24 @@ class DataMiner
       alias :mysql2 :mysql
 
       def postgresql(path)
-        connect = []
-        connect << ['--username', config[:username]] if config[:username]
-        connect << ['--password', config[:password]] if config[:password]
-        connect << ['--host',     config[:host]]     if config[:host]
-        connect << ['--port',     config[:port]]     if config[:port]
+        env = {}
+        env['PGHOST']     = config['host']          if config['host']
+        env['PGPORT']     = config['port'].to_s     if config['port']
+        env['PGPASSWORD'] = config['password'].to_s if config['password']
+        env['PGUSER']     = config['username'].to_s if config['username']
 
         argv = [
           'psql',
-          connect,
           '--quiet',
           '--dbname', config[:database],
           '--file',   path
         ].flatten
         
-        child = POSIX::Spawn::Child.new(*argv)
+        child = POSIX::Spawn::Child.new(*([env]+argv))
         $stderr.puts child.out
         $stderr.puts child.err
         unless child.success?
-          raise RuntimeError, "[data_miner] Failed: #{argv.join(' ').inspect} (#{child.err.inspect})"
+          raise RuntimeError, "[data_miner] Failed: ENV #{env.inspect} ARGV #{argv.join(' ').inspect} (#{child.err.inspect})"
         end
         nil
       end
