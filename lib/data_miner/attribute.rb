@@ -383,7 +383,7 @@ class DataMiner
 
     def read_units(row)
       if units = row[units_field_name || units_field_number]
-        DataMiner.compress_whitespace(units).underscore.to_sym
+        DataMiner.compress_whitespace(units).underscore
       end
     end
 
