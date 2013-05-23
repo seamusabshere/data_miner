@@ -83,7 +83,7 @@ class DataMiner
 
       # @private
       def start
-        upsert_enabled? ? save_with_upsert : save_with_activerecord
+        upsert_enabled? ? save_with_upsert : save
         refresh
 
         nil
@@ -97,8 +97,13 @@ class DataMiner
 
       private
 
+      def any_kvc?
+        return @any_kvc_query if defined?(@any_kvc_query)
+        @any_kvc_query = attributes.any? { |_, attr| attr.kvc? }
+      end
+
       def upsert_enabled?
-        (not validate?) and (storing_primary_key? or table_has_autoincrementing_primary_key?)
+        (not validate?) and (not any_kvc?) and (storing_primary_key? or table_has_autoincrementing_primary_key?)
       end
 
       def save_with_upsert
@@ -116,11 +121,14 @@ class DataMiner
         ActiveRecord::Base.connection_pool.checkin c
       end
 
-      def save_with_activerecord
+      def save
+        any_kvc = any_kvc?
         table.each do |row|
           record = @key ? model.send("find_or_initialize_by_#{@key}", attributes[@key].read(row)) : model.new
+          record.multi if any_kvc
           attributes.each { |_, attr| attr.set_from_row record, row }
           record.save!
+          record.exec if any_kvc
         end
       end
 

@@ -46,6 +46,7 @@ class DataMiner
       :field_number,
       :chars,
       :synthesize,
+      :kvc,
     ]
 
     VALID_UNIT_DEFINITION_SETS = [
@@ -165,6 +166,7 @@ class DataMiner
       end
       @step = step
       @name = name.to_sym
+      @kvc_boolean = options[:kvc]
       @synthesize = options[:synthesize]
       if @dictionary_boolean = options.has_key?(:dictionary)
         @dictionary_settings = options[:dictionary]
@@ -212,15 +214,25 @@ class DataMiner
     # # @private
     # TODO make sure that nil handling is replicated when using upsert
     def set_from_row(local_record, remote_row)
-      previously_nil = local_record.send(name).nil?
-      currently_nil = false
-      if previously_nil or overwrite
+      previously_nil = kvc? ? local_record.get(name).nil? : local_record.send(name).nil?
+      new_value_nil = nil
+      if overwrite or previously_nil
         new_value = read remote_row
-        local_record.send "#{name}=", new_value
-        currently_nil = new_value.nil?
+        new_value_nil = new_value.nil?
+        if not new_value_nil or not previously_nil
+          if kvc?
+            local_record.set(name, new_value)
+          else
+            local_record.send("#{name}=", new_value)
+          end
+        end
       end
-      if not currently_nil and persist_units? and (final_to_units = (to_units || read_units(remote_row)))
-        local_record.send "#{name}_units=", final_to_units
+      if not new_value_nil and persist_units? and (final_to_units = (to_units || read_units(remote_row)))
+        if kvc?
+          local_record.set "#{name}_units", final_to_units
+        else
+          local_record.send "#{name}_units=", final_to_units
+        end
       end
     end
 
@@ -239,7 +251,7 @@ class DataMiner
 
     # @private
     def read(row)
-      unless column_exists?
+      if not kvc? and not column_exists?
         raise RuntimeError, "[data_miner] Table #{model.table_name} does not have column #{name.inspect}"
       end
       if matcher and matcher_output = matcher.match(row)
@@ -339,6 +351,11 @@ class DataMiner
       @dictionary = nil
     end
 
+    # key value coding
+    def kvc?
+      @kvc_boolean
+    end
+
     private
 
     def model
@@ -346,23 +363,43 @@ class DataMiner
     end
 
     def column_exists?
-      return @column_exists_boolean if defined?(@column_exists_boolean)
-      @column_exists_boolean = model.column_names.include? name.to_s
+      if defined?(@column_exists_boolean)
+        @column_exists_boolean
+      elsif kvc?
+        @column_exists_boolean = false
+      else
+        @column_exists_boolean = model.column_names.include? name.to_s
+      end
     end
 
     def text_column?
-      return @text_column_boolean if defined?(@text_column_boolean)
-      @text_column_boolean = model.columns_hash[name.to_s].text?
+      if defined?(@text_column_boolean)
+        @text_column_boolean
+      elsif kvc?
+        @text_column_boolean = true
+      else
+        @text_column_boolean = model.columns_hash[name.to_s].text?
+      end
     end
     
     def number_column?
-      return @number_column_boolean if defined?(@number_column_boolean)
-      @number_column_boolean = model.columns_hash[name.to_s].number?
+      if defined?(@number_column_boolean)
+        @number_column_boolean
+      elsif kvc?
+        @number_column_boolean = false
+      else
+        @number_column_boolean = model.columns_hash[name.to_s].number?
+      end
     end
 
     def boolean_column?
-      return @boolean_column_boolean if defined?(@boolean_column_boolean)
-      @boolean_column_boolean = (model.columns_hash[name.to_s].type == :boolean)
+      if defined?(@boolean_column_boolean)
+        @boolean_column_boolean
+      elsif kvc?
+        @boolean_column_boolean = false
+      else
+        @boolean_column_boolean = (model.columns_hash[name.to_s].type == :boolean)
+      end
     end
 
     def static?
