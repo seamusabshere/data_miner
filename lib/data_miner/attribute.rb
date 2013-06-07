@@ -213,13 +213,14 @@ class DataMiner
 
     # # @private
     # TODO make sure that nil handling is replicated when using upsert
+    # "_present" localvars used here aren't AS's present?... they mean non-nil
     def set_from_row(local_record, remote_row)
-      previously_nil = kvc? ? local_record.get(name).nil? : local_record.send(name).nil?
-      new_value_nil = nil
-      if overwrite or previously_nil
+      previously_present = kvc? ? !local_record.get(name).nil? : !local_record.send(name).nil?
+      would_be_present = nil
+      if overwrite or not previously_present
         new_value = read remote_row
-        new_value_nil = new_value.nil?
-        if not new_value_nil or not previously_nil
+        would_be_present = !new_value.nil?
+        if would_be_present or previously_present
           if kvc?
             local_record.set(name, new_value)
           else
@@ -227,7 +228,7 @@ class DataMiner
           end
         end
       end
-      if not new_value_nil and persist_units? and (final_to_units = (to_units || read_units(remote_row)))
+      if would_be_present and persist_units? and (final_to_units = (to_units || read_units(remote_row)))
         if kvc?
           local_record.set "#{name}_units", final_to_units
         else
