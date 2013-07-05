@@ -40,9 +40,7 @@ class DataMiner
       # @private
       def start
         if statement
-          c = ActiveRecord::Base.connection_pool.checkout
-          c.execute statement
-          ActiveRecord::Base.connection_pool.checkin c
+          ActiveRecord::Base.connection.execute statement
         else
           tmp_path = UnixUtils.curl url
           send config[:adapter], tmp_path
