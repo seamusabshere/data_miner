@@ -102,7 +102,7 @@ class DataMiner
       end
 
       def save_with_upsert
-        c = ActiveRecord::Base.connection_pool.checkout
+        c = model.connection_pool.checkout
         Upsert.stream(c, model.table_name) do |upsert|
           table.each do |row|
             selector = @key ? { @key => attributes[@key].read(row) } : { model.primary_key => nil }
@@ -113,7 +113,7 @@ class DataMiner
             upsert.row selector, document
           end
         end
-        ActiveRecord::Base.connection_pool.checkin c
+        model.connection_pool.checkin c
       end
 
       def save_with_activerecord
@@ -126,7 +126,7 @@ class DataMiner
 
       def table_has_autoincrementing_primary_key?
         return @table_has_autoincrementing_primary_key_query.first if @table_has_autoincrementing_primary_key_query.is_a?(Array)
-        c = ActiveRecord::Base.connection_pool.checkout
+        c = model.connection_pool.checkout
         answer = if (pk = model.primary_key) and model.columns_hash[pk].type == :integer
           case c.adapter_name
           when /mysql/i
@@ -142,7 +142,7 @@ class DataMiner
             true
           end
         end
-        ActiveRecord::Base.connection_pool.checkin c
+        model.connection_pool.checkin c
         @table_has_autoincrementing_primary_key_query = [answer]
         answer
       end
