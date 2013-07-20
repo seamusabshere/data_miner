@@ -133,7 +133,7 @@ class DataMiner
       end
 
       def table_has_autoincrementing_primary_key?
-        return @table_has_autoincrementing_primary_key_query.first if @table_has_autoincrementing_primary_key_query.is_a?(Array)
+        return @table_has_autoincrementing_primary_key_query if defined?(@table_has_autoincrementing_primary_key_query)
         c = model.connection_pool.checkout
         answer = if (pk = model.primary_key) and model.columns_hash[pk].type == :integer
           case c.adapter_name
@@ -151,14 +151,12 @@ class DataMiner
           end
         end
         model.connection_pool.checkin c
-        @table_has_autoincrementing_primary_key_query = [answer]
-        answer
+        @table_has_autoincrementing_primary_key_query = answer
       end
 
       def storing_primary_key?
-        return @storing_primary_key_query.first if @storing_primary_key_query.is_a?(Array)
-        @storing_primary_key_query = [model.primary_key && attributes.has_key?(model.primary_key.to_sym)]
-        @storing_primary_key_query.first
+        return @storing_primary_key_query if defined?(@storing_primary_key_query)
+        @storing_primary_key_query = model.primary_key && attributes.has_key?(model.primary_key.to_sym)
       end
 
       def table
