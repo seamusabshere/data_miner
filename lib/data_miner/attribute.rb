@@ -46,7 +46,6 @@ class DataMiner
       :field_number,
       :chars,
       :synthesize,
-      :kvc,
     ]
 
     VALID_UNIT_DEFINITION_SETS = [
@@ -97,10 +96,6 @@ class DataMiner
     #
     # @return [Integer, Range]
     attr_reader :field_number
-
-    # Where to find the data in the row.
-    # @return [Symbol]
-    attr_reader :field_name
 
     # A delimiter to be used when joining fields together into a single final value. Used when +:field_number+ is a +Range+. Defaults to DEFAULT_DELIMITER.
     # @return [String]
@@ -166,7 +161,6 @@ class DataMiner
       end
       @step = step
       @name = name.to_sym
-      @kvc_boolean = options[:kvc]
       @synthesize = options[:synthesize]
       if @dictionary_boolean = options.has_key?(:dictionary)
         @dictionary_settings = options[:dictionary]
@@ -176,7 +170,7 @@ class DataMiner
         @static = options[:static]
       end
       @field_number = options[:field_number]
-      @field_name = options.fetch(:field_name, name).to_sym
+      @field_name = options[:field_name]
       @delimiter = options.fetch :delimiter, DEFAULT_DELIMITER
       @chars = options[:chars]
       if split = options[:split]
@@ -211,26 +205,46 @@ class DataMiner
       end
     end
 
+    # @private
+    def hstore_column
+      return @hstore_column if defined?(@hstore_column)
+      @hstore_column = name.to_s.split('.', 2)[0]
+    end
+
+    # @private
+    def hstore_key
+      return @hstore_key if defined?(@hstore_key)
+      @hstore_key = name.to_s.split('.', 2)[1]
+    end
+
+    # Where to find the data in the row.
+    # @return [Symbol]
+    def field_name
+      return @field_name if defined?(@field_name)
+      @field_name = (hstore? ? hstore_key : name).to_sym
+    end
+
+
     # # @private
     # TODO make sure that nil handling is replicated when using upsert
     # "_present" localvars used here aren't AS's present?... they mean non-nil
     def set_from_row(local_record, remote_row)
-      previously_present = kvc? ? !local_record.get(name).nil? : !local_record.send(name).nil?
+      previously_present = hstore? ? !local_record.send(hstore_column)[hstore_key].nil? : !local_record.send(name).nil?
       would_be_present = nil
       if overwrite or not previously_present
         new_value = read remote_row
         would_be_present = !new_value.nil?
         if would_be_present or previously_present
-          if kvc?
-            local_record.set(name, new_value)
+          if hstore?
+            local_record.send(hstore_column)[hstore_key] = new_value
           else
             local_record.send("#{name}=", new_value)
           end
         end
       end
       if would_be_present and persist_units? and (final_to_units = (to_units || read_units(remote_row)))
-        if kvc?
-          local_record.set "#{name}_units", final_to_units
+        if hstore?
+          local_record.send(hstore_column)["#{hstore_key}_units"] = final_to_units
         else
           local_record.send "#{name}_units=", final_to_units
         end
@@ -244,7 +258,13 @@ class DataMiner
         v_units = unless v.nil?
           to_units || read_units(remote_row)
         end
-        { name => v, "#{name}_units" => v_units }
+        if hstore?
+          { hstore_column => { hstore_key => v, "#{hstore_key}_units" => v_units } }
+        else
+          { name => v, "#{name}_units" => v_units }
+        end
+      elsif hstore?
+        { hstore_column => { hstore_key => v } }
       else
         { name => v }
       end
@@ -252,8 +272,8 @@ class DataMiner
 
     # @private
     def read(row)
-      if not kvc? and not column_exists?
-        raise RuntimeError, "[data_miner] Table #{model.table_name} does not have column #{name.inspect}"
+      if not column_exists?
+        raise RuntimeError, "[data_miner] Table #{model.table_name} does not have column #{(hstore? ? hstore_column : name).inspect}"
       end
       if matcher and matcher_output = matcher.match(row)
         return matcher_output
@@ -352,9 +372,9 @@ class DataMiner
       @dictionary = nil
     end
 
-    # key value coding
-    def kvc?
-      @kvc_boolean
+    def hstore?
+      return @hstore_boolean if defined?(@hstore_boolean)
+      @hstore_boolean = name.to_s.include?('.')
     end
 
     private
@@ -364,19 +384,17 @@ class DataMiner
     end
 
     def column_exists?
-      if defined?(@column_exists_boolean)
-        @column_exists_boolean
-      elsif kvc?
-        @column_exists_boolean = false
+      return @column_exists_boolean if defined?(@column_exists_boolean)
+      if hstore?
+        @column_exists_boolean = model.column_names.include? hstore_column
       else
         @column_exists_boolean = model.column_names.include? name.to_s
       end
     end
 
     def text_column?
-      if defined?(@text_column_boolean)
-        @text_column_boolean
-      elsif kvc?
+      return @text_column_boolean if defined?(@text_column_boolean)
+      if hstore?
         @text_column_boolean = true
       else
         @text_column_boolean = model.columns_hash[name.to_s].text?
@@ -384,9 +402,8 @@ class DataMiner
     end
     
     def number_column?
-      if defined?(@number_column_boolean)
-        @number_column_boolean
-      elsif kvc?
+      return @number_column_boolean if defined?(@number_column_boolean)
+      if hstore?
         @number_column_boolean = false
       else
         @number_column_boolean = model.columns_hash[name.to_s].number?
@@ -394,9 +411,8 @@ class DataMiner
     end
 
     def boolean_column?
-      if defined?(@boolean_column_boolean)
-        @boolean_column_boolean
-      elsif kvc?
+      return @boolean_column_boolean if defined?(@boolean_column_boolean)
+      if hstore?
         @boolean_column_boolean = false
       else
         @boolean_column_boolean = (model.columns_hash[name.to_s].type == :boolean)

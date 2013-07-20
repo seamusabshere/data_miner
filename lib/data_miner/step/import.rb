@@ -85,7 +85,6 @@ class DataMiner
       def start
         upsert_enabled? ? save_with_upsert : save
         refresh
-
         nil
       end
 
@@ -97,22 +96,32 @@ class DataMiner
 
       private
 
-      def any_kvc?
-        return @any_kvc_query if defined?(@any_kvc_query)
-        @any_kvc_query = attributes.any? { |_, attr| attr.kvc? }
+      def upsert_enabled?
+        (not validate?) and (storing_primary_key? or table_has_autoincrementing_primary_key?)
       end
 
-      def upsert_enabled?
-        (not validate?) and (not any_kvc?) and (storing_primary_key? or table_has_autoincrementing_primary_key?)
+      def count_every
+        @count_every ||= ENV.fetch('DATA_MINER_COUNT_EVERY', -1).to_i
       end
 
       def save_with_upsert
         c = model.connection_pool.checkout
+        attrs_except_key = attributes.except(@key).values
+        count = 0
         Upsert.stream(c, model.table_name) do |upsert|
           table.each do |row|
+            $stderr.puts "#{count}..." if count_every > 0 and count % count_every == 0
+            count += 1
             selector = @key ? { @key => attributes[@key].read(row) } : { model.primary_key => nil }
-            document = attributes.except(@key).inject({}) do |memo, (_, attr)|
-              memo.merge! attr.updates(row)
+            document = attrs_except_key.inject({}) do |memo, attr|
+              attr.updates(row).each do |k, v|
+                case memo[k]
+                when ::Hash
+                  memo[k] = memo[k].merge v
+                else
+                  memo[k] = v
+                end
+              end
               memo
             end
             upsert.row selector, document
@@ -122,13 +131,13 @@ class DataMiner
       end
 
       def save
-        any_kvc = any_kvc?
+        count = 0
         table.each do |row|
+          $stderr.puts "#{count}..." if count_every > 0 and count % count_every == 0
+          count += 1
           record = @key ? model.send("find_or_initialize_by_#{@key}", attributes[@key].read(row)) : model.new
-          record.multi if any_kvc
           attributes.each { |_, attr| attr.set_from_row record, row }
           record.save!
-          record.exec if any_kvc
         end
       end
 
