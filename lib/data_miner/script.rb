@@ -202,7 +202,7 @@ class DataMiner
     # @note Normally you should use +Country.run_data_miner!+
     # @note A primitive "call stack" is kept that will prevent infinite loops. So, if Country's data miner script calls Province's AND vice-versa, each one will only be run once.
     #
-    # @return [DataMiner::Run]
+    # @return nil
     def start
       model_name = model.name
       # $stderr.write "0 - #{model_name}\n"
@@ -217,17 +217,11 @@ class DataMiner
         Script.current_stack.clear
       end
       Script.current_stack << model_name
-      unless Run.table_exists?
-        Run.auto_upgrade!
+      steps.each do |step|
+        step.start
+        model.reset_column_information
       end
-      run = Run.new
-      run.model_name = model_name
-      run.start do
-        steps.each do |step|
-          step.start
-          model.reset_column_information
-        end
-      end
+      nil
     end
         
     private

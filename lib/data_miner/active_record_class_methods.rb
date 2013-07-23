@@ -12,16 +12,9 @@ class DataMiner
       end
     end
     
-    # Access to recordkeeping.
-    #
-    # @return [ActiveRecord::Relation] Records of running the data miner script.
-    def data_miner_runs
-      DataMiner::Run.scoped :conditions => { :model_name => name }
-    end
-
     # Run this model's script.
     #
-    # @return [DataMiner::Run]
+    # @return nil
     def run_data_miner!
       data_miner_script.start
     end
@@ -45,13 +38,14 @@ class DataMiner
     #     end
     #   end
     #
-    # @return [Array<DataMiner::Run>]
+    # @return nil
     def run_data_miner_on_parent_associations!
       reflect_on_all_associations(:belongs_to).reject do |assoc|
         assoc.options[:polymorphic]
       end.map do |non_polymorphic_belongs_to_assoc|
         non_polymorphic_belongs_to_assoc.klass.run_data_miner!
       end
+      nil
     end
     
     # Define a data miner script.

@@ -22,7 +22,6 @@ require 'data_miner/step'
 require 'data_miner/step/import'
 require 'data_miner/step/process'
 require 'data_miner/step/sql'
-require 'data_miner/run'
 
 # A singleton class that holds global configuration for data mining.
 #
@@ -58,13 +57,14 @@ class DataMiner
   #
   # @param [optional, Array<String>] model_names Names of models to be run.
   #
-  # @return [Array<DataMiner::Run>]
+  # @return nil
   def start(model_names = DataMiner.model_names)
     Script.uniq do
       model_names.map do |model_name|
         model_name.constantize.run_data_miner!
       end
     end
+    nil
   end
 
   # legacy
@@ -95,16 +95,6 @@ class DataMiner
     @model_names || ::Thread.exclusive do
       @model_names ||= ::Set.new
     end
-  end
-
-  # Whether per-column stats like max, min, average, standard deviation, etc are enabled.
-  def per_column_statistics?
-    @per_column_statistics == true
-  end
-
-  # Turn on or off per-column stats.
-  def per_column_statistics=(boolean)
-    @per_column_statistics = boolean
   end
 
   class << self

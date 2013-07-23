@@ -46,10 +46,6 @@ def init_database
       'password' => 'password'
     )
   end
-
-  DataMiner::Run.auto_upgrade!
-  DataMiner::Run::ColumnStatistic.auto_upgrade!
-  DataMiner::Run.clear_locks
 end
 
 def init_models

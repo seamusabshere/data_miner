@@ -7,6 +7,7 @@ unreleased
   * always overwrites columns whether there was a non-null value there before or not (no more :overwrite option)
   * don't use synthesize option, just pass a block
   * not tested against the Earth library, which has particular requirements and makes testing too complicated
+  * doesn't keep DataMiner::Run or DataMiner::Run::ColumnStatistic records
 
 2.5.2 / 2013-07-05
 

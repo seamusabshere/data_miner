@@ -9,8 +9,6 @@ describe DataMiner do
       Pet.delete_all
       Pet2.delete_all
       Pet3.delete_all
-      DataMiner::Run.delete_all
-      DataMiner::Run::ColumnStatistic.delete_all
     end
     it "it does not depend on mass-assignment" do
       lambda do
@@ -86,11 +84,6 @@ describe DataMiner do
       Pet.find('Johnny').command_phrase.must_be_nil
       Pet.find('Jerry').favorite_food.must_equal 'cheese'
       Pet.find('Johnny').favorite_food.must_be_nil
-    end
-    it "keeps a row count before and after" do
-      Pet.run_data_miner!
-      Pet.data_miner_runs.first.row_count_before.must_equal 0
-      Pet.data_miner_runs.first.row_count_after.must_equal 5
     end
     it "can import based on keys other than the primary key" do
       Pet2.run_data_miner!
