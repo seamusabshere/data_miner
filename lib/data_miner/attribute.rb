@@ -30,7 +30,6 @@ class DataMiner
       :upcase,
       :field_number,
       :chars,
-      :synthesize,
     ]
 
     DEFAULT_SPLIT_PATTERN = /\s+/
@@ -49,7 +48,9 @@ class DataMiner
     # @return [Symbol]
     attr_reader :name
     
-    # Synthesize a value by passing a proc that will receive +row+ and should return a final value.
+    # The block passed to a store argument. Synthesize a value by passing a proc that will receive +row+ and should return a final value.
+    #
+    # Unlike past versions of DataMiner, you pass this as a block, not with the :synthesize option.
     #
     # +row+ will be a +Hash+ with string keys or (less often) an +Array+
     #
@@ -100,14 +101,14 @@ class DataMiner
     attr_reader :upcase
 
     # @private
-    def initialize(step, name, options = {})
+    def initialize(step, name, options = {}, &blk)
       options = options.symbolize_keys
       if (errors = Attribute.check_options(options)).any?
         raise ::ArgumentError, %{[data_miner] Errors on #{inspect}: #{errors.join(';')}}
       end
       @step = step
       @name = name.to_sym
-      @synthesize = options[:synthesize]
+      @synthesize = &blk if block_given?
       if @dictionary_boolean = options.has_key?(:dictionary)
         @dictionary_settings = options[:dictionary]
       end
