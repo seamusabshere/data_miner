@@ -83,7 +83,7 @@ class DataMiner
 
       # @private
       def start
-        upsert_enabled? ? save_with_upsert : save
+        upsert_enabled? ? save_with_upsert : save_with_find_or_initialize
         refresh
         nil
       end
@@ -130,7 +130,7 @@ class DataMiner
         model.connection_pool.checkin c
       end
 
-      def save
+      def save_with_find_or_initialize
         count = 0
         table.each do |row|
           $stderr.puts "#{count}..." if count_every > 0 and count % count_every == 0
