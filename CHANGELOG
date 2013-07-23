@@ -1,3 +1,9 @@
+unreleased
+
+* breaking changes
+
+  * no more unit conversions
+
 2.5.2 / 2013-07-05
 
 * Bug fixes

@@ -76,20 +76,6 @@ describe DataMiner do
       Pet.find('Amigo').height.must_equal 300.5
       Pet.find('Johnny').height.must_equal 4000.0
     end
-    it "performs unit conversions" do
-      Pet.run_data_miner!
-      Pet.find('Pierre').weight.must_be_close_to 1.9958 # 4.4 pounds in kilograms
-    end
-    it "doesn't convert nil to 0 when converting units" do
-      Pet.run_data_miner!
-      Pet.find('Nemo').age.must_be_nil
-    end
-    it "sets units" do
-      Pet.run_data_miner!
-      Pet.find('Pierre').age_units.must_equal 'years'
-      Pet.find('Pierre').weight_units.must_equal 'kilograms'
-      Pet.find('Pierre').height_units.must_equal 'millimetres'
-    end
     it "always nullifies numeric columns when blank/nil is the input" do
       Pet.run_data_miner!
       Pet.find('Amigo').weight.must_be_nil
@@ -103,11 +89,6 @@ describe DataMiner do
       Pet.run_data_miner!
       Pet.find('Jerry').favorite_food.must_equal 'cheese'
       Pet.find('Johnny').favorite_food.must_be_nil
-    end
-    it "doesn't set units if the input was blank/null" do
-      Pet.run_data_miner!
-      Pet.find('Amigo').weight.must_be_nil
-      Pet.find('Amigo').weight_units.must_be_nil
     end
     it "keeps a row count before and after" do
       Pet.run_data_miner!

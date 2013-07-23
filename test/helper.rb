@@ -22,7 +22,7 @@ ActiveRecord::Base.mass_assignment_sanitizer = :strict
 
 require 'data_miner'
 
-def init_database(unit_converter = :conversions)
+def init_database
   case ENV['DATABASE']
   when /postgr/i
     system %{dropdb test_data_miner}
@@ -50,8 +50,6 @@ def init_database(unit_converter = :conversions)
   DataMiner::Run.auto_upgrade!
   DataMiner::Run::ColumnStatistic.auto_upgrade!
   DataMiner::Run.clear_locks
-
-  DataMiner.unit_converter = unit_converter
 end
 
 def init_models

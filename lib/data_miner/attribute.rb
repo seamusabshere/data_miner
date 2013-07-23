@@ -15,46 +15,25 @@ class DataMiner
         if (invalid_option_keys = options.keys - VALID_OPTIONS).any?
           errors << %{Invalid options: #{invalid_option_keys.map(&:inspect).to_sentence}}
         end
-        units_options = options.select { |k, _| k.to_s.include?('units') }
-        if units_options.any? and DataMiner.unit_converter.nil?
-          errors << %{You must set DataMiner.unit_converter to :alchemist or :conversions if you wish to convert units}
-        end
-        if units_options.any? and VALID_UNIT_DEFINITION_SETS.none? { |d| d.all? { |required_option| options[required_option].present? } }
-          errors << %{#{units_options.inspect} is not a valid set of units definitions. Please supply a set like #{VALID_UNIT_DEFINITION_SETS.map(&:inspect).to_sentence}".}
-        end
         errors
       end
     end
 
     VALID_OPTIONS = [
-      :from_units,
-      :to_units,
       :static,
       :dictionary,
       :matcher,
       :field_name,
       :delimiter,
       :split,
-      :units,
       :sprintf,
       :nullify, # deprecated
       :nullify_blank_strings,
       :overwrite,
       :upcase,
-      :units_field_name,
-      :units_field_number,
       :field_number,
       :chars,
       :synthesize,
-    ]
-
-    VALID_UNIT_DEFINITION_SETS = [
-      [:units],                         # no conversion
-      [:from_units, :to_units],         # yes
-      [:units_field_name],              # no
-      [:units_field_name, :to_units],   # yes
-      [:units_field_number],            # no
-      [:units_field_number, :to_units], # yes
     ]
 
     DEFAULT_SPLIT_PATTERN = /\s+/
@@ -113,26 +92,6 @@ class DataMiner
     # @return [Hash]
     attr_reader :split
 
-    # Final units. May invoke a conversion using https://rubygems.org/gems/alchemist
-    #
-    # If a local column named +[name]_units+ exists, it will be populated with this value.
-    #
-    # @return [Symbol]
-    attr_reader :to_units
-
-    # Initial units. May invoke a conversion using a conversion gem like https://rubygems.org/gems/alchemist
-    # Be sure to set DataMiner.unit_converter
-    # @return [Symbol]
-    attr_reader :from_units
-
-    # If every row specifies its own units, index of where to find the units. Zero-based.
-    # @return [Integer]
-    attr_reader :units_field_number
-
-    # If every row specifies its own units, where to find the units.
-    # @return [Symbol]
-    attr_reader :units_field_name
-
     # A +sprintf+-style format to apply.
     # @return [String]
     attr_reader :sprintf
@@ -183,14 +142,8 @@ class DataMiner
         options.fetch :nullify_blank_strings, DEFAULT_NULLIFY_BLANK_STRINGS
       end
       @upcase = options.fetch :upcase, DEFAULT_UPCASE
-      @from_units = options[:from_units]
-      @to_units = options[:to_units] || options[:units]
       @sprintf = options[:sprintf]
       @overwrite = options.fetch :overwrite, DEFAULT_OVERWRITE
-      @units_field_name = options[:units_field_name]
-      @units_field_number = options[:units_field_number]
-      @convert_boolean = (@from_units.present? or (@to_units.present? and (@units_field_name.present? or @units_field_number.present?)))
-      @persist_units_boolean = (@to_units.present? or @units_field_name.present? or @units_field_number.present?)
       @dictionary_mutex = ::Mutex.new
     end
 
@@ -242,28 +195,12 @@ class DataMiner
           end
         end
       end
-      if would_be_present and persist_units? and (final_to_units = (to_units || read_units(remote_row)))
-        if hstore?
-          local_record.send(hstore_column)["#{hstore_key}_units"] = final_to_units
-        else
-          local_record.send "#{name}_units=", final_to_units
-        end
-      end
     end
 
     # @private
     def updates(remote_row)
       v = read remote_row
-      if persist_units?
-        v_units = unless v.nil?
-          to_units || read_units(remote_row)
-        end
-        if hstore?
-          { hstore_column => { hstore_key => v, "#{hstore_key}_units" => v_units } }
-        else
-          { name => v, "#{name}_units" => v_units }
-        end
-      elsif hstore?
+      if hstore?
         { hstore_column => { hstore_key => v } }
       else
         { name => v }
@@ -340,9 +277,6 @@ class DataMiner
       if upcase
         value = DataMiner.upcase value
       end
-      if convert?
-        value = convert_units value, row
-      end
       if sprintf
         if sprintf.end_with?('f')
           value = value.to_f
@@ -355,16 +289,6 @@ class DataMiner
         value = dictionary.lookup(value)
       end
       value
-    end
-
-    # @private
-    def convert_units(value, row)
-      final_from_units = from_units || read_units(row)
-      final_to_units = to_units || read_units(row)
-      unless final_from_units and final_to_units
-        raise RuntimeError, "[data_miner] Missing units: from=#{final_from_units.inspect}, to=#{final_to_units.inspect}"
-      end
-      DataMiner.unit_converter.convert value, final_from_units, final_to_units
     end
 
     # @private
@@ -425,20 +349,6 @@ class DataMiner
 
     def dictionary?
       @dictionary_boolean
-    end
-
-    def convert?
-      @convert_boolean
-    end
-
-    def persist_units?
-      @persist_units_boolean
-    end
-
-    def read_units(row)
-      if units = row[units_field_name || units_field_number]
-        DataMiner.compress_whitespace(units).underscore
-      end
     end
 
     def free

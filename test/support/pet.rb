@@ -9,11 +9,8 @@ class Pet < ActiveRecord::Base
   col :breed_id
   col :color_id
   col :age, :type => :integer
-  col :age_units
   col :weight, :type => :float
-  col :weight_units
   col :height, :type => :float
-  col :height_units
   col :favorite_food
   col :command_phrase
   belongs_to :breed
@@ -22,13 +19,13 @@ class Pet < ActiveRecord::Base
     process :run_data_miner_on_parent_associations!
     import("A list of pets", :url => "file://#{PETS}") do
       key :name
-      store :age, :units_field_name => 'age_units'
+      store :age
       store :breed_id, :field_name => :breed, :nullify_blank_strings => true
       store :color_id, :field_name => :color, :dictionary => { :url => "file://#{COLOR_DICTIONARY_ENGLISH}", :input => :input, :output => :output }
-      store :weight, :from_units => :pounds, :to_units => :kilograms
+      store :weight
       store :favorite_food, :nullify_blank_strings => true
       store :command_phrase
-      store :height, :units => :millimetres
+      store :height
     end
   end
 end

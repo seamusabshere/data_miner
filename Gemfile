@@ -2,8 +2,6 @@ source :rubygems
 
 gemspec
 
-gem 'conversions'
-
 if RUBY_VERSION >= '1.9'
   gem 'unicode_utils'
 end

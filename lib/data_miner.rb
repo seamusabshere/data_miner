@@ -23,7 +23,6 @@ require 'data_miner/step/import'
 require 'data_miner/step/process'
 require 'data_miner/step/sql'
 require 'data_miner/run'
-require 'data_miner/unit_converter'
 
 # A singleton class that holds global configuration for data mining.
 #
@@ -45,23 +44,6 @@ class DataMiner
     # @private
     def compress_whitespace(str)
       str.gsub(INNER_SPACE, ONE_SPACE).strip
-    end
-
-    # Set the unit converter.
-    #
-    # @note As of 2012-05-30, there are problems with the alchemist gem and the use of the conversions gem instead is recommended.
-    #
-    # @param [Symbol,nil] conversion_library Either +:alchemist+ or +:conversions+
-    #
-    # @return [nil]
-    def unit_converter=(conversion_library)
-      @unit_converter = UnitConverter.load conversion_library
-      nil
-    end
-
-    # @return [#convert,nil] The user-selected unit converter or nil.
-    def unit_converter
-      @unit_converter
     end
   end
 

@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.email       = ["seamus@abshere.net", "rossmeissl@gmail.com", "dkastner@gmail.com", "ijhough@gmail.com", "towerhe@gmail.com"]
   s.homepage    = "https://github.com/seamusabshere/data_miner"
   s.summary     = %{Download, pull out of a ZIP/TAR/GZ/BZ2 archive, parse, correct, and import XLS, ODS, XML, CSV, HTML, etc. into your ActiveRecord models.}
-  s.description = %q{Download, pull out of a ZIP/TAR/GZ/BZ2 archive, parse, correct, and import XLS, ODS, XML, CSV, HTML, etc. into your ActiveRecord models. You can also convert units.}
+  s.description = %q{Download, pull out of a ZIP/TAR/GZ/BZ2 archive, parse, correct, and import XLS, ODS, XML, CSV, HTML, etc. into your ActiveRecord models. Uses Upsert internally for speed.}
 
   s.rubyforge_project = "data_miner"
 
@@ -28,8 +28,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'unix_utils'
   s.add_runtime_dependency 'roo', '>=1.10.3'
 
-  s.add_development_dependency 'dkastner-alchemist'
-  s.add_development_dependency 'conversions'
   s.add_development_dependency 'earth'
   s.add_development_dependency 'fuzzy_match'
   s.add_development_dependency 'lock_method'
