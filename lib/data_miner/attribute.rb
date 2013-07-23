@@ -27,7 +27,6 @@ class DataMiner
       :delimiter,
       :split,
       :sprintf,
-      :overwrite,
       :upcase,
       :field_number,
       :chars,
@@ -38,7 +37,6 @@ class DataMiner
     DEFAULT_SPLIT_KEEP = 0
     DEFAULT_DELIMITER = ', '
     DEFAULT_UPCASE = false
-    DEFAULT_OVERWRITE = true
 
     # activerecord-3.2.6/lib/active_record/connection_adapters/column.rb
     TRUE_VALUES = [true, 1, '1', 't', 'T', 'true', 'TRUE', 'on', 'ON', 'yes', 'YES', 'y', 'Y']
@@ -101,10 +99,6 @@ class DataMiner
     # @return [TrueClass,FalseClass]
     attr_reader :upcase
 
-    # Whether to overwrite the value in a local column if it is not null. Defaults to DEFAULT_OVERWRITE.
-    # @return [TrueClass,FalseClass]
-    attr_reader :overwrite
-
     # @private
     def initialize(step, name, options = {})
       options = options.symbolize_keys
@@ -130,7 +124,6 @@ class DataMiner
       end
       @upcase = options.fetch :upcase, DEFAULT_UPCASE
       @sprintf = options[:sprintf]
-      @overwrite = options.fetch :overwrite, DEFAULT_OVERWRITE
       @dictionary_mutex = ::Mutex.new
     end
 
@@ -164,23 +157,13 @@ class DataMiner
       @field_name = (hstore? ? hstore_key : name).to_sym
     end
 
-
     # # @private
-    # TODO make sure that nil handling is replicated when using upsert
-    # "_present" localvars used here aren't AS's present?... they mean non-nil
     def set_from_row(local_record, remote_row)
-      previously_present = hstore? ? !local_record.send(hstore_column)[hstore_key].nil? : !local_record.send(name).nil?
-      would_be_present = nil
-      if overwrite or not previously_present
-        new_value = read remote_row
-        would_be_present = !new_value.nil?
-        if would_be_present or previously_present
-          if hstore?
-            local_record.send(hstore_column)[hstore_key] = new_value
-          else
-            local_record.send("#{name}=", new_value)
-          end
-        end
+      new_value = read remote_row
+      if hstore?
+        local_record.send(hstore_column)[hstore_key] = new_value
+      else
+        local_record.send("#{name}=", new_value)
       end
     end
 

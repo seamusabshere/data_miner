@@ -4,6 +4,7 @@ unreleased
 
   * no more unit conversions
   * always nullifies blank strings
+  * always overwrites columns whether there was a non-null value there before or not (no more :overwrite option)
 
 2.5.2 / 2013-07-05
 
