@@ -20,10 +20,10 @@ class Pet < ActiveRecord::Base
     import("A list of pets", :url => "file://#{PETS}") do
       key :name
       store :age
-      store :breed_id, :field_name => :breed, :nullify_blank_strings => true
+      store :breed_id, :field_name => :breed
       store :color_id, :field_name => :color, :dictionary => { :url => "file://#{COLOR_DICTIONARY_ENGLISH}", :input => :input, :output => :output }
       store :weight
-      store :favorite_food, :nullify_blank_strings => true
+      store :favorite_food
       store :command_phrase
       store :height
     end

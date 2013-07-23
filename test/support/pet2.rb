@@ -15,7 +15,7 @@ class Pet2 < ActiveRecord::Base
     end
     import("Breed numbers based on license number", :url => "file://#{BREED_BY_LICENSE_NUMBER}") do
       key :license_number
-      store :breed_id, :field_name => :breed, :nullify_blank_strings => true
+      store :breed_id, :field_name => :breed
     end
   end
 end

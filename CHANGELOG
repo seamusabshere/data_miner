@@ -3,6 +3,7 @@ unreleased
 * breaking changes
 
   * no more unit conversions
+  * always nullifies blank strings
 
 2.5.2 / 2013-07-05
 

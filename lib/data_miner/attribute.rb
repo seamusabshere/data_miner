@@ -27,8 +27,6 @@ class DataMiner
       :delimiter,
       :split,
       :sprintf,
-      :nullify, # deprecated
-      :nullify_blank_strings,
       :overwrite,
       :upcase,
       :field_number,
@@ -39,7 +37,6 @@ class DataMiner
     DEFAULT_SPLIT_PATTERN = /\s+/
     DEFAULT_SPLIT_KEEP = 0
     DEFAULT_DELIMITER = ', '
-    DEFAULT_NULLIFY_BLANK_STRINGS = false
     DEFAULT_UPCASE = false
     DEFAULT_OVERWRITE = true
 
@@ -100,10 +97,6 @@ class DataMiner
     # @return [String,Numeric,TrueClass,FalseClass,Object]
     attr_reader :static
 
-    # Only meaningful for string columns. Whether to store blank input ("    ") as NULL. Defaults to DEFAULT_NULLIFY_BLANK_STRINGS.
-    # @return [TrueClass,FalseClass]
-    attr_reader :nullify_blank_strings
-
     # Whether to upcase value. Defaults to DEFAULT_UPCASE.
     # @return [TrueClass,FalseClass]
     attr_reader :upcase
@@ -134,12 +127,6 @@ class DataMiner
       @chars = options[:chars]
       if split = options[:split]
         @split = split.symbolize_keys
-      end
-      @nullify_blank_strings = if options.has_key?(:nullify)
-        # deprecated
-        options[:nullify]
-      else
-        options.fetch :nullify_blank_strings, DEFAULT_NULLIFY_BLANK_STRINGS
       end
       @upcase = options.fetch :upcase, DEFAULT_UPCASE
       @sprintf = options[:sprintf]
@@ -270,7 +257,7 @@ class DataMiner
         keep = split.fetch :keep, DEFAULT_SPLIT_KEEP
         value = value.to_s.split(pattern)[keep].to_s
       end
-      if value.blank? and (not text_column? or nullify_blank_strings)
+      if value.blank? # TODO false is "blank"
         return
       end
       value = DataMiner.compress_whitespace value

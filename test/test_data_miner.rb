@@ -80,13 +80,10 @@ describe DataMiner do
       Pet.run_data_miner!
       Pet.find('Amigo').weight.must_be_nil
     end
-    it "doesn't nullify string columns by default" do
+    it "does nullify blank string columns by default" do
       Pet.run_data_miner!
-      Pet.find('Amigo').command_phrase.must_equal ''
-      Pet.find('Johnny').command_phrase.must_equal ''
-    end
-    it "nullifies string columns on demand" do
-      Pet.run_data_miner!
+      Pet.find('Amigo').command_phrase.must_be_nil
+      Pet.find('Johnny').command_phrase.must_be_nil
       Pet.find('Jerry').favorite_food.must_equal 'cheese'
       Pet.find('Johnny').favorite_food.must_be_nil
     end
