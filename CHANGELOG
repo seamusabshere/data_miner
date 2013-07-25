@@ -3,6 +3,7 @@ unreleased
 * Enhancements
 
   * :limit option for import steps - oh yeah
+  * :random_skip option - goes nicely with :limit if you're debugging
 
 * Bug fixes
 

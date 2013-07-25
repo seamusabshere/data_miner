@@ -24,6 +24,10 @@ class DataMiner
       # @return [Numeric]
       attr_reader :limit
 
+      # Number from zero to one representing what percentage of rows to skip. Defaults to 0, of course :)
+      # @return [Numeric]
+      attr_reader :random_skip
+
       # @private
       def initialize(script, description, settings, &blk)
         settings = settings.stringify_keys
@@ -46,6 +50,7 @@ class DataMiner
         @table_settings['streaming'] = true
         @table_mutex = ::Mutex.new
         @limit = settings.fetch 'limit', (1.0/0)
+        @random_skip = settings['random_skip']
         instance_eval(&blk)
       end
 
@@ -115,6 +120,7 @@ class DataMiner
         count = 0
         Upsert.stream(c, model.table_name) do |upsert|
           table.each do |row|
+            next if random_skip and random_skip > Kernel.rand
             $stderr.puts "#{count}..." if count_every > 0 and count % count_every == 0
             break if count > limit
             count += 1
@@ -139,6 +145,7 @@ class DataMiner
       def save_with_find_or_initialize
         count = 0
         table.each do |row|
+          next if random_skip and random_skip > Kernel.rand
           $stderr.puts "#{count}..." if count_every > 0 and count % count_every == 0
           break if count > limit
           count += 1
