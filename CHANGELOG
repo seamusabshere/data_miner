@@ -1,4 +1,4 @@
-unreleased
+3.0.0.alpha / 2013-07-24
 
 * breaking changes
 
@@ -11,6 +11,10 @@ unreleased
   * not tested against the Earth library, which has particular requirements and makes testing too complicated
   * doesn't keep DataMiner::Run or DataMiner::Run::ColumnStatistic records
   * no more :matcher option
+
+* enhancements
+
+  * if you have a postgres hstore column called "foo", you can do store 'foo.bar'
 
 2.5.2 / 2013-07-05
 

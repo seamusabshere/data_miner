@@ -1,3 +1,3 @@
 class DataMiner
-  VERSION = '2.5.2'
+  VERSION = '3.0.0.alpha'
 end
