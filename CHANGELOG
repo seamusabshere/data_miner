@@ -1,3 +1,13 @@
+unreleased
+
+* Enhancements
+
+  * :limit option for import steps - oh yeah
+
+* Bug fixes
+
+  * Make sure to stringify data_miner(:append) option
+
 3.0.0.alpha / 2013-07-24
 
 * breaking changes

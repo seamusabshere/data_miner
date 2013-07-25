@@ -20,6 +20,10 @@ class DataMiner
       # @return [String]
       attr_reader :description
 
+      # Max number of rows to import.
+      # @return [Numeric]
+      attr_reader :limit
+
       # @private
       def initialize(script, description, settings, &blk)
         settings = settings.stringify_keys
@@ -41,6 +45,7 @@ class DataMiner
         @table_settings = settings.dup
         @table_settings['streaming'] = true
         @table_mutex = ::Mutex.new
+        @limit = settings.fetch 'limit', (1.0/0)
         instance_eval(&blk)
       end
 
@@ -111,6 +116,7 @@ class DataMiner
         Upsert.stream(c, model.table_name) do |upsert|
           table.each do |row|
             $stderr.puts "#{count}..." if count_every > 0 and count % count_every == 0
+            break if count > limit
             count += 1
             selector = @key ? { @key => attributes[@key].read(row) } : { model.primary_key => nil }
             document = attrs_except_key.inject({}) do |memo, attr|
@@ -134,6 +140,7 @@ class DataMiner
         count = 0
         table.each do |row|
           $stderr.puts "#{count}..." if count_every > 0 and count % count_every == 0
+          break if count > limit
           count += 1
           record = @key ? model.send("find_or_initialize_by_#{@key}", attributes[@key].read(row)) : model.new
           attributes.each { |_, attr| attr.set_from_row record, row }
