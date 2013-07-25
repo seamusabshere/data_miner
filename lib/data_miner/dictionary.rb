@@ -31,11 +31,11 @@ class DataMiner
 
     # @private
     def initialize(options = {})
-      options = options.symbolize_keys
-      @url = options[:url]
-      @key_name = options[:input].to_s
-      @value_name = options[:output].to_s
-      @sprintf = options[:sprintf]
+      options = options.stringify_keys
+      @url = options['url']
+      @key_name = options['input'].to_s
+      @value_name = options['output'].to_s
+      @sprintf = options['sprintf']
       @case_sensitive = options.fetch :case_sensitive, DEFAULT_CASE_SENSITIVE
       @table_mutex = ::Mutex.new
     end

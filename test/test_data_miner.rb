@@ -74,6 +74,14 @@ describe DataMiner do
       Pet.find('Amigo').height.must_equal 300.5
       Pet.find('Johnny').height.must_equal 4000.0
     end
+    it "uses blocks to synthesize values" do
+      Pet.run_data_miner!
+      Pet.find('Jerry').emphatic_command_phrase.must_equal 'che!!!!!'
+    end
+    it "runs the result of synthesize through the standard cleaners" do
+      Pet.run_data_miner!
+      Pet.find('Johnny').emphatic_command_phrase.must_equal 'oh ok !!!!!'
+    end
     it "always nullifies numeric columns when blank/nil is the input" do
       Pet.run_data_miner!
       Pet.find('Amigo').weight.must_be_nil
@@ -81,7 +89,6 @@ describe DataMiner do
     it "does nullify blank string columns by default" do
       Pet.run_data_miner!
       Pet.find('Amigo').command_phrase.must_be_nil
-      Pet.find('Johnny').command_phrase.must_be_nil
       Pet.find('Jerry').favorite_food.must_equal 'cheese'
       Pet.find('Johnny').favorite_food.must_be_nil
     end

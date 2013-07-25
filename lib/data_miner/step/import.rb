@@ -22,24 +22,24 @@ class DataMiner
 
       # @private
       def initialize(script, description, settings, &blk)
-        settings = settings.symbolize_keys
-        if settings.has_key?(:table)
+        settings = settings.stringify_keys
+        if settings.has_key?('table')
           raise ::ArgumentError, %{[data_miner] :table is no longer an allowed setting.}
         end
-        if (errata_settings = settings[:errata]) and not errata_settings.is_a?(::Hash)
+        if (errata_settings = settings['errata']) and not errata_settings.is_a?(::Hash)
           raise ::ArgumentError, %{[data_miner] :errata must be a hash of initialization settings to Errata}
         end
         @script = script
         @attributes = ::ActiveSupport::OrderedHash.new
-        @validate_query = !!settings[:validate]
+        @validate_query = !!settings['validate']
         @description = description
-        if settings.has_key? :errata
-          errata_settings = settings[:errata].symbolize_keys
-          errata_settings[:responder] ||= model
-          settings[:errata] = errata_settings
+        if settings.has_key? 'errata'
+          errata_settings = settings['errata'].stringify_keys
+          errata_settings['responder'] ||= model
+          settings['errata'] = errata_settings
         end
         @table_settings = settings.dup
-        @table_settings[:streaming] = true
+        @table_settings['streaming'] = true
         @table_mutex = ::Mutex.new
         instance_eval(&blk)
       end
@@ -48,17 +48,17 @@ class DataMiner
       #
       # @see DataMiner::Attribute The actual Attribute class.
       #
-      # @param [Symbol] attr_name The name of the local model column.
+      # @param [String] attr_name The name of the local model column.
       # @param [optional, Hash] attr_options Options that will be passed to +DataMiner::Attribute.new+
       # @option attr_options [*] anything Any option for +DataMiner::Attribute+.
       #
       # @return [nil]
-      def store(attr_name, attr_options = {})
-        attr_name = attr_name.to_sym
+      def store(attr_name, attr_options = {}, &blk)
+        attr_name = attr_name.to_s
         if attributes.has_key? attr_name
           raise "You should only call store or key once for #{model.name}##{attr_name}"
         end
-        attributes[attr_name] = DataMiner::Attribute.new self, attr_name, attr_options
+        attributes[attr_name] = DataMiner::Attribute.new self, attr_name, attr_options, &blk
       end
 
       # Store data into a model column AND use it as the key.
@@ -67,13 +67,13 @@ class DataMiner
       #
       # Enables idempotency. In other words, you can run the data miner script multiple times, get updated data, and not get duplicate rows.
       #
-      # @param [Symbol] attr_name The name of the local model column.
+      # @param [String] attr_name The name of the local model column.
       # @param [optional, Hash] attr_options Options that will be passed to +DataMiner::Attribute.new+
       # @option attr_options [*] anything Any option for +DataMiner::Attribute+.
       #
       # @return [nil]
       def key(attr_name, attr_options = {})
-        attr_name = attr_name.to_sym
+        attr_name = attr_name.to_s
         if attributes.has_key? attr_name
           raise "You should only call store or key once for #{model.name}##{attr_name}"
         end
@@ -165,7 +165,7 @@ class DataMiner
 
       def storing_primary_key?
         return @storing_primary_key_query if defined?(@storing_primary_key_query)
-        @storing_primary_key_query = model.primary_key && attributes.has_key?(model.primary_key.to_sym)
+        @storing_primary_key_query = model.primary_key && attributes.has_key?(model.primary_key)
       end
 
       def table

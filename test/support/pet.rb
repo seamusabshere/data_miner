@@ -13,6 +13,7 @@ class Pet < ActiveRecord::Base
   col :height, :type => :float
   col :favorite_food
   col :command_phrase
+  col :emphatic_command_phrase
   belongs_to :breed
   data_miner do
     process :auto_upgrade!
@@ -26,6 +27,9 @@ class Pet < ActiveRecord::Base
       store :favorite_food
       store :command_phrase
       store :height
+      store :emphatic_command_phrase do |row|
+        (row['command_phrase'] + "!!!!!") if row['command_phrase']
+      end
     end
   end
 end

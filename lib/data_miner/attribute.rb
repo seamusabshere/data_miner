@@ -9,7 +9,7 @@ class DataMiner
       # @private
       def check_options(options)
         errors = []
-        if options[:dictionary].is_a?(Dictionary)
+        if options['dictionary'].is_a?(Dictionary)
           errors << %{:dictionary must be a Hash of options}
         end
         if (invalid_option_keys = options.keys - VALID_OPTIONS).any?
@@ -20,16 +20,16 @@ class DataMiner
     end
 
     VALID_OPTIONS = [
-      :static,
-      :dictionary,
-      :matcher,
-      :field_name,
-      :delimiter,
-      :split,
-      :sprintf,
-      :upcase,
-      :field_number,
-      :chars,
+      'static',
+      'dictionary',
+      'matcher',
+      'field_name',
+      'delimiter',
+      'split',
+      'sprintf',
+      'upcase',
+      'field_number',
+      'chars',
     ]
 
     DEFAULT_SPLIT_PATTERN = /\s+/
@@ -45,7 +45,7 @@ class DataMiner
     attr_reader :step
     
     # Local column name.
-    # @return [Symbol]
+    # @return [String]
     attr_reader :name
     
     # The block passed to a store argument. Synthesize a value by passing a proc that will receive +row+ and should return a final value.
@@ -102,29 +102,29 @@ class DataMiner
 
     # @private
     def initialize(step, name, options = {}, &blk)
-      options = options.symbolize_keys
+      options = options.stringify_keys
       if (errors = Attribute.check_options(options)).any?
         raise ::ArgumentError, %{[data_miner] Errors on #{inspect}: #{errors.join(';')}}
       end
       @step = step
-      @name = name.to_sym
-      @synthesize = &blk if block_given?
-      if @dictionary_boolean = options.has_key?(:dictionary)
-        @dictionary_settings = options[:dictionary]
+      @name = name.to_s
+      @synthesize = blk if block_given?
+      if @dictionary_boolean = options.has_key?('dictionary')
+        @dictionary_settings = options['dictionary']
       end
-      @matcher = options[:matcher].is_a?(::String) ? options[:matcher].constantize.new : options[:matcher]
-      if @static_boolean = options.has_key?(:static)
-        @static = options[:static]
+      @matcher = options['matcher'].is_a?(::String) ? options['matcher'].constantize.new : options['matcher']
+      if @static_boolean = options.has_key?('static')
+        @static = options['static']
       end
-      @field_number = options[:field_number]
-      @field_name = options[:field_name]
-      @delimiter = options.fetch :delimiter, DEFAULT_DELIMITER
-      @chars = options[:chars]
-      if split = options[:split]
-        @split = split.symbolize_keys
+      @field_number = options['field_number']
+      @field_name_settings = options['field_name']
+      @delimiter = options.fetch 'delimiter', DEFAULT_DELIMITER
+      @chars = options['chars']
+      if split = options['split']
+        @split = split.stringify_keys
       end
-      @upcase = options.fetch :upcase, DEFAULT_UPCASE
-      @sprintf = options[:sprintf]
+      @upcase = options.fetch 'upcase', DEFAULT_UPCASE
+      @sprintf = options['sprintf']
       @dictionary_mutex = ::Mutex.new
     end
 
@@ -142,20 +142,26 @@ class DataMiner
     # @private
     def hstore_column
       return @hstore_column if defined?(@hstore_column)
-      @hstore_column = name.to_s.split('.', 2)[0]
+      @hstore_column = name.split('.', 2)[0]
     end
 
     # @private
     def hstore_key
       return @hstore_key if defined?(@hstore_key)
-      @hstore_key = name.to_s.split('.', 2)[1]
+      @hstore_key = name.split('.', 2)[1]
     end
 
     # Where to find the data in the row.
-    # @return [Symbol]
+    # @return [String]
     def field_name
       return @field_name if defined?(@field_name)
-      @field_name = (hstore? ? hstore_key : name).to_sym
+      @field_name = if @field_name_settings
+        @field_name_settings.to_s
+      elsif hstore?
+        hstore_key
+      else
+        name
+      end
     end
 
     # # @private
@@ -186,21 +192,20 @@ class DataMiner
       if matcher and matcher_output = matcher.match(row)
         return matcher_output
       end
-      if synthesize
-        return synthesize.call(row)
-      end
       value = if static?
         static
+      elsif synthesize
+        synthesize.call(row)
       elsif field_number
         if field_number.is_a?(::Range)
           field_number.map { |n| row[n] }.join(delimiter)
         else
           row[field_number]
         end
-      elsif field_name == :row_hash
+      elsif field_name == 'row_hash'
         row.row_hash
       elsif row.is_a?(::Hash) or row.is_a?(::ActiveSupport::OrderedHash)
-        row[field_name.to_s] # remote_table hash keys are always strings
+        row[field_name] # remote_table hash keys are always strings
       end
       if value.nil?
         return
@@ -269,7 +274,7 @@ class DataMiner
 
     def hstore?
       return @hstore_boolean if defined?(@hstore_boolean)
-      @hstore_boolean = name.to_s.include?('.')
+      @hstore_boolean = name.include?('.')
     end
 
     private
@@ -283,7 +288,7 @@ class DataMiner
       if hstore?
         @column_exists_boolean = model.column_names.include? hstore_column
       else
-        @column_exists_boolean = model.column_names.include? name.to_s
+        @column_exists_boolean = model.column_names.include? name
       end
     end
 
@@ -292,7 +297,7 @@ class DataMiner
       if hstore?
         @text_column_boolean = true
       else
-        @text_column_boolean = model.columns_hash[name.to_s].text?
+        @text_column_boolean = model.columns_hash[name].text?
       end
     end
     
@@ -301,7 +306,7 @@ class DataMiner
       if hstore?
         @number_column_boolean = false
       else
-        @number_column_boolean = model.columns_hash[name.to_s].number?
+        @number_column_boolean = model.columns_hash[name].number?
       end
     end
 
@@ -310,7 +315,7 @@ class DataMiner
       if hstore?
         @boolean_column_boolean = false
       else
-        @boolean_column_boolean = (model.columns_hash[name.to_s].type == :boolean)
+        @boolean_column_boolean = (model.columns_hash[name].type == :boolean)
       end
     end
 

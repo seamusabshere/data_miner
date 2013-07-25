@@ -15,10 +15,11 @@ MiniTest::Reporters.use!
 require 'active_record'
 require 'logger'
 ActiveRecord::Base.logger = Logger.new $stderr
-ActiveRecord::Base.logger.level = Logger::INFO
-# ActiveRecord::Base.logger.level = Logger::DEBUG
+ActiveRecord::Base.logger.level = (ENV['VERBOSE'] == 'true') ? Logger::DEBUG : Logger::INFO
 
 ActiveRecord::Base.mass_assignment_sanitizer = :strict
+
+require 'active_record_inline_schema'
 
 require 'data_miner'
 

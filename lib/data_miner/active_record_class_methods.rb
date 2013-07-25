@@ -41,7 +41,7 @@ class DataMiner
     # @return nil
     def run_data_miner_on_parent_associations!
       reflect_on_all_associations(:belongs_to).reject do |assoc|
-        assoc.options[:polymorphic]
+        assoc.options['polymorphic']
       end.map do |non_polymorphic_belongs_to_assoc|
         non_polymorphic_belongs_to_assoc.klass.run_data_miner!
       end
@@ -91,7 +91,7 @@ class DataMiner
     #
     # @return [nil]
     def data_miner(options = {}, &blk)
-      unless options[:append]
+      unless options['append']
         @data_miner_script = nil
       end
       data_miner_script.append_block blk

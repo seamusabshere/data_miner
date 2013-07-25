@@ -43,7 +43,7 @@ class DataMiner
           ActiveRecord::Base.connection.execute statement
         else
           tmp_path = UnixUtils.curl url
-          send config[:adapter], tmp_path
+          send config['adapter'], tmp_path
           File.unlink tmp_path
         end
       end
@@ -59,8 +59,8 @@ class DataMiner
       end
 
       def mysql(path)
-        connect = if config[:socket]
-          [ '--socket', config[:socket] ]
+        connect = if config['socket']
+          [ '--socket', config['socket'] ]
         else
           [ '--host', config.fetch(:host, '127.0.0.1'), '--port', config.fetch(:port, 3306).to_s ]
         end
@@ -68,11 +68,11 @@ class DataMiner
         argv = [
           'mysql',
           '--compress',
-          '--user', config[:username],
-          "-p#{config[:password]}",
+          '--user', config['username'],
+          "-p#{config['password']}",
           connect,
           '--default-character-set', 'utf8',
-          config[:database]
+          config['database']
         ].flatten
 
         File.open(path) do |f|
@@ -97,7 +97,7 @@ class DataMiner
         argv = [
           'psql',
           '--quiet',
-          '--dbname', config[:database],
+          '--dbname', config['database'],
           '--file',   path
         ].flatten
         
@@ -113,7 +113,7 @@ class DataMiner
       def sqlite3(path)
         argv = [
           'sqlite3',
-          config[:database]
+          config['database']
         ]
         File.open(path) do |f|
           pid = POSIX::Spawn.spawn(*(argv+[{:in => f}]))
