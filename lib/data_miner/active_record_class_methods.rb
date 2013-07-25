@@ -91,6 +91,7 @@ class DataMiner
     #
     # @return [nil]
     def data_miner(options = {}, &blk)
+      options = options.stringify_keys
       unless options['append']
         @data_miner_script = nil
       end
