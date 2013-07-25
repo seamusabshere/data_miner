@@ -22,7 +22,6 @@ class DataMiner
     VALID_OPTIONS = [
       'static',
       'dictionary',
-      'matcher',
       'field_name',
       'delimiter',
       'split',
@@ -56,14 +55,6 @@ class DataMiner
     #
     # @return [Proc]
     attr_reader :synthesize
-    
-    # An object that will be sent +#match(row)+ and should return a final value.
-    #
-    # Can be specified as a String which will be constantized into a class and an object of that class instantized with no arguments.
-    #
-    # +row+ will be a +Hash+ with string keys or (less often) an +Array+
-    # @return [Object]
-    attr_reader :matcher
     
     # Index of where to find the data in the row, starting from zero.
     #
@@ -112,7 +103,6 @@ class DataMiner
       if @dictionary_boolean = options.has_key?('dictionary')
         @dictionary_settings = options['dictionary']
       end
-      @matcher = options['matcher'].is_a?(::String) ? options['matcher'].constantize.new : options['matcher']
       if @static_boolean = options.has_key?('static')
         @static = options['static']
       end
@@ -188,9 +178,6 @@ class DataMiner
     def read(row)
       if not column_exists?
         raise RuntimeError, "[data_miner] Table #{model.table_name} does not have column #{(hstore? ? hstore_column : name).inspect}"
-      end
-      if matcher and matcher_output = matcher.match(row)
-        return matcher_output
       end
       value = if static?
         static

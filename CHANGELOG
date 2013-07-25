@@ -9,6 +9,7 @@ unreleased
   * synthesized values get the same whitespace compression and stripping as other values
   * not tested against the Earth library, which has particular requirements and makes testing too complicated
   * doesn't keep DataMiner::Run or DataMiner::Run::ColumnStatistic records
+  * no more :matcher option
 
 2.5.2 / 2013-07-05
 
