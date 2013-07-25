@@ -2,6 +2,7 @@ unreleased
 
 * breaking changes
 
+  * :dictionary is now just a plain Hash-like object (responds to []) - and no longer attempts to refresh between runs  
   * no more unit conversions
   * always nullifies blank strings
   * always overwrites columns whether there was a non-null value there before or not (no more :overwrite option)

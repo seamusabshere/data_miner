@@ -22,7 +22,7 @@ class Pet < ActiveRecord::Base
       key :name
       store :age
       store :breed_id, :field_name => :breed
-      store :color_id, :field_name => :color, :dictionary => { :url => "file://#{COLOR_DICTIONARY_ENGLISH}", :input => :input, :output => :output }
+      store :color_id, :field_name => :color, :dictionary => RemoteTable.new("file://#{COLOR_DICTIONARY_ENGLISH}").inject({}) { |memo, row| memo[row['input']] = row['output']; memo }
       store :weight
       store :favorite_food
       store :command_phrase

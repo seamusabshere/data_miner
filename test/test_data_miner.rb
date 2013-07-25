@@ -35,18 +35,6 @@ describe DataMiner do
       Pet.run_data_miner!
       Pet.find('Jerry').color_id.must_equal 'brown/black'
     end
-    it "refreshes the dictionary for every run" do
-      Pet.run_data_miner!
-      Pet.find('Jerry').color_id.must_equal 'brown/black'
-      begin
-        FileUtils.mv COLOR_DICTIONARY_ENGLISH, "#{COLOR_DICTIONARY_ENGLISH}.bak"
-        FileUtils.cp COLOR_DICTIONARY_SPANISH, COLOR_DICTIONARY_ENGLISH # oops! somebody swapped in a spanish dictionary
-        Pet.run_data_miner!
-        Pet.find('Jerry').color_id.must_equal 'morron/negro'
-      ensure
-        FileUtils.mv "#{COLOR_DICTIONARY_ENGLISH}.bak", COLOR_DICTIONARY_ENGLISH
-      end
-    end
     it "refreshes the data source for every run" do
       Pet.run_data_miner!
       Pet.find('Jerry').breed_id.must_equal 'Beagle'

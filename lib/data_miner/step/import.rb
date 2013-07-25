@@ -176,7 +176,6 @@ class DataMiner
 
       def refresh
         @table = nil
-        attributes.each { |_, attr| attr.refresh }
         nil
       end
     end

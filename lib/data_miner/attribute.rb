@@ -9,8 +9,8 @@ class DataMiner
       # @private
       def check_options(options)
         errors = []
-        if options['dictionary'].is_a?(Dictionary)
-          errors << %{:dictionary must be a Hash of options}
+        if options.has_key?('dictionary') and not options['dictionary'].respond_to?(:[])
+          errors << %{:dictionary must respond to [], like a Hash does}
         end
         if (invalid_option_keys = options.keys - VALID_OPTIONS).any?
           errors << %{Invalid options: #{invalid_option_keys.map(&:inspect).to_sentence}}
@@ -91,6 +91,13 @@ class DataMiner
     # @return [TrueClass,FalseClass]
     attr_reader :upcase
 
+    # Dictionary for translating.
+    #
+    # You pass a Hash or something that responds to []
+    #
+    # @return [#[]]
+    attr_reader :dictionary
+
     # @private
     def initialize(step, name, options = {}, &blk)
       options = options.stringify_keys
@@ -100,9 +107,7 @@ class DataMiner
       @step = step
       @name = name.to_s
       @synthesize = blk if block_given?
-      if @dictionary_boolean = options.has_key?('dictionary')
-        @dictionary_settings = options['dictionary']
-      end
+      @dictionary = options['dictionary']
       if @static_boolean = options.has_key?('static')
         @static = options['static']
       end
@@ -115,18 +120,6 @@ class DataMiner
       end
       @upcase = options.fetch 'upcase', DEFAULT_UPCASE
       @sprintf = options['sprintf']
-      @dictionary_mutex = ::Mutex.new
-    end
-
-    # Dictionary for translating.
-    #
-    # You pass a +Hash+ of options which is used to initialize a +DataMiner::Dictionary+.
-    #
-    # @return [DataMiner::Dictionary]
-    def dictionary
-      @dictionary || @dictionary_mutex.synchronize do
-        @dictionary ||= Dictionary.new(@dictionary_settings)
-      end
     end
 
     # @private
@@ -243,15 +236,10 @@ class DataMiner
       if sprintf
         value = sprintf % value.to_f
       end
-      if dictionary?
-        value = dictionary.lookup(value)
+      if dictionary
+        value = dictionary[value]
       end
       value
-    end
-
-    # @private
-    def refresh
-      @dictionary = nil
     end
 
     def hstore?
@@ -303,14 +291,6 @@ class DataMiner
 
     def static?
       @static_boolean
-    end
-
-    def dictionary?
-      @dictionary_boolean
-    end
-
-    def free
-      @dictionary = nil
     end
   end
 end

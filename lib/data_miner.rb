@@ -17,7 +17,6 @@ end
 require 'data_miner/active_record_class_methods'
 require 'data_miner/attribute'
 require 'data_miner/script'
-require 'data_miner/dictionary'
 require 'data_miner/step'
 require 'data_miner/step/import'
 require 'data_miner/step/process'
