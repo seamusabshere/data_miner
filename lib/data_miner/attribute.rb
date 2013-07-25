@@ -241,12 +241,7 @@ class DataMiner
         value = DataMiner.upcase value
       end
       if sprintf
-        if sprintf.end_with?('f')
-          value = value.to_f
-        elsif sprintf.end_with?('d')
-          value = value.to_i
-        end
-        value = sprintf % value
+        value = sprintf % value.to_f
       end
       if dictionary?
         value = dictionary.lookup(value)
