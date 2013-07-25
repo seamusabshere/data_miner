@@ -55,14 +55,14 @@ class DataMiner
           ActiveRecord::Base.connection_config
         else
           ActiveRecord::Base.connection_pool.spec.config
-        end
+        end.stringify_keys
       end
 
       def mysql(path)
         connect = if config['socket']
           [ '--socket', config['socket'] ]
         else
-          [ '--host', config.fetch(:host, '127.0.0.1'), '--port', config.fetch(:port, 3306).to_s ]
+          [ '--host', config.fetch('host', '127.0.0.1'), '--port', config.fetch('port', 3306).to_s ]
         end
         
         argv = [

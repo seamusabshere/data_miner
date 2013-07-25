@@ -229,8 +229,8 @@ class DataMiner
         value = value[chars]
       end
       if split
-        pattern = split.fetch :pattern, DEFAULT_SPLIT_PATTERN
-        keep = split.fetch :keep, DEFAULT_SPLIT_KEEP
+        pattern = split.fetch 'pattern', DEFAULT_SPLIT_PATTERN
+        keep = split.fetch 'keep', DEFAULT_SPLIT_KEEP
         value = value.to_s.split(pattern)[keep].to_s
       end
       if value.blank? # TODO false is "blank"
