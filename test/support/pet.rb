@@ -15,9 +15,15 @@ class Pet < ActiveRecord::Base
   col :command_phrase
   col :emphatic_command_phrase
   belongs_to :breed
+
+
+
   data_miner do
+
     process :auto_upgrade!
+    
     process :run_data_miner_on_parent_associations!
+
     import("A list of pets", :url => "file://#{PETS}") do
       key :name
       store :age
@@ -31,5 +37,6 @@ class Pet < ActiveRecord::Base
         (row['command_phrase'] + "!!!!!") if row['command_phrase']
       end
     end
+
   end
 end

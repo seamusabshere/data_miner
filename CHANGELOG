@@ -2,6 +2,7 @@ unreleased
 
 * Enhancements
 
+  * test steps with after: and every: options, referring to row counts in the previous step
   * :limit option for import steps - oh yeah
   * :random_skip option - goes nicely with :limit if you're debugging
 

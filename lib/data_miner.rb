@@ -21,6 +21,7 @@ require 'data_miner/step'
 require 'data_miner/step/import'
 require 'data_miner/step/process'
 require 'data_miner/step/sql'
+require 'data_miner/step/test'
 
 # A singleton class that holds global configuration for data mining.
 #

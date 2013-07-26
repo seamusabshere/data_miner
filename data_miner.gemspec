@@ -25,7 +25,9 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'posix-spawn'
   s.add_runtime_dependency 'unix_utils'
   s.add_runtime_dependency 'roo', '>=1.10.3'
-
+  s.add_runtime_dependency 'rspec-expectations'
+  
+  s.add_development_dependency 'rspec'
   s.add_development_dependency 'pry'
   s.add_development_dependency 'active_record_inline_schema'
   s.add_development_dependency 'fuzzy_match'

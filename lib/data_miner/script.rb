@@ -92,6 +92,36 @@ class DataMiner
       append(:process, method_id_or_description, &blk)
     end
 
+    # A step that runs tests and stops the data miner on failures.
+    #
+    # rspec-expectations are automatically included.
+    #
+    # @see DataMiner::ActiveRecordClassMethods#data_miner Overview of how to define data miner scripts inside of ActiveRecord models.
+    # @see DataMiner::Step::Test The actual Test class.
+    #
+    # @param [String] description A description of what the block does.
+    # @param [Hash] settings Settings
+    # @option settings [String] :after After how many rows of the previous step to run the tests.
+    # @yield [] Tests to be run
+    #
+    # @example Tests
+    #   data_miner do
+    #     [...]
+    #     test "make sure something works" do
+    #       expect(Pet.count).to be > 10
+    #     end
+    #     [...]
+    #     test "make sure something works", after: 20 do
+    #       [...]
+    #     end
+    #     [...]
+    #   end
+    #
+    # @return [nil]
+    def test(description, settings = {}, &blk)
+      append(:test, description, settings, &blk)
+    end
+
     # Import rows into your model.
     #
     # As long as...
@@ -217,6 +247,11 @@ class DataMiner
         Script.current_stack.clear
       end
       Script.current_stack << model_name
+      steps.each do |step|
+        steps.each do |other|
+          other.register step
+        end
+      end
       steps.each do |step|
         step.start
         model.reset_column_information

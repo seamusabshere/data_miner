@@ -29,6 +29,9 @@ class DataMiner
       attr_reader :random_skip
 
       # @private
+      attr_reader :listeners
+
+      # @private
       def initialize(script, description, settings, &blk)
         settings = settings.stringify_keys
         if settings.has_key?('table')
@@ -51,6 +54,7 @@ class DataMiner
         @table_mutex = ::Mutex.new
         @limit = settings.fetch 'limit', (1.0/0)
         @random_skip = settings['random_skip']
+        @listeners = []
         instance_eval(&blk)
       end
 
@@ -104,6 +108,12 @@ class DataMiner
         @validate_query == true
       end
 
+      def register(step)
+        if step.target?(self)
+          listeners << step
+        end
+      end
+
       private
 
       def upsert_enabled?
@@ -137,6 +147,9 @@ class DataMiner
               memo
             end
             upsert.row selector, document
+            listeners.select! do |listener|
+              listener.notify self, count
+            end
           end
         end
         model.connection_pool.checkin c
@@ -152,6 +165,9 @@ class DataMiner
           record = @key ? model.send("find_or_initialize_by_#{@key}", attributes[@key].read(row)) : model.new
           attributes.each { |_, attr| attr.set_from_row record, row }
           record.save!
+          listeners.select! do |listener|
+            listener.notify self, count
+          end
         end
       end
 

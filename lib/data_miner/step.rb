@@ -12,5 +12,21 @@ class DataMiner
     def model
       script.model
     end
+
+    def pos
+      script.steps.index self
+    end
+
+    def register(step)
+      # noop
+    end
+
+    def notify(*args)
+      # noop
+    end
+
+    def target?(*args)
+      false
+    end
   end
 end
