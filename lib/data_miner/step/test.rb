@@ -32,11 +32,12 @@ class DataMiner
 
       # @private
       def initialize(script, description, settings, &blk)
+        settings = settings.stringify_keys
         @script = script
         @description = description
         @blk = blk
-        @after = settings[:after]
-        @every = settings[:every]
+        @after = settings['after']
+        @every = settings['every']
         raise "can't do both after and every" if after and every
       end
       
