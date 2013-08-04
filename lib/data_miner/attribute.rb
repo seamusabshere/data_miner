@@ -134,16 +134,18 @@ class DataMiner
       @hstore_key = name.split('.', 2)[1]
     end
 
-    # Where to find the data in the row.
-    # @return [String]
+    # Where to find the data in the row. If more than one field name, values are joined with a space.
+    # @return [Array<String>]
     def field_name
       return @field_name if defined?(@field_name)
-      @field_name = if @field_name_settings
-        @field_name_settings.to_s
+      @field_name = if @field_name_settings.is_a?(::Array)
+        @field_name_settings.map(&:to_s)
+      elsif @field_name_settings.is_a?(::String) or @field_name_settings.is_a?(::Symbol)
+        [ @field_name_settings.to_s ]
       elsif hstore?
-        hstore_key
+        [ hstore_key ]
       else
-        name
+        [ name ]
       end
     end
 
@@ -168,6 +170,8 @@ class DataMiner
     end
 
     # @private
+    ROW_HASH_FIELD_NAME = ['row_hash']
+    SINGLE_SPACE = ' '
     def read(row)
       if not column_exists?
         raise RuntimeError, "[data_miner] Table #{model.table_name} does not have column #{(hstore? ? hstore_column : name).inspect}"
@@ -182,10 +186,10 @@ class DataMiner
         else
           row[field_number]
         end
-      elsif field_name == 'row_hash'
+      elsif field_name == ROW_HASH_FIELD_NAME
         row.row_hash
       elsif row.is_a?(::Hash) or row.is_a?(::ActiveSupport::OrderedHash)
-        row[field_name] # remote_table hash keys are always strings
+        field_name.length > 1 ? row.values_at(*field_name).join(SINGLE_SPACE) : row[field_name[0]]
       end
       if value.nil?
         return

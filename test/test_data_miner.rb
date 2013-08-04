@@ -47,6 +47,10 @@ describe DataMiner do
         FileUtils.mv "#{PETS}.bak", PETS
       end
     end
+    it "combines fields with a space if array passed to :field_name" do
+      Pet.run_data_miner!
+      Pet.find('Jerry').age_weight.must_equal '5 10'
+    end
     it "provides :run_data_miner_on_parent_associations!" do
       Pet.run_data_miner!
       Pet.find('Jerry').breed.must_equal Breed.find('Beagle')

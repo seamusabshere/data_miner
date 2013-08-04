@@ -14,6 +14,7 @@ class Pet < ActiveRecord::Base
   col :favorite_food
   col :command_phrase
   col :emphatic_command_phrase
+  col :age_weight
   belongs_to :breed
 
 
@@ -36,6 +37,7 @@ class Pet < ActiveRecord::Base
       store :emphatic_command_phrase do |row|
         (row['command_phrase'] + "!!!!!") if row['command_phrase']
       end
+      store :age_weight, field_name: [:age, :weight]
     end
 
   end
