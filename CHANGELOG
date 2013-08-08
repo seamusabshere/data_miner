@@ -1,3 +1,5 @@
+3.0.0.rc1 / 2013-08-08
+
 * Enhancements
 
   * :field_name can be passed as an Array like [ :first_name, :last_name ], which will join them with a space
