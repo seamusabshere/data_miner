@@ -252,9 +252,15 @@ class DataMiner
           other.register step
         end
       end
-      steps.each do |step|
-        step.start
-        model.reset_column_information
+      steps.each_with_index do |step, i|
+        begin
+          DataMiner.logger.info "[DataMiner] #{step.model.name} step #{i} starting: #{step.description}"
+          step.start
+          model.reset_column_information
+        rescue
+          DataMiner.logger.info "[DataMiner] #{step.model.name} step #{i} error: #{$!.inspect}"
+        end
+        DataMiner.logger.info "[DataMiner] #{step.model.name} step #{i} done!"
       end
       nil
     end
