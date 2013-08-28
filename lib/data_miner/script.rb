@@ -254,13 +254,14 @@ class DataMiner
       end
       steps.each_with_index do |step, i|
         begin
-          DataMiner.logger.info "[DataMiner] #{step.model.name} step #{i} starting: #{step.description}"
+          DataMiner.logger.info "[DataMiner] START #{step.model.name} step #{i} #{step.description.inspect}"
           step.start
           model.reset_column_information
         rescue
-          DataMiner.logger.info "[DataMiner] #{step.model.name} step #{i} error: #{$!.inspect}"
+          DataMiner.logger.info "[DataMiner] FAIL #{step.model.name} step #{i} (#{step.description.inspect})"
+          raise $!
         end
-        DataMiner.logger.info "[DataMiner] #{step.model.name} step #{i} done!"
+        DataMiner.logger.info "[DataMiner] DONE #{step.model.name} step #{i} (#{step.description.inspect})"
       end
       nil
     end
