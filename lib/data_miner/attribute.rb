@@ -29,6 +29,7 @@ class DataMiner
       'upcase',
       'field_number',
       'chars',
+      'date_format',
     ]
 
     DEFAULT_SPLIT_PATTERN = /\s+/
@@ -91,6 +92,10 @@ class DataMiner
     # @return [TrueClass,FalseClass]
     attr_reader :upcase
 
+    # Date format to pass to Date.strptime
+    # @return [String]
+    attr_reader :date_format
+
     # Dictionary for translating.
     #
     # You pass a Hash or something that responds to []
@@ -111,6 +116,7 @@ class DataMiner
       if @static_boolean = options.has_key?('static')
         @static = options['static']
       end
+      @date_format = options['date_format']
       @field_number = options['field_number']
       @field_name_settings = options['field_name']
       @delimiter = options.fetch 'delimiter', DEFAULT_DELIMITER
@@ -239,6 +245,9 @@ class DataMiner
       end
       if sprintf
         value = sprintf % value.to_f
+      end
+      if date_format
+        value = Date.strptime value.to_s, date_format
       end
       if dictionary
         value = dictionary[value]
