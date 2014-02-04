@@ -1,50 +1,28 @@
+3.0.0 / 2014-02-04
+
+* Breaking changes
+
+  * (alpha) :dictionary is now just a plain Hash-like object (responds to []) - and no longer attempts to refresh between runs  
+  * (alpha) no more unit conversions
+  * (alpha) always nullifies blank strings
+  * (alpha) always overwrites columns whether there was a non-null value there before or not (no more :overwrite option)
+  * (alpha) don't use synthesize option, just pass a block
+  * (alpha) synthesized values get the same whitespace compression and stripping as other values
+  * (alpha) not tested against the Earth library, which has particular requirements and makes testing too complicated
+  * (alpha) doesn't keep DataMiner::Run or DataMiner::Run::ColumnStatistic records
+  * (alpha) no more :matcher option
+
 * Enhancements
 
   * :date_format option takes format for Date.strptime
   * :ignore_error options recovers from some value conversion errors
-
-3.0.0.rc2 / 2013-08-28
-
-* Enhancements
-
-  * (Re-)Start logging the beginning, erroring, and ending of steps
-  * Raise errors if a step fails
-
-3.0.0.rc1 / 2013-08-08
-
-* Enhancements
-
-  * :field_name can be passed as an Array like [ :first_name, :last_name ], which will join them with a space
-
-3.0.0.beta / 2013-07-26
-
-* Enhancements
-
-  * test steps with after: and every: options, referring to row counts in the previous step
-  * :limit option for import steps - oh yeah
-  * :random_skip option - goes nicely with :limit if you're debugging
-
-* Bug fixes
-
-  * Make sure to stringify data_miner(:append) option
-
-3.0.0.alpha / 2013-07-24
-
-* breaking changes
-
-  * :dictionary is now just a plain Hash-like object (responds to []) - and no longer attempts to refresh between runs  
-  * no more unit conversions
-  * always nullifies blank strings
-  * always overwrites columns whether there was a non-null value there before or not (no more :overwrite option)
-  * don't use synthesize option, just pass a block
-  * synthesized values get the same whitespace compression and stripping as other values
-  * not tested against the Earth library, which has particular requirements and makes testing too complicated
-  * doesn't keep DataMiner::Run or DataMiner::Run::ColumnStatistic records
-  * no more :matcher option
-
-* enhancements
-
-  * if you have a postgres hstore column called "foo", you can do store 'foo.bar'
+  * (rc2) (Re-)Start logging the beginning, erroring, and ending of steps
+  * (rc2) Raise errors if a step fails
+  * (rc1) :field_name can be passed as an Array like [ :first_name, :last_name ], which will join them with a space
+  * (beta) test steps with after: and every: options, referring to row counts in the previous step
+  * (beta) :limit option for import steps - oh yeah
+  * (beta) :random_skip option - goes nicely with :limit if you're debugging
+  * (alpha) if you have a postgres hstore column called "foo", you can do store 'foo.bar'
 
 2.5.2 / 2013-07-05
 
