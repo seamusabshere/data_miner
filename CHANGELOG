@@ -1,6 +1,7 @@
 * Enhancements
 
   * :date_format option takes format for Date.strptime
+  * :ignore_error options recovers from some value conversion errors
 
 3.0.0.rc2 / 2013-08-28
 

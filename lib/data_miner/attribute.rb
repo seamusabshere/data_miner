@@ -30,12 +30,14 @@ class DataMiner
       'field_number',
       'chars',
       'date_format',
+      'ignore_error',
     ]
 
     DEFAULT_SPLIT_PATTERN = /\s+/
     DEFAULT_SPLIT_KEEP = 0
     DEFAULT_DELIMITER = ', '
     DEFAULT_UPCASE = false
+    DEFAULT_IGNORE_ERROR = false
 
     # activerecord-3.2.6/lib/active_record/connection_adapters/column.rb
     TRUE_VALUES = [true, 1, '1', 't', 'T', 'true', 'TRUE', 'on', 'ON', 'yes', 'YES', 'y', 'Y']
@@ -96,6 +98,10 @@ class DataMiner
     # @return [String]
     attr_reader :date_format
 
+    # Ignore value conversion errors - value will be nil.
+    # @return [TrueClass, FalseClass]
+    attr_reader :ignore_error
+
     # Dictionary for translating.
     #
     # You pass a Hash or something that responds to []
@@ -113,6 +119,7 @@ class DataMiner
       @name = name.to_s
       @synthesize = blk if block_given?
       @dictionary = options['dictionary']
+      @ignore_error = options.fetch 'ignore_error', DEFAULT_IGNORE_ERROR
       if @static_boolean = options.has_key?('static')
         @static = options['static']
       end
@@ -253,6 +260,12 @@ class DataMiner
         value = dictionary[value]
       end
       value
+    rescue
+      if ignore_error
+        DataMiner.logger.debug { "Error in #{name}: #{$!.message}" }
+      else
+        raise $!
+      end
     end
 
     def hstore?
