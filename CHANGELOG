@@ -23,6 +23,7 @@
   * (beta) :limit option for import steps - oh yeah
   * (beta) :random_skip option - goes nicely with :limit if you're debugging
   * (alpha) if you have a postgres hstore column called "foo", you can do store 'foo.bar'
+  * add MIT license
 
 2.5.2 / 2013-07-05
 

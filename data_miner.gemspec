@@ -10,6 +10,8 @@ Gem::Specification.new do |s|
   s.summary     = %{Download, pull out of a ZIP/TAR/GZ/BZ2 archive, parse, correct, and import XLS, ODS, XML, CSV, HTML, etc. into your ActiveRecord models.}
   s.description = %q{Download, pull out of a ZIP/TAR/GZ/BZ2 archive, parse, correct, and import XLS, ODS, XML, CSV, HTML, etc. into your ActiveRecord models. Uses Upsert internally for speed.}
 
+  s.license = 'MIT'
+  
   s.rubyforge_project = "data_miner"
 
   s.files         = `git ls-files`.split("\n")
