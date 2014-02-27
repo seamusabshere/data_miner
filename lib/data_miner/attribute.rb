@@ -263,6 +263,7 @@ class DataMiner
     rescue
       if ignore_error
         DataMiner.logger.debug { "Error in #{name}: #{$!.message}" }
+        nil
       else
         raise $!
       end

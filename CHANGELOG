@@ -1,3 +1,9 @@
+unreleased
+
+* Bug fixes
+
+  * When :ignore_error is true and there is an error, set value to nil instead of true
+
 3.0.0 / 2014-02-04
 
 * Breaking changes
